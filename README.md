@@ -75,3 +75,9 @@ Always import shared UI components using the workspace namespace:
 ```tsx
 import { Button, Logo } from "@mr/ui";
 ```
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](file:///Users/teixe/dev/mundialito-redondela/LICENSE) file for details.
