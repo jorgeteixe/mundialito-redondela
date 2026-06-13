@@ -65,6 +65,7 @@ pnpm --filter @mr/ui storybook
 Detailed workflows, guidelines, and visual assets automation instructions are stored in the `/docs` folder:
 
 - **[Documentation Overview](file:///Users/teixe/dev/mundialito-redondela/docs/README.md)**: Folder conventions and technical scope.
+- **[UI Components](file:///Users/teixe/dev/mundialito-redondela/docs/ui-components.md)**: shadcn/ui setup, how to add components, theming, and Storybook conventions.
 
 ---
 

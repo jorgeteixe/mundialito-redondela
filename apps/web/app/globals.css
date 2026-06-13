@@ -1,12 +1,66 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@import "tailwindcss";
+
+/* Tell Tailwind v4 to scan the shared UI package for class names */
+@source "../../packages/ui/src";
+
+@theme inline {
+  /* Brand palette — mirrors packages/ui/src/styles.css */
+  --color-primary: oklch(0.25 0.109 264);
+  --color-primary-foreground: oklch(1 0 0);
+  --color-primary-dark: oklch(0.16 0.08 264);
+
+  --color-secondary: oklch(0.07 0 0);
+  --color-secondary-foreground: oklch(1 0 0);
+
+  --color-destructive: oklch(0.43 0.178 24);
+  --color-destructive-foreground: oklch(1 0 0);
+
+  /* Surfaces */
+  --color-background: oklch(0.99 0.003 240);
+  --color-foreground: oklch(0.145 0 0);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.145 0 0);
+
+  /* Muted / accents */
+  --color-muted: oklch(0.96 0.006 240);
+  --color-muted-foreground: oklch(0.5 0.01 240);
+  --color-accent: oklch(0.96 0.006 240);
+  --color-accent-foreground: oklch(0.25 0.109 264);
+
+  /* Border / ring */
+  --color-border: oklch(0.85 0.015 240);
+  --color-input: oklch(0.85 0.015 240);
+  --color-ring: oklch(0.25 0.109 264);
+
+  /* Radius */
+  --radius: 0.375rem;
+  --radius-xs: calc(var(--radius) * 0.5);
+  --radius-sm: calc(var(--radius) * 0.75);
+  --radius-md: calc(var(--radius) * 0.875);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.5);
+
+  /* Fonts — literal names, never var() references */
+  --font-sans:
+    "Geist", "Geist Fallback", ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  @theme inline {
+    --color-background: oklch(0.06 0.018 250);
+    --color-foreground: oklch(0.93 0 0);
+    --color-card: oklch(0.1 0.018 252);
+    --color-card-foreground: oklch(0.93 0 0);
+
+    --color-muted: oklch(0.16 0.015 252);
+    --color-muted-foreground: oklch(0.65 0.01 240);
+    --color-accent: oklch(0.16 0.015 252);
+    --color-accent-foreground: oklch(0.93 0 0);
+
+    --color-border: oklch(0.22 0.015 252);
+    --color-input: oklch(0.22 0.015 252);
   }
 }
 
@@ -17,8 +71,8 @@ body {
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: var(--color-foreground);
+  background: var(--color-background);
 }
 
 * {
