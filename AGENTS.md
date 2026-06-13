@@ -26,8 +26,9 @@
 `packages/ui/src/` is organized as follows:
 
 - `src/ui/` — **shadcn primitives, CLI-generated. Never edit these files manually.** Add or update components via `pnpm --filter @mr/ui exec shadcn add <component>`.
-- `src/components/` — custom components built on top of shadcn primitives. Co-locate stories and tests here.
-- `src/stories/` — Storybook stories for shadcn primitives in `src/ui/`.
+- `src/components/` — custom components built on top of shadcn primitives. Co-locate tests here.
+- `src/stories/ui/` — Storybook stories for shadcn primitives in `src/ui/`.
+- `src/stories/components/` — Storybook stories for custom components in `src/components/`.
 - `src/lib/` — shared utilities (`cn`, etc.).
 
 See `docs/ui-components.md` for the full rationale.

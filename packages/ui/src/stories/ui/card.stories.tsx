@@ -7,8 +7,8 @@ import {
   CardDescription,
   CardContent,
   CardFooter,
-} from "../ui/card";
-import { Button } from "../ui/button";
+} from "../../ui/card";
+import { Button } from "../../ui/button";
 
 const meta = {
   title: "shadcn/Card",

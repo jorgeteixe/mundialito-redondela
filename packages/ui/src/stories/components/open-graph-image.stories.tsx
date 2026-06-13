@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { OpenGraphImage } from "./open-graph-image";
+import { OpenGraphImage } from "../../components/open-graph-image";
 
 const meta = {
   title: "Components/OpenGraphImage",

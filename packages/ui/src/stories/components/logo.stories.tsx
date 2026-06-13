@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Logo } from "./logo";
+import { Logo } from "../../components/logo";
 
 const meta = {
   title: "Components/Logo",

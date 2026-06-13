@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Textarea } from "../ui/textarea";
+import { Input } from "../../ui/input";
 
 const meta = {
-  title: "shadcn/Textarea",
-  component: Textarea,
+  title: "shadcn/Input",
+  component: Input,
   parameters: { layout: "centered" },
   decorators: [
     (Story) => (
@@ -13,16 +13,20 @@ const meta = {
       </div>
     ),
   ],
-} satisfies Meta<typeof Textarea>;
+} satisfies Meta<typeof Input>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  args: { placeholder: "Escribe una nota sobre el partido..." },
+  args: { placeholder: "Escribe algo..." },
 };
 
 export const Disabled: Story = {
   args: { placeholder: "Deshabilitado", disabled: true },
+};
+
+export const Invalid: Story = {
+  args: { placeholder: "Campo inválido", "aria-invalid": true },
 };

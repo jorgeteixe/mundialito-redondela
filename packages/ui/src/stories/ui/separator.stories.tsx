@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Separator } from "../ui/separator";
+import { Separator } from "../../ui/separator";
 
 const meta = {
   title: "shadcn/Separator",
