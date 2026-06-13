@@ -8,10 +8,14 @@ import {
   CardTitle,
 } from "@mr/ui";
 import { CalendarDays, ExternalLink, MapPin } from "lucide-react";
+import { ModeToggle } from "./components/mode-toggle";
 
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-6">
+      <div className="fixed top-4 right-4">
+        <ModeToggle />
+      </div>
       <Card className="w-full max-w-md">
         <CardHeader className="gap-3">
           <Badge variant="secondary" className="w-fit">

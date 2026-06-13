@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
+import { ThemeProvider } from "./components/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -75,18 +76,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html
+      lang="es"
+      className={`${geistSans.variable} ${geistMono.variable}`}
+      suppressHydrationWarning
+    >
       <body>
-        {children}
-        {process.env.NODE_ENV === "production" && (
-          <>
-            <Script
-              src="https://umami.teixe.es/script.js"
-              data-website-id="59196bbe-1cba-4b74-b026-46d1254ab62d"
-              strategy="afterInteractive"
-            />
-            <Script id="umami-outbound-links" strategy="afterInteractive">
-              {`
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          {process.env.NODE_ENV === "production" && (
+            <>
+              <Script
+                src="https://umami.teixe.es/script.js"
+                data-website-id="59196bbe-1cba-4b74-b026-46d1254ab62d"
+                strategy="afterInteractive"
+              />
+              <Script id="umami-outbound-links" strategy="afterInteractive">
+                {`
                 document.addEventListener('click', function(event) {
                   var a = event.target.closest('a');
                   if (a && a.href && a.hostname && a.hostname !== window.location.hostname) {
@@ -96,9 +107,10 @@ export default function RootLayout({
                   }
                 }, { capture: true });
               `}
-            </Script>
-          </>
-        )}
+              </Script>
+            </>
+          )}
+        </ThemeProvider>
       </body>
     </html>
   );
