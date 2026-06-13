@@ -13,7 +13,6 @@
     "dev": "storybook dev -p 6006"
   },
   "devDependencies": {
-    "@chromatic-com/storybook": "^5.2.1",
     "@mr/eslint-config": "workspace:*",
     "@mr/typescript-config": "workspace:*",
     "@storybook/addon-a11y": "^10.4.4",
@@ -41,11 +40,13 @@
     "vitest": "^4.1.8"
   },
   "dependencies": {
+    "lucide-react": "^1.18.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "exports": {
     ".": "./src/index.ts",
+    "./button": "./src/button.tsx",
     "./logo": "./src/logo.tsx"
   }
 }
