@@ -95,7 +95,7 @@ export const Loading: Story = {
 
 export const Disabled: Story = {
   args: {
-    children: "Inscrición pechada",
+    children: "Inscripción cerrada",
     disabled: true,
     variant: "outline",
   },

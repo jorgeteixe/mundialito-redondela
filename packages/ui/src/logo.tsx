@@ -64,7 +64,7 @@ function LogoLine({
 }: LogoLineProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLSpanElement>(null);
-  const [fontSize, setFontSize] = useState(maxSize);
+  const [fontSize, setFontSize] = useState(minSize);
 
   useLayoutEffect(() => {
     const fit = () => {

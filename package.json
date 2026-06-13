@@ -11,7 +11,8 @@
     "storybook": "turbo run storybook",
     "build-storybook": "turbo run build-storybook",
     "prepare": "husky",
-    "screenshot:storybook": "turbo run screenshot:storybook"
+    "screenshot:storybook": "turbo run screenshot:storybook",
+    "generate:og": "pnpm --filter @mr/ui exec node scripts/generate-og-image.mjs"
   },
   "devDependencies": {
     "@mr/eslint-config": "workspace:*",
