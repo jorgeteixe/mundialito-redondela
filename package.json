@@ -10,7 +10,8 @@
     "test": "turbo run test",
     "storybook": "turbo run storybook",
     "build-storybook": "turbo run build-storybook",
-    "prepare": "husky"
+    "prepare": "husky",
+    "screenshot:storybook": "turbo run screenshot:storybook"
   },
   "devDependencies": {
     "@mr/eslint-config": "workspace:*",

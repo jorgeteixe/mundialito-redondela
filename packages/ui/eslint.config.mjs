@@ -6,7 +6,7 @@ import { config } from "@mr/eslint-config/react-internal";
 
 /** @type {import("eslint").Linter.Config} */
 export default [
-  globalIgnores(["storybook-static/**", ".turbo/**"]),
+  globalIgnores(["storybook-static/**", "artifacts/**", ".turbo/**"]),
   ...config,
   ...storybook.configs["flat/recommended"],
 ];

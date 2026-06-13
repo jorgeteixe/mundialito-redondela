@@ -24,6 +24,10 @@
       "dependsOn": ["^build-storybook"],
       "outputs": ["storybook-static/**"]
     },
+    "screenshot:storybook": {
+      "dependsOn": ["build-storybook"],
+      "outputs": ["artifacts/storybook/**"]
+    },
     "dev": {
       "cache": false,
       "persistent": true

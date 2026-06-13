@@ -5,6 +5,7 @@ import { defineConfig } from "vitest/config";
 
 import react from "@vitejs/plugin-react";
 import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
+import storycap from "@storycap-testrun/browser/vitest-plugin";
 
 import { playwright } from "@vitest/browser-playwright";
 
@@ -28,6 +29,16 @@ export default defineConfig({
         extends: true,
         plugins: [
           storybookTest({ configDir: path.join(dirname, ".storybook") }),
+          storycap({
+            output: {
+              dir: path.join(dirname, "artifacts/storybook"),
+              file: "[id].png",
+            },
+            viewport: {
+              width: 900,
+              height: 600,
+            },
+          }),
         ],
         test: {
           name: "storybook",
@@ -37,6 +48,7 @@ export default defineConfig({
             provider: playwright({}),
             instances: [{ browser: "chromium" }],
           },
+          setupFiles: ["./.storybook/vitest.setup.ts"],
         },
       },
     ],
