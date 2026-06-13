@@ -89,11 +89,9 @@ export default function RootLayout({
               {`
                 document.addEventListener('click', function(event) {
                   var a = event.target.closest('a');
-                  if (a && a.href) {
-                    var hostname = a.hostname;
-                    if (hostname && hostname !== window.location.hostname && !a.getAttribute('data-umami-event')) {
-                      a.setAttribute('data-umami-event', 'outbound-link-click');
-                      a.setAttribute('data-umami-event-url', a.href);
+                  if (a && a.href && a.hostname && a.hostname !== window.location.hostname) {
+                    if (typeof window.umami !== 'undefined') {
+                      window.umami.track('outbound-link-click', { url: a.href });
                     }
                   }
                 }, { capture: true });
