@@ -14,7 +14,3 @@ export {
 export { Badge, badgeVariants } from "./ui/badge";
 export { Separator } from "./ui/separator";
 export { Textarea } from "./ui/textarea";
-
-// custom components
-export { Logo } from "./components/logo";
-export { OpenGraphImage } from "./components/open-graph-image";
