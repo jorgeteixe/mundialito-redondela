@@ -1,4 +1,12 @@
-import { config } from "@repo/eslint-config/react-internal";
+// For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
+import { globalIgnores } from "eslint/config";
+import storybook from "eslint-plugin-storybook";
+
+import { config } from "@mr/eslint-config/react-internal";
 
 /** @type {import("eslint").Linter.Config} */
-export default config;
+export default [
+  globalIgnores(["storybook-static/**", ".turbo/**"]),
+  ...config,
+  ...storybook.configs["flat/recommended"],
+];
