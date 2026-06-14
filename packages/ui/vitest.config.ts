@@ -15,14 +15,25 @@ const dirname =
     : path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@": path.join(dirname, "src"),
+    },
+  },
   test: {
     projects: [
       {
         plugins: [react()],
+        resolve: {
+          alias: {
+            "@": path.join(dirname, "src"),
+          },
+        },
         test: {
           name: "unit",
           environment: "jsdom",
           include: ["src/**/*.test.{ts,tsx}"],
+          passWithNoTests: true,
         },
       },
       {

@@ -63,9 +63,6 @@ importers:
       '@mr/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
-      '@playwright/test':
-        specifier: ^1.60.0
-        version: 1.60.0
       '@tailwindcss/postcss':
         specifier: ^4.3.1
         version: 4.3.1
@@ -87,6 +84,9 @@ importers:
       eslint:
         specifier: ^9.39.1
         version: 9.39.1(jiti@2.7.0)
+      playwright:
+        specifier: ^1.60.0
+        version: 1.60.0
       postcss:
         specifier: ^8.5.15
         version: 8.5.15
@@ -7064,6 +7064,7 @@ snapshots:
   '@playwright/test@1.60.0':
     dependencies:
       playwright: 1.60.0
+    optional: true
 
   '@polka/url@1.0.0-next.29': {}
 
