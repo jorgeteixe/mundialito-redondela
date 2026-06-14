@@ -21,6 +21,7 @@
     "@mr/eslint-config": "workspace:*",
     "@mr/typescript-config": "workspace:*",
     "@types/node": "^22.15.3",
+    "dotenv": "^17.4.2",
     "drizzle-kit": "^0.30.6",
     "eslint": "^9.39.1",
     "typescript": "5.9.2"
