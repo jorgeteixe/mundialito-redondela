@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   Button,
   Card,
@@ -19,17 +20,15 @@ export function LoginForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
     setLoading(true);
     const { error } = await authClient.signIn.email({ email, password });
     setLoading(false);
     if (error) {
-      setError("Credenciales incorrectas. Inténtalo de nuevo.");
+      toast.error("Credenciales incorrectas. Inténtalo de nuevo.");
     } else {
       router.push("/");
     }
@@ -71,7 +70,6 @@ export function LoginForm() {
                 required
               />
             </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
             <Button className="w-full mt-2" type="submit" disabled={loading}>
               {loading ? "Entrando..." : "Entrar"}
             </Button>

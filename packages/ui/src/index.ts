@@ -17,6 +17,7 @@ export {
 export { Badge, badgeVariants } from "./ui/badge";
 export { Separator } from "./ui/separator";
 export { Textarea } from "./ui/textarea";
+export { Toaster } from "./ui/sonner";
 export {
   DropdownMenu,
   DropdownMenuTrigger,

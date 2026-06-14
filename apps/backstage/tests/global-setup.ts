@@ -48,7 +48,7 @@ export default async function globalSetup() {
     await adminClient.end();
   }
 
-  const migrationClient = postgres(TEST_DB_URL, { max: 1, notice: () => {} });
+  const migrationClient = postgres(TEST_DB_URL, { max: 1, onnotice: () => {} });
   const db = drizzle(migrationClient, { schema });
 
   await migrate(db, { migrationsFolder: MIGRATIONS_FOLDER });
@@ -102,7 +102,7 @@ export async function teardown() {
     serverProcess = null;
   }
 
-  const client = postgres(TEST_DB_URL, { max: 1, notice: () => {} });
+  const client = postgres(TEST_DB_URL, { max: 1, onnotice: () => {} });
   const db = drizzle(client, { schema });
 
   await db.delete(schema.session);
