@@ -9,6 +9,7 @@
     "seed-admin": "tsx src/seed-admin.ts"
   },
   "dependencies": {
+    "@clack/prompts": "^1.5.1",
     "@mr/db": "workspace:*",
     "better-auth": "^1.2.12",
     "dotenv": "^17.4.2"
