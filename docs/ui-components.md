@@ -75,6 +75,8 @@ Components here are built on top of shadcn primitives. Co-locate `.stories.tsx` 
 - `src/stories/ui/` — stories for unmodified shadcn primitives (keeps `src/ui/` clean).
 - `src/stories/components/` — stories for custom components in `src/components/`.
 
+Do not add `tags: ["autodocs"]` unless the component is complex (many props, multiple variants, non-obvious composition). Simple layout components do not need generated docs — the stories themselves are sufficient.
+
 ### `src/index.ts` — barrel export
 
 All public exports go through `src/index.ts`. shadcn exports are clearly separated from custom ones with a comment.

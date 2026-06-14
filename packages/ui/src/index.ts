@@ -1,5 +1,8 @@
 // custom components — src/components/*
+export { Countdown } from "./components/countdown";
+export { Footer } from "./components/footer";
 export { Header } from "./components/header";
+export { Hero } from "./components/hero";
 export { ThemeToggle } from "./components/theme-toggle";
 
 // shadcn primitives — src/ui/* — never edit manually
