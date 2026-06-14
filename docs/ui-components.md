@@ -6,15 +6,55 @@
 
 ```
 packages/ui/src/
-├── ui/           # shadcn primitives — CLI-generated, never edit manually
-├── components/   # custom components built on top of shadcn
-├── stories/      # Storybook stories for shadcn primitives
-├── lib/          # utilities (cn, etc.)
-├── styles.css    # shadcn CSS variables and base styles
-└── index.ts      # barrel export
+├── ui/                    # shadcn primitives — CLI-generated, never edit manually
+├── components/            # custom components built on top of shadcn
+├── stories/
+│   ├── ui/                # Storybook stories for shadcn primitives in src/ui/
+│   └── components/        # Storybook stories for custom components in src/components/
+├── lib/                   # utilities (cn, etc.)
+├── styles.css             # shadcn CSS variables and base styles
+└── index.ts               # barrel export
 ```
 
 ## Rules
+
+### Mobile-first responsive design
+
+The app is primarily consumed on mobile. All components must be designed mobile-first:
+
+- **Base styles target mobile** (≤640px). Use `sm:`, `md:`, `lg:` to layer enhancements upward. Never write desktop-first CSS and override down.
+- **Flex sizing on mobile**: avoid splitting a row into equal halves (`flex-1` on both sides) when one side holds long text. Give content-heavy sides `flex-1` and utility sides `flex-none`; introduce `sm:flex-1` for symmetric desktop layouts.
+- **Touch targets**: buttons and interactive elements must be ≥44×44px on mobile. Use `size="sm"` minimum.
+- **Navigation pattern**: nav links collapse into a hamburger on mobile (`hidden sm:flex`). Persistent utility actions (theme toggle, user avatar) stay visible in the header bar — never inside the collapsible menu.
+- **No `whitespace-nowrap` without room**: if text must stay on one line, ensure the container actually has the space. Truncate intentionally with `truncate` + `min-w-0` on the flex parent only when necessary.
+- **Desktop as enhancement**: at `sm:` and above, introduce multi-column grids, larger type scales, hover states, focus rings, and keyboard navigation enhancements.
+
+### shadcn-first
+
+**Before writing any component, check the shadcn registry at https://ui.shadcn.com/docs/components.**
+
+Decision tree:
+
+1. **shadcn has it** → install via CLI, never hand-roll.
+2. **shadcn has nothing equivalent** → build in `src/components/`, composing existing shadcn primitives.
+3. **Need a variant** → extend via props or `cn()` on the existing primitive; don't create a new file.
+
+### Design tokens — mandatory
+
+Always use shadcn CSS variables. Never use raw Tailwind palette classes for themed UI.
+
+| Use                                        | Never use                        |
+| ------------------------------------------ | -------------------------------- |
+| `text-foreground`, `text-muted-foreground` | `text-gray-500`, `text-zinc-400` |
+| `bg-card`, `bg-background`, `bg-muted`     | `bg-white`, `bg-zinc-900`        |
+| `border-border`, `ring-ring`               | `border-gray-200`                |
+| `text-primary`, `text-destructive`         | arbitrary hex or palette values  |
+
+Raw Tailwind palette classes are fine for non-themed utilities (spacing, sizing, layout).
+
+### Framework-neutral rule
+
+Components in `src/components/` must **not** import Next.js-specific APIs (`next/navigation`, `next-themes`, etc.). Components that need Next.js APIs belong in `apps/web/app/components/`.
 
 ### `src/ui/` — shadcn primitives (read-only)
 
@@ -28,11 +68,12 @@ Running this command overwrites the file, so any manual edits would be lost.
 
 ### `src/components/` — custom components
 
-Components here are built on top of shadcn primitives. Co-locate `.stories.tsx` and `.test.tsx` files alongside the component.
+Components here are built on top of shadcn primitives. Co-locate `.stories.tsx` and `.test.tsx` files alongside the component. Only create a file here when shadcn has no equivalent.
 
-### `src/stories/` — stories for primitives
+### `src/stories/ui/` and `src/stories/components/` — stories
 
-Storybook stories for the unmodified shadcn components live here so `src/ui/` stays clean.
+- `src/stories/ui/` — stories for unmodified shadcn primitives (keeps `src/ui/` clean).
+- `src/stories/components/` — stories for custom components in `src/components/`.
 
 ### `src/index.ts` — barrel export
 
@@ -47,4 +88,7 @@ pnpm --filter @mr/ui exec shadcn add <component-name>
 
 The CLI reads `packages/ui/components.json` (style: `radix-lyra`, base color: `mist`) and writes to `src/ui/`.
 
-After adding a new primitive, create a story in `src/stories/` and re-export from `src/index.ts`.
+After adding a new primitive:
+
+1. Create a story in `src/stories/ui/`.
+2. Re-export from `src/index.ts`.

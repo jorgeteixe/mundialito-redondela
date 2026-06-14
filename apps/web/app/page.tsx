@@ -7,9 +7,9 @@ import {
   CardHeader,
   CardTitle,
   Header,
-  ModeToggle,
 } from "@mr/ui";
 import { CalendarDays, ExternalLink, MapPin } from "lucide-react";
+import { ModeToggle } from "./components/mode-toggle";
 
 export default function Home() {
   return (
@@ -30,7 +30,11 @@ export default function Home() {
             </Button>
           </>
         }
-        actions={<ModeToggle />}
+        actions={
+          <>
+            <ModeToggle />
+          </>
+        }
       />
       <Card className="w-full max-w-md">
         <CardHeader className="gap-3">

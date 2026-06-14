@@ -30,15 +30,15 @@ export function Header({
         className,
       )}
     >
-      <header className="flex items-center justify-between bg-card/80 backdrop-blur-md ring-1 ring-foreground/10 px-3 py-2">
-        <div className="flex items-center gap-2">
+      <header className="flex items-center bg-card/80 backdrop-blur-md ring-1 ring-border px-3 py-2">
+        <div className="flex flex-1 items-center gap-2 min-w-0">
           <span className="text-xs font-medium">{eventName}</span>
           <Badge variant="secondary">{edition}</Badge>
         </div>
-        <div className="flex items-center gap-1">
-          {navItems && (
-            <div className="hidden sm:flex items-center gap-1">{navItems}</div>
-          )}
+
+        <nav className="hidden sm:flex items-center gap-1">{navItems}</nav>
+
+        <div className="flex flex-none sm:flex-1 items-center justify-end gap-1">
           {actions}
           {navItems && (
             <Button
@@ -53,9 +53,10 @@ export function Header({
           )}
         </div>
       </header>
+
       {open && navItems && (
         <div
-          className="flex flex-col gap-1 p-2 sm:hidden bg-card/80 backdrop-blur-md ring-1 ring-foreground/10 [&_button]:w-full [&_button]:justify-start"
+          className="flex flex-col gap-1 p-2 sm:hidden bg-card/80 backdrop-blur-md ring-1 ring-border [&_button]:w-full [&_button]:justify-start"
           onClick={() => setOpen(false)}
         >
           {navItems}

@@ -1,7 +1,6 @@
 "use client";
 
 import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
 import { Button } from "../ui/button";
 import {
   DropdownMenu,
@@ -10,9 +9,11 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
-export function ModeToggle() {
-  const { setTheme } = useTheme();
+interface ThemeToggleProps {
+  onSetTheme: (theme: "light" | "dark" | "system") => void;
+}
 
+export function ThemeToggle({ onSetTheme }: ThemeToggleProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -23,13 +24,13 @@ export function ModeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
+        <DropdownMenuItem onClick={() => onSetTheme("light")}>
           Claro
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
+        <DropdownMenuItem onClick={() => onSetTheme("dark")}>
           Oscuro
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
+        <DropdownMenuItem onClick={() => onSetTheme("system")}>
           Sistema
         </DropdownMenuItem>
       </DropdownMenuContent>

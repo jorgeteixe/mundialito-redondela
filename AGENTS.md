@@ -33,13 +33,53 @@
 
 See `docs/ui-components.md` for the full rationale.
 
+## Responsive Design Rules
+
+**Mobile-first, always.** The primary audience consumes this app on mobile. Every layout, component, and interaction must work well on a small screen first, then be enhanced for larger screens.
+
+- Write base styles for mobile, layer breakpoints upward (`sm:`, `md:`, `lg:`). Never write desktop-first styles and try to override down.
+- Test every UI change at a narrow viewport (375px / iPhone-sized) before checking desktop.
+- Flex and grid layouts: give elements natural or `flex-none` sizing on mobile so content isn't artificially squeezed into half-columns. Use `sm:flex-1` or `md:grid-cols-X` to introduce multi-column layouts at larger sizes.
+- Touch targets: interactive elements must be at least 44×44px on mobile. Prefer `size="sm"` or larger on buttons.
+- Text: never use `whitespace-nowrap` to force single-line text on mobile — instead ensure the container has enough room. If text must truncate, do so intentionally with `truncate` and `min-w-0` on the flex parent.
+- Navigation: on mobile, collapse navItems behind a hamburger. Always-visible actions (theme toggle, auth) stay in the header bar, never in the collapsible menu.
+
+**Desktop is an enhancement, not an afterthought.** At `sm:` and above:
+
+- Introduce centered nav (`hidden sm:flex`), multi-column grids, larger typography, and richer layouts.
+- Ensure keyboard navigation, hover states, and focus rings work correctly.
+
+## shadcn-First Design Rules
+
+**Always check the shadcn registry before writing any UI component.** If it exists in shadcn, install it — do not hand-roll it.
+
+```sh
+pnpm --filter @mr/ui exec shadcn add <component-name>
+```
+
+Current config: **style `radix-lyra`, base color `mist`** (`packages/ui/components.json`). All installed primitives go to `src/ui/`.
+
+**Decision rule — when to build a custom component:**
+
+1. shadcn has no equivalent → build in `src/components/`, composing shadcn primitives.
+2. shadcn has it → install via CLI. Never duplicate.
+3. Need a variant/composition → extend the primitive via props or `cn()`, not a new file.
+
+**Design token rules — always use shadcn CSS variables:**
+
+- Backgrounds: `bg-background`, `bg-card`, `bg-muted`, `bg-popover`, `bg-primary`, `bg-secondary`, `bg-accent`, `bg-destructive`
+- Text: `text-foreground`, `text-card-foreground`, `text-muted-foreground`, `text-primary`, `text-primary-foreground`, `text-secondary-foreground`, `text-accent-foreground`, `text-destructive`
+- Borders/rings: `border-border`, `ring-ring`
+- **Never use raw Tailwind palette colors** (`text-gray-500`, `bg-zinc-900`, etc.) for themed UI — only for non-themed utilities like sizing or spacing.
+
+**Framework-neutral rule:** Components in `src/components/` must not import Next.js-specific APIs (`next/navigation`, `next-themes`, etc.). Components that require Next.js APIs belong in `apps/web/app/components/`, not in the shared package.
+
 ## Conventions
 
-- Keep this agent guide (`AGENTS.md`) updated as the codebase, dependencies, commands, or tooling evolve.
-- Keep documentation under the `docs/` directory clean and updated, following the guidelines inside `docs/agents.md`.
+- Keep this agent guide (`AGENTS.md`) updated as the codebase, dependencies, commands, or tooling evolve. Note: `CLAUDE.md` is a symlink to `AGENTS.md` — edit `AGENTS.md`.
+- Keep documentation under the `docs/` directory clean and updated, following the guidelines inside `docs/AGENTS.md`.
 - Use `@mr/*` for workspace imports.
 - Export shared components from `packages/ui/src/index.ts`.
-- Keep shared UI framework-neutral unless a component explicitly needs Next.js APIs.
 - Use package-manager commands for manifest changes.
 - Use conventional commits for all commit messages.
 - Keep public-facing content always in Spanish, while code and other internals remain in English.

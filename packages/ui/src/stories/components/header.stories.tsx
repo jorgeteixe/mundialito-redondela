@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ThemeProvider } from "next-themes";
 import { Header } from "../../components/header";
-import { ModeToggle } from "../../components/mode-toggle";
+import { ThemeToggle } from "../../components/theme-toggle";
 import { Button } from "../../ui/button";
 
 const meta = {
@@ -41,6 +41,6 @@ export const Default: Story = {
     edition: "XLVII",
     eventName: "Mundialito da Xunqueira",
     navItems,
-    actions: <ModeToggle />,
+    actions: <ThemeToggle onSetTheme={(t) => console.log("theme:", t)} />,
   },
 };
