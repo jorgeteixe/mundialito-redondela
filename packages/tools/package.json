@@ -12,7 +12,8 @@
     "@clack/prompts": "^1.5.1",
     "@mr/db": "workspace:*",
     "better-auth": "^1.2.12",
-    "dotenv": "^17.4.2"
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {
     "@mr/eslint-config": "workspace:*",
