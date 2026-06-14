@@ -41,6 +41,7 @@ try {
     body: { email, password, name: "Admin" },
   });
   spinner.stop(`Admin created: ${email}`);
+  process.exit(1);
 } catch (err: unknown) {
   const msg = err instanceof Error ? err.message : String(err);
   spinner.stop("Failed");
