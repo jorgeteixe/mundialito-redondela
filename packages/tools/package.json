@@ -1,0 +1,27 @@
+{
+  "name": "@mr/tools",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "seed-admin": "tsx src/seed-admin.tsx"
+  },
+  "dependencies": {
+    "@mr/db": "workspace:*",
+    "better-auth": "^1.2.12",
+    "ink": "^5.2.1",
+    "ink-text-input": "^6.0.0",
+    "react": "^19.2.0"
+  },
+  "devDependencies": {
+    "@mr/eslint-config": "workspace:*",
+    "@mr/typescript-config": "workspace:*",
+    "@types/node": "^22.15.3",
+    "@types/react": "19.2.2",
+    "eslint": "^9.39.1",
+    "tsx": "^4.19.4",
+    "typescript": "5.9.2"
+  }
+}

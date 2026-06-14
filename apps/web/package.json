@@ -12,6 +12,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@mr/db": "workspace:*",
     "@mr/ui": "workspace:*",
     "lucide-react": "^1.18.0",
     "next": "16.2.0",

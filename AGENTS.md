@@ -5,7 +5,10 @@
 - Package manager: pnpm 10.
 - Monorepo: Turborepo.
 - App: `apps/web`, Next.js App Router, package name `@mr/web`.
+- Admin app: `apps/backstage`, Next.js App Router, package name `@mr/backstage` (port 3001).
 - Shared UI: `packages/ui`, React components exported as `@mr/ui`.
+- Shared DB: `packages/db`, Drizzle + PostgreSQL exported as `@mr/db`.
+- Shared tooling: `packages/tools`, CLI utilities exported as `@mr/tools`.
 - Shared config: `@mr/eslint-config` and `@mr/typescript-config`.
 
 ## Commands
@@ -13,6 +16,7 @@
 - Install: `pnpm install`
 - Develop all packages: `pnpm dev`
 - Develop web only: `pnpm --filter @mr/web dev`
+- Develop backstage only: `pnpm --filter @mr/backstage dev`
 - Storybook: `pnpm --filter @mr/ui storybook`
 - Build: `pnpm build`
 - Lint: `pnpm lint`
@@ -20,6 +24,11 @@
 - Test: `pnpm test`
 - Format: `pnpm format`
 - Storybook screenshots: `pnpm screenshot:storybook` (saves screenshots in `packages/ui/artifacts/storybook/`)
+- Start local DB: `docker compose up -d`
+- DB generate migrations: `pnpm --filter @mr/db db:generate`
+- DB run migrations: `pnpm --filter @mr/db db:migrate`
+- Seed admin user: `pnpm --filter @mr/tools seed-admin`
+- E2E tests (backstage): `pnpm --filter @mr/backstage test:e2e`
 
 ## UI Component Structure
 
