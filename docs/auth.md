@@ -1,13 +1,13 @@
 # Authentication
 
-better-auth (email/password only) protects `apps/backstage`. Signup is disabled at the API level.
+better-auth (email/password only) protects `apps/backstage`. The product exposes no signup UI; admin users are created with tooling or test setup.
 
 ## How it works
 
 - `apps/backstage/lib/auth.ts` — server-side `betterAuth` instance with Drizzle adapter.
 - `apps/backstage/lib/auth-client.ts` — client-side `createAuthClient` for React components.
-- `apps/backstage/app/api/auth/[...all]/route.ts` — mounts better-auth handlers; POST to `/api/auth/sign-up/email` returns 403.
-- `apps/backstage/middleware.ts` — checks session on every request; unauthenticated → `/login`, authenticated on `/login` → `/`.
+- `apps/backstage/app/api/auth/[...all]/route.ts` — mounts better-auth handlers.
+- `apps/backstage/app/(protected)/layout.tsx` — checks session for protected routes; unauthenticated → `/login`.
 
 ## Environment variables
 
@@ -29,6 +29,12 @@ No signup form exists. Use the interactive CLI in `packages/tools`:
 pnpm --filter @mr/tools seed-admin
 # Prompts for email and password, then creates the admin user
 ```
+
+## E2E tests
+
+Backstage E2E tests use the separate `mundialito_test` database from `apps/backstage/.env.test`. The Playwright global setup resets the schema and seeds a deterministic test admin before each run.
+
+See [Backstage E2E Testing](./backstage-e2e-testing.md).
 
 ## Session schema
 

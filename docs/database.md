@@ -46,4 +46,4 @@ Migrations run against `DATABASE_URL`. For production, set the env var to the pr
 
 ## Test database
 
-E2E tests in `apps/backstage` use a separate `mundialito_test` database. The `global-setup.ts` runs migrations and seeds a test admin before the suite. See `docs/auth.md` for details.
+E2E tests in `apps/backstage` use a separate `mundialito_test` database. Playwright global setup resets the schema, applies committed migrations, and seeds a test admin before the suite. See [Backstage E2E Testing](./backstage-e2e-testing.md).

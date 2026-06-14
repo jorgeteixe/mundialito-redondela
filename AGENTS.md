@@ -22,6 +22,7 @@
 - Lint: `pnpm lint`
 - Typecheck: `pnpm typecheck`
 - Test: `pnpm test`
+- E2E tests: `pnpm test:e2e`
 - Format: `pnpm format`
 - Storybook screenshots: `pnpm screenshot:storybook` (saves screenshots in `packages/ui/artifacts/storybook/`)
 - Start local DB: `docker compose up -d`
@@ -93,6 +94,8 @@ Current config: **style `radix-lyra`, base color `mist`** (`packages/ui/componen
 - Keep public-facing content always in Spanish, while code and other internals remain in English.
 - Keep generated sample code out of the repo unless it is part of the product.
 - Keep Storybook screenshots updated by running `pnpm screenshot:storybook` when shared UI components or stories are modified.
+- Every new feature must include appropriate tests and be verified with the matching test command before handoff.
+- For backstage UI/auth workflows, add or update Playwright E2E coverage when behavior crosses route, auth, API, or DB boundaries.
 
 ## Communication Style
 

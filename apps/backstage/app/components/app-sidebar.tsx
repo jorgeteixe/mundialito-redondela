@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Users } from "lucide-react";
@@ -38,7 +39,7 @@ export function AppSidebar() {
           className="flex items-center justify-center size-6 shrink-0"
           aria-label="Toggle Sidebar"
         >
-          <img src="/favicon.svg" alt="Logo" width={18} height={18} />
+          <Image src="/favicon.svg" alt="Logo" width={18} height={18} />
         </button>
         <span className="font-semibold text-sm">Backstage</span>
       </SidebarHeader>

@@ -8,6 +8,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css,mjs}\"",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
     "storybook": "turbo run storybook",
     "build-storybook": "turbo run build-storybook",
     "prepare": "husky",
@@ -15,6 +16,7 @@
   },
   "devDependencies": {
     "@mr/eslint-config": "workspace:*",
+    "eslint": "^9.39.1",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.7",
     "prettier": "^3.7.4",
