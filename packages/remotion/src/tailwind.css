@@ -1,0 +1,10 @@
+/*
+ * Tailwind entry for the Remotion bundle. Pulls in the shared @mr/ui theme
+ * (which itself imports tailwindcss + the brand @theme tokens), then registers
+ * the class sources so utilities used by @mr/ui components and by our own
+ * compositions are generated.
+ */
+@import "../../ui/src/styles.css";
+
+@source "../../ui/src";
+@source ".";
