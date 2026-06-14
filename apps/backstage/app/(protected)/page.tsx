@@ -1,7 +1,22 @@
+"use client";
+
+import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { Button } from "@mr/ui";
+
 export default function DashboardPage() {
+  const router = useRouter();
+
+  async function handleLogout() {
+    await authClient.signOut();
+    router.push("/login");
+  }
+
   return (
     <main className="flex min-h-screen items-center justify-center">
-      <h1 className="text-2xl font-semibold">Panel de administración</h1>
+      <Button variant="outline" onClick={handleLogout}>
+        Cerrar sesión
+      </Button>
     </main>
   );
 }

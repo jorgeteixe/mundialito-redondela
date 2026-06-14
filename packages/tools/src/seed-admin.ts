@@ -6,7 +6,9 @@ import { db } from "@mr/db";
 import * as schema from "@mr/db/schema";
 
 const auth = betterAuth({
-  secret: process.env.BETTER_AUTH_SECRET ?? "seed-admin-secret",
+  secret:
+    process.env.BETTER_AUTH_SECRET ?? "seed-admin-placeholder-secret-xxxxx",
+  baseURL: "http://localhost:3001",
   database: drizzleAdapter(db, { provider: "pg", schema }),
   emailAndPassword: { enabled: true },
 });
@@ -27,8 +29,10 @@ try {
     body: { email, password, name: "Admin" },
   });
   spinner.stop(`Admin created: ${email}`);
+  process.exit(0);
 } catch (err: unknown) {
   const msg = err instanceof Error ? err.message : String(err);
   spinner.stop("Failed");
   p.log.error(msg);
+  process.exit(1);
 }
