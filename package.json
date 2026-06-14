@@ -40,11 +40,6 @@
     },
     "onlyBuiltDependencies": [
       "esbuild"
-    ],
-    "peerDependencyRules": {
-      "allowedVersions": {
-        "react-reconciler>react": "^19.0.0"
-      }
-    }
+    ]
   }
 }
