@@ -103,6 +103,8 @@ Revert to full prose only for: security warnings, irreversible-action confirmati
 
 ## Relevant Agent Skills
 
+Project-specific skills live in `.agents/skills/`. Install or update them with `npx skills`.
+
 - Use frontend/browser verification after local UI changes.
 - Use Storybook-oriented checks for shared component behavior and stories.
 - Use diagnosis workflow for failing builds, lint, tests, or runtime bugs.
