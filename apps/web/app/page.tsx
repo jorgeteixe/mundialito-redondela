@@ -14,19 +14,6 @@ export default function Home() {
       <Header
         edition="XLVII"
         eventName="Mundialito da Xunqueira"
-        navItems={
-          <>
-            <Button variant="ghost" size="sm">
-              Equipos
-            </Button>
-            <Button variant="ghost" size="sm">
-              Calendario
-            </Button>
-            <Button variant="ghost" size="sm">
-              Resultados
-            </Button>
-          </>
-        }
         actions={<ModeToggle />}
       />
       <main className="flex flex-1 items-center justify-center pt-20">
