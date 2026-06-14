@@ -28,7 +28,6 @@
 - DB generate migrations: `pnpm --filter @mr/db db:generate`
 - DB run migrations: `pnpm --filter @mr/db db:migrate`
 - Seed admin user: `pnpm --filter @mr/tools seed-admin`
-- E2E tests (backstage): `pnpm --filter @mr/backstage test:e2e`
 
 ## UI Component Structure
 
@@ -100,15 +99,6 @@ Current config: **style `radix-lyra`, base color `mist`** (`packages/ui/componen
 Use **caveman mode** by default for all responses. Drop articles, filler (just/really/basically), pleasantries (sure/happy to/certainly), and hedging. Fragments OK. Short synonyms. Technical terms exact. Code blocks unchanged. Pattern: `[thing] [action] [reason].`
 
 Revert to full prose only for: security warnings, irreversible-action confirmations, multi-step sequences where fragment order risks misread.
-
-## Verification
-
-**Always verify backstage UI changes by writing and running e2e tests — never by scripting ad-hoc Playwright sessions, querying the production database, or driving the live dev server manually.**
-
-- Write tests in `apps/backstage/tests/*.spec.ts` following the pattern in `auth.spec.ts`.
-- Run with `pnpm --filter @mr/backstage test:e2e`.
-- Tests run against a dedicated test server on port 3002 with a seeded test DB — no live credentials needed.
-- When a new page or interaction is added, add a corresponding e2e test before marking the task done.
 
 ## Relevant Agent Skills
 

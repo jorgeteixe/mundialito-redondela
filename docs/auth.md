@@ -40,22 +40,3 @@ npx @better-auth/cli generate --output ../../packages/db/src/schema/auth.ts -y
 pnpm --filter @mr/db db:generate
 pnpm --filter @mr/db db:migrate
 ```
-
-## E2E tests
-
-Tests live in `apps/backstage/tests/auth.spec.ts`. They run against a separate `mundialito_test` database.
-
-```sh
-# Requires Postgres running (docker compose up -d) and .env.test in apps/backstage
-pnpm --filter @mr/backstage test:e2e
-```
-
-`tests/global-setup.ts` runs migrations and seeds `admin@test.com` / `testpassword123` before the suite.
-`tests/global-teardown.ts` clears auth rows after the suite.
-
-Test cases:
-
-1. Unauthenticated `/` → redirected to `/login`.
-2. Wrong credentials → error message on login form.
-3. Correct credentials → redirected to `/`.
-4. Authenticated `/login` → redirected to `/`.

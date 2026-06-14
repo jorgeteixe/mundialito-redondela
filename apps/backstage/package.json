@@ -9,8 +9,7 @@
     "start": "next start",
     "lint": "eslint --max-warnings 0",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "vitest run --passWithNoTests",
-    "test:e2e": "vitest run --config vitest.e2e.config.ts"
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@mr/db": "workspace:*",
@@ -33,7 +32,6 @@
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "eslint": "^9.39.1",
-    "playwright": "^1.60.0",
     "postcss": "^8.5.15",
     "postgres": "^3.4.9",
     "tailwindcss": "^4.3.1",
