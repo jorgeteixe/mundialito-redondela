@@ -1,4 +1,12 @@
-import { Badge, Button, Countdown, Footer, Header, Hero } from "@mr/ui";
+import {
+  Badge,
+  Button,
+  Countdown,
+  Footer,
+  Header,
+  Hero,
+  SocialLinks,
+} from "@mr/ui";
 import { CalendarDays, ExternalLink, MapPin } from "lucide-react";
 import { ModeToggle } from "./components/mode-toggle";
 
@@ -66,6 +74,11 @@ export default function Home() {
                   <ExternalLink className="ml-1 size-3.5" />
                 </a>
               </Button>
+              <SocialLinks
+                facebook="https://www.facebook.com/mundialitoredondela"
+                instagram="https://www.instagram.com/mundialitoredondela"
+                className="w-full pt-1"
+              />
             </>
           }
         />
