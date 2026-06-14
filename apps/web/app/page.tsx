@@ -6,23 +6,41 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
+  Header,
+  ModeToggle,
 } from "@mr/ui";
 import { CalendarDays, ExternalLink, MapPin } from "lucide-react";
-import { ModeToggle } from "./components/mode-toggle";
 
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-6">
-      <div className="fixed top-4 right-4">
-        <ModeToggle />
-      </div>
+      <Header
+        edition="XLVII"
+        eventName="Mundialito da Xunqueira"
+        navItems={
+          <>
+            <Button variant="ghost" size="sm">
+              Equipos
+            </Button>
+            <Button variant="ghost" size="sm">
+              Calendario
+            </Button>
+            <Button variant="ghost" size="sm">
+              Resultados
+            </Button>
+          </>
+        }
+        actions={<ModeToggle />}
+      />
       <Card className="w-full max-w-md">
         <CardHeader className="gap-3">
-          <Badge variant="secondary" className="w-fit">
-            XLVII Edición
-          </Badge>
           <CardTitle className="text-2xl leading-tight">
-            Mundialito da Xunqueira
+            <div className="flex items-center gap-2">
+              Mundialito da Xunqueira
+              <Badge variant="secondary" className="w-fit">
+                XLVII
+              </Badge>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3 text-sm text-muted-foreground">

@@ -1,3 +1,7 @@
+// custom components — src/components/*
+export { Header } from "./components/header";
+export { ModeToggle } from "./components/mode-toggle";
+
 // shadcn primitives — src/ui/* — never edit manually
 export { Button, buttonVariants } from "./ui/button";
 export { Input } from "./ui/input";
