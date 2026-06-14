@@ -1,14 +1,11 @@
-import {
-  Badge,
-  Button,
-  Countdown,
-  Footer,
-  Header,
-  Hero,
-  SocialLinks,
-} from "@mr/ui";
+import { Badge, Button } from "@mr/ui";
 import { CalendarDays, ExternalLink, MapPin } from "lucide-react";
+import { Countdown } from "./components/countdown";
+import { Footer } from "./components/footer";
+import { Header } from "./components/header";
+import { Hero } from "./components/hero";
 import { ModeToggle } from "./components/mode-toggle";
+import { SocialLinks } from "./components/social-links";
 
 const LEGAL_LINKS = [
   { label: "Política de privacidad", href: "/privacidad" },

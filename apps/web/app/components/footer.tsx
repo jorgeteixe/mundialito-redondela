@@ -1,5 +1,4 @@
-import { cn } from "../lib/utils";
-import { Separator } from "../ui/separator";
+import { cn, Separator } from "@mr/ui";
 
 interface FooterLink {
   label: string;

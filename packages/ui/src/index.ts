@@ -1,10 +1,5 @@
-// custom components — src/components/*
-export { Countdown } from "./components/countdown";
-export { Footer } from "./components/footer";
-export { Header } from "./components/header";
-export { Hero } from "./components/hero";
-export { SocialLinks } from "./components/social-links";
-export { ThemeToggle } from "./components/theme-toggle";
+// shared utilities
+export { cn } from "./lib/utils";
 
 // shadcn primitives — src/ui/* — never edit manually
 export { Button, buttonVariants } from "./ui/button";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Badge } from "../ui/badge";
+import { Badge } from "@mr/ui";
 
 // June 29 2026 20:00 Madrid time (CEST = UTC+2)
 const TARGET = new Date("2026-06-29T20:00:00+02:00");

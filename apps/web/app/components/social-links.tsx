@@ -1,5 +1,4 @@
-import { cn } from "../lib/utils";
-import { Button } from "../ui/button";
+import { cn, Button } from "@mr/ui";
 
 interface SocialLinksProps {
   facebook: string;

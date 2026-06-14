@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import { cn } from "../lib/utils";
-import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
+import { cn, Badge, Button } from "@mr/ui";
 
 interface HeaderProps {
   edition: string;

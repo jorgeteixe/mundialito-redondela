@@ -1,5 +1,7 @@
-import { Button, Footer, Header } from "@mr/ui";
+import { Button } from "@mr/ui";
 import Link from "next/link";
+import { Footer } from "./components/footer";
+import { Header } from "./components/header";
 import { ModeToggle } from "./components/mode-toggle";
 
 const LEGAL_LINKS = [
