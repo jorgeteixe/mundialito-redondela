@@ -1,6 +1,10 @@
 // shared utilities
 export { cn } from "./lib/utils";
 
+// custom components — src/components/*
+export { DashboardPage } from "./components/dashboard-page";
+export { EmptyState } from "./components/empty-state";
+
 // shadcn primitives — src/ui/* — never edit manually
 export { Button, buttonVariants } from "./ui/button";
 export { Input } from "./ui/input";
