@@ -37,15 +37,16 @@ pnpm dev
 
 The following scripts are configured in the root `package.json` to manage all packages:
 
-| Command          | Action                                                           |
-| :--------------- | :--------------------------------------------------------------- |
-| `pnpm dev`       | Starts Next.js and Storybook concurrently in development mode    |
-| `pnpm build`     | Performs a production build of all applications in the workspace |
-| `pnpm lint`      | Runs ESLint across the codebase                                  |
-| `pnpm typecheck` | Validates TypeScript compilation                                 |
-| `pnpm test`      | Runs unit and Storybook browser tests                            |
-| `pnpm test:e2e`  | Runs Playwright E2E tests                                        |
-| `pnpm format`    | Formats all files using Prettier                                 |
+| Command            | Action                                                           |
+| :----------------- | :--------------------------------------------------------------- |
+| `pnpm dev`         | Starts Next.js and Storybook concurrently in development mode    |
+| `pnpm build`       | Performs a production build of all applications in the workspace |
+| `pnpm lint`        | Runs ESLint across the codebase                                  |
+| `pnpm typecheck`   | Validates TypeScript compilation                                 |
+| `pnpm test`        | Runs unit and Storybook browser tests                            |
+| `pnpm test:e2e`    | Runs Playwright E2E tests                                        |
+| `pnpm test:visual` | Runs Storybook visual screenshot tests                           |
+| `pnpm format`      | Formats all files using Prettier                                 |
 
 ### Package Filtering
 
@@ -68,6 +69,7 @@ Detailed workflows, guidelines, and visual assets automation instructions are st
 - **[Documentation Overview](file:///Users/teixe/dev/mundialito-redondela/docs/README.md)**: Folder conventions and technical scope.
 - **[UI Components](file:///Users/teixe/dev/mundialito-redondela/docs/ui-components.md)**: shadcn/ui setup, how to add components, theming, and Storybook conventions.
 - **[Backstage E2E Testing](docs/backstage-e2e-testing.md)**: Playwright setup for backstage auth and user workflows.
+- **[Testing Strategy](docs/testing-strategy.md)**: Unit, component, visual, and E2E testing conventions.
 
 ---
 

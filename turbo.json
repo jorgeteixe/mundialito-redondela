@@ -28,6 +28,10 @@
       "dependsOn": ["^build"],
       "cache": false
     },
+    "test:visual": {
+      "dependsOn": ["build-storybook"],
+      "outputs": ["artifacts/storybook/**"]
+    },
     "storybook": {
       "cache": false,
       "persistent": true

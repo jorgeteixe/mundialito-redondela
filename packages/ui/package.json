@@ -7,6 +7,7 @@
     "generate:component": "turbo gen react-component",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:visual": "VITE_STORYCAP_SCREENSHOTS=true vitest run --project=storybook",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "screenshot:storybook": "VITE_STORYCAP_SCREENSHOTS=true vitest run --project=storybook",

@@ -25,7 +25,7 @@ pnpm --filter @mr/backstage test:e2e
 pnpm --filter @mr/backstage test:e2e:ui
 ```
 
-Playwright starts backstage on `http://127.0.0.1:3099` and seeds a deterministic test admin during global setup.
+Playwright starts backstage on `http://localhost:3099` and seeds a deterministic test admin during global setup.
 
 ## Coverage Rules
 

@@ -9,6 +9,7 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e",
+    "test:visual": "turbo run test:visual",
     "storybook": "turbo run storybook",
     "build-storybook": "turbo run build-storybook",
     "prepare": "husky",

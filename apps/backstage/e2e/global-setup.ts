@@ -54,21 +54,27 @@ async function ensureDatabase(databaseUrl: string) {
 
 async function resetSchema(databaseUrl: string) {
   const sql = postgres(databaseUrl, { max: 1, onnotice: () => {} });
-  const migrationPath = path.join(
-    repoRoot,
-    "packages/db/drizzle/0000_mature_stepford_cuckoos.sql",
-  );
-  const migration = await fs.readFile(migrationPath, "utf8");
+  const migrationsDir = path.join(repoRoot, "packages/db/drizzle");
+  const migrationFiles = (await fs.readdir(migrationsDir))
+    .filter((file) => file.endsWith(".sql"))
+    .sort();
 
   try {
     await sql`DROP SCHEMA IF EXISTS public CASCADE`;
     await sql`CREATE SCHEMA public`;
 
-    for (const statement of migration.split("--> statement-breakpoint")) {
-      const trimmed = statement.trim();
+    for (const file of migrationFiles) {
+      const migration = await fs.readFile(
+        path.join(migrationsDir, file),
+        "utf8",
+      );
 
-      if (trimmed) {
-        await sql.unsafe(trimmed);
+      for (const statement of migration.split("--> statement-breakpoint")) {
+        const trimmed = statement.trim();
+
+        if (trimmed) {
+          await sql.unsafe(trimmed);
+        }
       }
     }
   } finally {

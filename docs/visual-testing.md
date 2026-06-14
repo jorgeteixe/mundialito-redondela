@@ -20,7 +20,9 @@ The project uses Vitest Browser Mode and Storycap integration to automate visual
 To generate and update all Storybook component screenshot snapshots:
 
 ```bash
-pnpm screenshot:storybook
+pnpm test:visual
 ```
+
+`pnpm screenshot:storybook` remains available as an alias for the same workflow.
 
 _Screenshots should be committed whenever shared UI components or stories are updated to keep visual baselines up to date._
