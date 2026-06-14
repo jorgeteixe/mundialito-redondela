@@ -39,7 +39,13 @@ export function AppSidebar() {
           className="flex items-center justify-center size-6 shrink-0"
           aria-label="Toggle Sidebar"
         >
-          <Image src="/favicon.svg" alt="Logo" width={18} height={18} />
+          <Image
+            src="/favicon.svg"
+            alt="Logo"
+            width={18}
+            height={18}
+            loading="eager"
+          />
         </button>
         <span className="font-semibold text-sm">Backstage</span>
       </SidebarHeader>
