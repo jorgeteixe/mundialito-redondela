@@ -101,6 +101,15 @@ Use **caveman mode** by default for all responses. Drop articles, filler (just/r
 
 Revert to full prose only for: security warnings, irreversible-action confirmations, multi-step sequences where fragment order risks misread.
 
+## Verification
+
+**Always verify backstage UI changes by writing and running e2e tests — never by scripting ad-hoc Playwright sessions, querying the production database, or driving the live dev server manually.**
+
+- Write tests in `apps/backstage/tests/*.spec.ts` following the pattern in `auth.spec.ts`.
+- Run with `pnpm --filter @mr/backstage test:e2e`.
+- Tests run against a dedicated test server on port 3002 with a seeded test DB — no live credentials needed.
+- When a new page or interaction is added, add a corresponding e2e test before marking the task done.
+
 ## Relevant Agent Skills
 
 Project-specific skills live in `.agents/skills/`. Install or update them with `npx skills`.

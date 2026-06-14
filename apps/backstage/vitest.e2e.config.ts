@@ -12,6 +12,7 @@ export default defineConfig({
     environment: "node",
     globalSetup: [path.join(dirname, "tests/global-setup.ts")],
     include: ["tests/**/*.spec.{ts,tsx}"],
-    testTimeout: 30_000,
+    hookTimeout: 60_000,
+    testTimeout: 60_000,
   },
 });

@@ -21,8 +21,16 @@ const TEST_DB_URL =
 
 const ADMIN_DB_URL = TEST_DB_URL.replace(/\/[^/]+$/, "/mundialito");
 
-const SERVER_URL = "http://localhost:3002";
+const SERVER_URL = "http://localhost:3099";
 let serverProcess: ChildProcess | null = null;
+
+async function warmupRoutes(): Promise<void> {
+  for (const path of ["/login", "/team"]) {
+    try {
+      await fetch(`${SERVER_URL}${path}`, { redirect: "manual" });
+    } catch {}
+  }
+}
 
 async function waitForServer(timeout = 120_000): Promise<void> {
   const deadline = Date.now() + timeout;
@@ -81,7 +89,7 @@ export default async function globalSetup() {
     .catch(() => false);
 
   if (!alreadyRunning) {
-    serverProcess = spawn("pnpm", ["exec", "next", "dev", "--port", "3002"], {
+    serverProcess = spawn("pnpm", ["exec", "next", "dev", "--port", "3099"], {
       cwd: path.resolve(__dirname, ".."),
       env: {
         ...process.env,
@@ -94,6 +102,7 @@ export default async function globalSetup() {
     });
     await waitForServer();
   }
+  await warmupRoutes();
 }
 
 export async function teardown() {

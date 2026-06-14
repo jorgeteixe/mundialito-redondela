@@ -5,6 +5,6 @@ import { LoginForm } from "./login-form";
 
 export default async function LoginPage() {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (session) redirect("/");
+  if (session) redirect("/team");
   return <LoginForm />;
 }
