@@ -13,6 +13,7 @@ import {
   BreadcrumbSeparator,
   Separator,
   SidebarTrigger,
+  Skeleton,
 } from "@mr/ui";
 
 const segmentLabels: Record<string, string> = {
@@ -73,9 +74,16 @@ export function AppHeader() {
                 <BreadcrumbItem>
                   {isLast ? (
                     <BreadcrumbPage>
-                      {isUuid(segment)
-                        ? (teamLabels[segment] ?? "")
-                        : label(segment)}
+                      {isUuid(segment) && !teamLabels[segment] ? (
+                        <Skeleton
+                          className="h-4 w-28"
+                          aria-label="Cargando equipo"
+                        />
+                      ) : isUuid(segment) ? (
+                        teamLabels[segment]
+                      ) : (
+                        label(segment)
+                      )}
                     </BreadcrumbPage>
                   ) : (
                     <BreadcrumbLink asChild>
