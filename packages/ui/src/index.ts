@@ -4,6 +4,27 @@ export { cn } from "./lib/utils";
 // custom components — src/components/*
 export { DashboardPage } from "./components/dashboard-page";
 export { EmptyState } from "./components/empty-state";
+export {
+  KnockoutBracket,
+  MatchCard,
+  MatchRow,
+  MatchScore,
+  MatchStatusBadge,
+  QualifiedBadge,
+  Schedule,
+  StandingsTable,
+  TeamBadge,
+  TeamCard,
+  TeamList,
+  TodayMatches,
+  type KnockoutNode,
+  type KnockoutRound,
+  type MatchStatus,
+  type MatchTeam,
+  type StandingRow,
+  type TournamentMatch,
+  type TournamentTeam,
+} from "./components/tournament";
 
 // shadcn primitives — src/ui/* — never edit manually
 export { Button, buttonVariants } from "./ui/button";
