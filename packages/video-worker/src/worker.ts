@@ -67,7 +67,7 @@ export async function processNextVideoJob({
     const result = await renderJob({
       job,
       outputDir: config.outputDir,
-      publicPathPrefix: config.publicPathPrefix,
+      storage: config.storage,
     });
     await queue.markSucceeded(job.id, result.publicPath);
     logger.info(

@@ -6,6 +6,7 @@ import {
   type VideoJobQueue,
   type VideoWorkerLogger,
 } from "./worker";
+import type { VideoWorkerConfig } from "./config";
 
 const silentLogger: VideoWorkerLogger = {
   info: vi.fn(),
@@ -42,19 +43,30 @@ function createQueue(job: VideoGenerationJob | null): VideoJobQueue {
   };
 }
 
+const testConfig: VideoWorkerConfig = {
+  workerId: "test-worker",
+  pollMs: 1,
+  outputDir: "/tmp/videos",
+  storage: {
+    endpoint: "http://localhost:9000",
+    region: "auto",
+    bucket: "test-videos",
+    accessKeyId: "test",
+    secretAccessKey: "test",
+    publicBaseUrl: "http://localhost:9000",
+    forcePathStyle: true,
+    applyPublicReadPolicy: true,
+  },
+  once: true,
+};
+
 describe("processNextVideoJob", () => {
   it("returns false when no queued job exists", async () => {
     const queue = createQueue(null);
 
     await expect(
       processNextVideoJob({
-        config: {
-          workerId: "test-worker",
-          pollMs: 1,
-          outputDir: "/tmp/videos",
-          publicPathPrefix: "/generated/videos",
-          once: true,
-        },
+        config: testConfig,
         queue,
         logger: silentLogger,
       }),
@@ -69,25 +81,20 @@ describe("processNextVideoJob", () => {
 
     await expect(
       processNextVideoJob({
-        config: {
-          workerId: "test-worker",
-          pollMs: 1,
-          outputDir: "/tmp/videos",
-          publicPathPrefix: "/generated/videos",
-          once: true,
-        },
+        config: testConfig,
         queue,
         logger: silentLogger,
         render: vi.fn().mockResolvedValue({
           outputLocation: "/tmp/videos/job.mp4",
-          publicPath: "/generated/videos/job.mp4",
+          publicPath:
+            "http://localhost:9000/test-videos/videos/hello-world/job.mp4",
         }),
       }),
     ).resolves.toBe(true);
 
     expect(queue.markSucceeded).toHaveBeenCalledWith(
       baseJob.id,
-      "/generated/videos/job.mp4",
+      "http://localhost:9000/test-videos/videos/hello-world/job.mp4",
     );
     expect(queue.markFailed).not.toHaveBeenCalled();
   });
@@ -96,13 +103,7 @@ describe("processNextVideoJob", () => {
     const queue = createQueue(baseJob);
 
     await processNextVideoJob({
-      config: {
-        workerId: "test-worker",
-        pollMs: 1,
-        outputDir: "/tmp/videos",
-        publicPathPrefix: "/generated/videos",
-        once: true,
-      },
+      config: testConfig,
       queue,
       logger: silentLogger,
       render: vi.fn().mockRejectedValue(new Error("Render failed")),

@@ -6,6 +6,8 @@ import { renderMedia, selectComposition } from "@remotion/renderer";
 import { enableTailwind } from "@remotion/tailwind-v4";
 import { TEMPLATE_DEFINITIONS } from "@mr/remotion/templates";
 import type { VideoGenerationJob } from "@mr/db";
+import type { S3StorageConfig } from "./config";
+import { createS3Client, uploadVideoFile } from "./storage";
 
 const remotionEntryPoint = fileURLToPath(
   new URL("../../remotion/src/remotion-entry.ts", import.meta.url),
@@ -19,15 +21,12 @@ export function getVideoOutputFilename(job: Pick<VideoGenerationJob, "id">) {
   return `${job.id}.mp4`;
 }
 
-export function getVideoOutputPath(outputDir: string, job: VideoGenerationJob) {
-  return path.join(outputDir, getVideoOutputFilename(job));
+export function getVideoObjectKey(job: VideoGenerationJob) {
+  return `videos/${job.templateId}/${getVideoOutputFilename(job)}`;
 }
 
-export function getVideoPublicPath(
-  publicPathPrefix: string,
-  job: Pick<VideoGenerationJob, "id">,
-) {
-  return `${publicPathPrefix.replace(/\/$/, "")}/${getVideoOutputFilename(job)}`;
+export function getVideoOutputPath(outputDir: string, job: VideoGenerationJob) {
+  return path.join(outputDir, getVideoOutputFilename(job));
 }
 
 async function getServeUrl() {
@@ -54,11 +53,11 @@ async function getServeUrl() {
 export async function renderVideoGenerationJob({
   job,
   outputDir,
-  publicPathPrefix,
+  storage,
 }: {
   job: VideoGenerationJob;
   outputDir: string;
-  publicPathPrefix: string;
+  storage: S3StorageConfig;
 }) {
   const template = TEMPLATE_DEFINITIONS.find(
     (candidate) => candidate.id === job.templateId,
@@ -96,8 +95,15 @@ export async function renderVideoGenerationJob({
     logLevel: "warn",
   });
 
+  const storedObject = await uploadVideoFile({
+    client: createS3Client(storage),
+    config: storage,
+    filePath: outputLocation,
+    key: getVideoObjectKey(job),
+  });
+
   return {
     outputLocation,
-    publicPath: getVideoPublicPath(publicPathPrefix, job),
+    publicPath: storedObject.url,
   };
 }

@@ -12,10 +12,26 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+  minio:
+    container_name: mundialito-minio
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: mundialito
+      MINIO_ROOT_PASSWORD: mundialito
+    networks:
+      - mundialito
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
 
 volumes:
   postgres_data:
     name: mundialito-db
+  minio_data:
+    name: mundialito-minio
 
 networks:
   mundialito:

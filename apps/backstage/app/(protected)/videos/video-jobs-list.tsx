@@ -1,6 +1,14 @@
 import Link from "next/link";
-import { RotateCcw, X } from "lucide-react";
+import { Download, Eye, RotateCcw, X } from "lucide-react";
 import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
   Badge,
   Button,
   Card,
@@ -55,9 +63,7 @@ function JobActions({ job }: { job: VideoJobSummary }) {
   return (
     <div className="flex justify-end gap-2">
       {job.status === "succeeded" && job.outputPath ? (
-        <Button asChild variant="outline" size="sm">
-          <Link href={job.outputPath}>Descargar</Link>
-        </Button>
+        <VideoPreviewDialog job={job} />
       ) : null}
       {job.status === "failed" ? (
         <form action={retryFailedVideoGenerationJob}>
@@ -79,13 +85,62 @@ function JobActions({ job }: { job: VideoJobSummary }) {
   );
 }
 
+function JobResult({ job }: { job: VideoJobSummary }) {
+  if (job.status === "succeeded") return <span>Listo para ver</span>;
+  if (job.status === "queued") return <span>Pendiente de worker</span>;
+  if (job.status === "running") return <span>Renderizando</span>;
+  if (job.status === "cancelled") return <span>Cancelado</span>;
+
+  return (
+    <span className="line-clamp-2 text-destructive">
+      {job.errorMessage ?? "No se pudo generar el vídeo."}
+    </span>
+  );
+}
+
+function VideoPreviewDialog({ job }: { job: VideoJobSummary }) {
+  if (!job.outputPath) return null;
+
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Eye className="h-4 w-4" />
+          Ver
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-2xl">
+        <AlertDialogHeader>
+          <AlertDialogTitle>{job.templateTitle}</AlertDialogTitle>
+          <AlertDialogDescription>
+            Vídeo generado el {formatDate(job.createdAt)}.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <video
+          src={job.outputPath}
+          controls
+          preload="metadata"
+          className="aspect-[9/16] max-h-[70vh] w-full rounded-md bg-muted object-contain"
+        />
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cerrar</AlertDialogCancel>
+          <Button asChild>
+            <Link href={job.outputPath} download>
+              <Download className="h-4 w-4" />
+              Descargar
+            </Link>
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
 function JobMeta({ job }: { job: VideoJobSummary }) {
   return (
     <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground">
       <span>{job.templateTitle}</span>
-      <span>
-        Intento {job.attempts}/{job.maxAttempts}
-      </span>
+      <JobResult job={job} />
       <span>{formatDate(job.createdAt)}</span>
     </div>
   );
@@ -121,7 +176,6 @@ export function VideoJobsList({ jobs }: { jobs: VideoJobSummary[] }) {
             <TableRow>
               <TableHead>Vídeo</TableHead>
               <TableHead>Estado</TableHead>
-              <TableHead>Intentos</TableHead>
               <TableHead>Creado</TableHead>
               <TableHead className="w-32">
                 <span className="sr-only">Acciones</span>
@@ -143,9 +197,6 @@ export function VideoJobsList({ jobs }: { jobs: VideoJobSummary[] }) {
                 </TableCell>
                 <TableCell>
                   <JobStatusBadge status={job.status} />
-                </TableCell>
-                <TableCell>
-                  {job.attempts}/{job.maxAttempts}
                 </TableCell>
                 <TableCell>{formatDate(job.createdAt)}</TableCell>
                 <TableCell>
