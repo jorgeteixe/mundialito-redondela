@@ -12,6 +12,7 @@
     "test:visual": "turbo run test:visual",
     "storybook": "turbo run storybook",
     "build-storybook": "turbo run build-storybook",
+    "video:worker": "turbo run worker --filter @mr/video-worker",
     "prepare": "husky",
     "screenshot:storybook": "turbo run screenshot:storybook"
   },

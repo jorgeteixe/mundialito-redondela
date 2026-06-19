@@ -1,8 +1,8 @@
 import type { ComponentType } from "react";
 import type { z } from "zod";
-import { PRESETS, type PresetName } from "./presets";
 import { HelloWorld } from "./compositions/hello-world/Component";
-import { helloWorldSchema } from "./compositions/hello-world/schema";
+import { TEMPLATE_DEFINITIONS } from "./templates";
+import type { PresetName } from "./presets";
 
 /**
  * A single template definition — the unit both Remotion Studio and (later) the
@@ -30,28 +30,29 @@ function defineTemplate<S extends z.ZodObject>(t: {
   title: string;
   kind: "video" | "image";
   preset: PresetName;
-  durationInFrames?: number;
+  durationInFrames: number;
   schema: S;
   Component: ComponentType<z.infer<S>>;
   defaultProps: z.infer<S>;
 }): Template {
-  return {
-    ...t,
-    durationInFrames: t.durationInFrames ?? PRESETS[t.preset].durationInFrames,
-  } as unknown as Template;
+  return t as unknown as Template;
+}
+
+function getTemplateDefinition(id: string) {
+  const template = TEMPLATE_DEFINITIONS.find(
+    (candidate) => candidate.id === id,
+  );
+  if (!template) {
+    throw new Error(`Missing template definition: ${id}`);
+  }
+
+  return template;
 }
 
 export const TEMPLATES: Template[] = [
   defineTemplate({
-    id: "hello-world",
-    title: "Hello World",
-    kind: "video",
-    preset: "story",
-    schema: helloWorldSchema,
-    Component: HelloWorld,
-    defaultProps: { title: "Mundialito Redondela" },
+    ...getTemplateDefinition("hello-world"),
+    Component: HelloWorld as unknown as ComponentType<Record<string, unknown>>,
   }),
-  // schedule / result / goal templates are built but parked for now.
-  // Re-enable by importing their Component + schema and adding defineTemplate
-  // entries here (see git history / src/compositions/{schedule,result,goal}).
+  // Keep this list aligned with TEMPLATE_DEFINITIONS in templates.ts.
 ];

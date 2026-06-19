@@ -7,7 +7,12 @@
     "DATABASE_URL",
     "BETTER_AUTH_SECRET",
     "BETTER_AUTH_URL",
-    "NEXT_PUBLIC_BETTER_AUTH_URL"
+    "NEXT_PUBLIC_BETTER_AUTH_URL",
+    "VIDEO_OUTPUT_DIR",
+    "VIDEO_PUBLIC_PATH_PREFIX",
+    "VIDEO_WORKER_ID",
+    "VIDEO_WORKER_POLL_MS",
+    "VIDEO_WORKER_ONCE"
   ],
   "tasks": {
     "build": {
@@ -45,6 +50,10 @@
       "outputs": ["artifacts/storybook/**"]
     },
     "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "worker": {
       "cache": false,
       "persistent": true
     }

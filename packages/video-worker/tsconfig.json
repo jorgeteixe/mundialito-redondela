@@ -1,0 +1,14 @@
+{
+  "extends": "@mr/typescript-config/base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "paths": {
+      "@/*": ["../ui/src/*"]
+    },
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
+}

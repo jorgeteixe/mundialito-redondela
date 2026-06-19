@@ -43,3 +43,4 @@ yarn-error.log*
 *storybook.log
 storybook-static
 test-results/
+apps/backstage/public/generated/videos/

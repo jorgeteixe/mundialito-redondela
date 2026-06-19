@@ -8,6 +8,10 @@ This directory contains technical guides, workflow documentation, and developmen
 - **Feature Design**: Specifications, architectural patterns, and structural overviews of the platform's layout and data flows.
 - **Setup Manuals**: Guides detailing environment configurations, API integrations, and developer toolchain settings.
 
+## Guides
+
+- [Video Generation Queue](./video-generation-queue.md)
+
 ## Folder Conventions
 
 - All files must be written in English.

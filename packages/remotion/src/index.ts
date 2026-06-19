@@ -2,6 +2,7 @@
 // Importing this must NOT call registerRoot — that lives in remotion-entry.ts.
 export { PRESETS, type Preset, type PresetName } from "./presets";
 export { TEMPLATES, type Template } from "./registry";
+export { TEMPLATE_DEFINITIONS, type TemplateDefinition } from "./templates";
 export { RemotionRoot } from "./Root";
 export { TOURNAMENT } from "./tournament";
 export * as theme from "./theme";

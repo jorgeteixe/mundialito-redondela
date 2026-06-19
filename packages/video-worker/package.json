@@ -1,35 +1,28 @@
 {
-  "name": "@mr/remotion",
+  "name": "@mr/video-worker",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts",
-    "./templates": "./src/templates.ts"
-  },
   "scripts": {
-    "studio": "remotion studio src/remotion-entry.ts",
+    "dev": "tsx src/index.ts",
+    "worker": "tsx src/index.ts",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@mr/ui": "workspace:*",
-    "@remotion/cli": "4.0.477",
-    "@remotion/google-fonts": "4.0.477",
-    "@remotion/player": "4.0.477",
+    "@mr/db": "workspace:*",
+    "@mr/remotion": "workspace:*",
+    "@remotion/bundler": "4.0.477",
+    "@remotion/renderer": "4.0.477",
     "@remotion/tailwind-v4": "4.0.477",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "remotion": "4.0.477",
-    "zod": "4.3.6"
+    "dotenv": "^17.4.2",
+    "tsx": "^4.19.4"
   },
   "devDependencies": {
     "@mr/eslint-config": "workspace:*",
     "@mr/typescript-config": "workspace:*",
     "@types/node": "^22.15.3",
-    "@types/react": "19.2.2",
-    "@types/react-dom": "19.2.2",
     "eslint": "^9.39.1",
     "typescript": "5.9.2",
     "vitest": "^4.1.8"
