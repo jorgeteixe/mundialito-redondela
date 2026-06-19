@@ -2,6 +2,17 @@ import type { z } from "zod";
 import { PRESETS, type PresetName } from "./presets";
 import { helloWorldSchema } from "./compositions/hello-world/schema";
 
+export type TemplateParameter = {
+  name: string;
+  label: string;
+  description?: string;
+  type: "text" | "number" | "integer" | "boolean" | "select";
+  required?: boolean;
+  min?: number;
+  max?: number;
+  options?: { label: string; value: string }[];
+};
+
 export type TemplateDefinition = {
   id: string;
   title: string;
@@ -9,6 +20,7 @@ export type TemplateDefinition = {
   preset: PresetName;
   durationInFrames: number;
   schema: z.ZodObject;
+  parameters: TemplateParameter[];
   defaultProps: Record<string, unknown>;
 };
 
@@ -19,6 +31,7 @@ function defineTemplateDefinition<S extends z.ZodObject>(template: {
   preset: PresetName;
   durationInFrames?: number;
   schema: S;
+  parameters: TemplateParameter[];
   defaultProps: z.infer<S>;
 }): TemplateDefinition {
   return {
@@ -35,6 +48,15 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
     kind: "video",
     preset: "story",
     schema: helloWorldSchema,
+    parameters: [
+      {
+        name: "title",
+        label: "Título",
+        description: "Texto principal del vídeo.",
+        type: "text",
+        required: true,
+      },
+    ],
     defaultProps: { title: "Mundialito Redondela" },
   }),
   // schedule / result / goal templates are built but parked for now.

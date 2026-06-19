@@ -8,7 +8,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  EmptyState,
   Table,
   TableBody,
   TableCell,
@@ -30,14 +29,14 @@ const statusLabels = {
   cancelled: "Cancelado",
 } as const;
 
-function formatDate(date: Date | null) {
+function formatDate(date: string | null) {
   if (!date) return "Pendiente";
   return new Intl.DateTimeFormat("es-ES", {
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(date);
+  }).format(new Date(date));
 }
 
 function JobStatusBadge({ status }: { status: VideoJobSummary["status"] }) {
@@ -93,15 +92,6 @@ function JobMeta({ job }: { job: VideoJobSummary }) {
 }
 
 export function VideoJobsList({ jobs }: { jobs: VideoJobSummary[] }) {
-  if (jobs.length === 0) {
-    return (
-      <EmptyState
-        title="Sin vídeos en la cola"
-        description="Añade el primer vídeo para comenzar."
-      />
-    );
-  }
-
   return (
     <>
       <div className="flex flex-col gap-3 md:hidden">

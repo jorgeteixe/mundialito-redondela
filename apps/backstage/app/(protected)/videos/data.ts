@@ -1,16 +1,26 @@
-import { listVideoGenerationJobs } from "@mr/db";
-import { TEMPLATE_DEFINITIONS } from "@mr/remotion/templates";
+import { listVideoGenerationJobs, type VideoGenerationJobStatus } from "@mr/db";
+import {
+  TEMPLATE_DEFINITIONS,
+  type TemplateParameter,
+} from "@mr/remotion/templates";
 
 export type VideoTemplateSummary = {
   id: string;
   title: string;
-  defaultPropsJson: string;
+  parameters: TemplateParameter[];
+  defaultProps: Record<string, unknown>;
 };
 
-export type VideoJobSummary = Awaited<
-  ReturnType<typeof listVideoGenerationJobs>
->[number] & {
+export type VideoJobSummary = {
+  id: string;
+  templateId: string;
   templateTitle: string;
+  status: VideoGenerationJobStatus;
+  attempts: number;
+  maxAttempts: number;
+  errorMessage: string | null;
+  outputPath: string | null;
+  createdAt: string;
 };
 
 export function listVideoTemplates(): VideoTemplateSummary[] {
@@ -19,7 +29,8 @@ export function listVideoTemplates(): VideoTemplateSummary[] {
   ).map((template) => ({
     id: template.id,
     title: template.title,
-    defaultPropsJson: JSON.stringify(template.defaultProps, null, 2),
+    parameters: template.parameters,
+    defaultProps: template.defaultProps,
   }));
 }
 
@@ -27,9 +38,16 @@ export async function listVideoJobs(): Promise<VideoJobSummary[]> {
   const jobs = await listVideoGenerationJobs();
 
   return jobs.map((job) => ({
-    ...job,
+    id: job.id,
+    templateId: job.templateId,
     templateTitle:
       TEMPLATE_DEFINITIONS.find((template) => template.id === job.templateId)
         ?.title ?? job.templateId,
+    status: job.status,
+    attempts: job.attempts,
+    maxAttempts: job.maxAttempts,
+    errorMessage: job.errorMessage,
+    outputPath: job.outputPath,
+    createdAt: job.createdAt.toISOString(),
   }));
 }
