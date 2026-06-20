@@ -28,9 +28,22 @@ function makeResponse(data: unknown, ok = true, status = 200): Response {
   } as unknown as Response;
 }
 
+function makeTextResponse(text: string, ok = false, status = 422): Response {
+  return {
+    ok,
+    status,
+    json: () => Promise.reject(new SyntaxError("Invalid JSON")),
+    text: () => Promise.resolve(text),
+  } as unknown as Response;
+}
+
 // fetch mock that returns a queued response per call and records the calls.
 function sequencedFetch(responses: Response[]) {
-  const calls: { url: string; body: Record<string, string> | null }[] = [];
+  const calls: {
+    url: string;
+    body: Record<string, string> | null;
+    headers: Record<string, string> | null;
+  }[] = [];
   let index = 0;
   const fetchImpl: FetchImpl = (input, init) => {
     const url = String(input);
@@ -38,7 +51,11 @@ function sequencedFetch(responses: Response[]) {
       init?.body instanceof URLSearchParams
         ? Object.fromEntries(init.body.entries())
         : null;
-    calls.push({ url, body });
+    const headers =
+      init?.headers && !(init.headers instanceof Headers)
+        ? (init.headers as Record<string, string>)
+        : null;
+    calls.push({ url, body, headers });
     const response = responses[index] ?? makeResponse({});
     index += 1;
     return Promise.resolve(response);
@@ -254,20 +271,69 @@ describe("createMetaProvider — facebook", () => {
     });
   });
 
-  it("rejects facebook stories", async () => {
-    const { fetchImpl } = sequencedFetch([]);
-    const { ctx } = makeCtx();
+  it("publishes an image story through /photo_stories", async () => {
+    const { fetchImpl, call } = sequencedFetch([
+      makeResponse({ id: "photo-1" }),
+      makeResponse({ post_id: "story-1" }),
+    ]);
+    const { ctx, setContainerId } = makeCtx();
     const provider = createMetaProvider({ fetchImpl });
 
-    await expect(
-      provider.publish(
-        input("facebook", makePost({ postType: "story", mediaKind: "image" }), {
-          url: "https://media.example.com/s.png",
-          kind: "image",
-        }),
-        ctx,
-      ),
-    ).rejects.toThrow(/stories are not supported/i);
+    const result = await provider.publish(
+      input("facebook", makePost({ postType: "story", mediaKind: "image" }), {
+        url: "https://media.example.com/s.png",
+        kind: "image",
+      }),
+      ctx,
+    );
+
+    expect(result).toMatchObject({ providerPostId: "story-1" });
+    expect(setContainerId).toHaveBeenCalledWith("photo-1");
+    expect(call(0).url).toContain("/page-1/photos");
+    expect(call(0).body).toMatchObject({
+      url: "https://media.example.com/s.png",
+      published: "false",
+    });
+    expect(call(1).url).toContain("/page-1/photo_stories");
+    expect(call(1).body).toMatchObject({ photo_id: "photo-1" });
+  });
+
+  it("publishes a video story through /video_stories", async () => {
+    const { fetchImpl, call } = sequencedFetch([
+      makeResponse({
+        video_id: "video-story-1",
+        upload_url: "https://rupload.facebook.com/video-upload/v21.0/1",
+      }),
+      makeResponse({ success: true }),
+      makeResponse({ post_id: "story-2" }),
+    ]);
+    const { ctx, setContainerId } = makeCtx();
+    const provider = createMetaProvider({ fetchImpl });
+
+    const result = await provider.publish(
+      input("facebook", makePost({ postType: "story", mediaKind: "video" }), {
+        url: "https://media.example.com/s.mp4",
+        kind: "video",
+      }),
+      ctx,
+    );
+
+    expect(result).toMatchObject({ providerPostId: "story-2" });
+    expect(setContainerId).toHaveBeenCalledWith("video-story-1");
+    expect(call(0).url).toContain("/page-1/video_stories");
+    expect(call(0).body).toMatchObject({ upload_phase: "start" });
+    expect(call(1).url).toBe(
+      "https://rupload.facebook.com/video-upload/v21.0/1",
+    );
+    expect(call(1).headers).toMatchObject({
+      Authorization: "OAuth token-abc",
+      file_url: "https://media.example.com/s.mp4",
+    });
+    expect(call(2).url).toContain("/page-1/video_stories");
+    expect(call(2).body).toMatchObject({
+      upload_phase: "finish",
+      video_id: "video-story-1",
+    });
   });
 });
 
@@ -291,6 +357,28 @@ describe("createMetaProvider — errors", () => {
         }),
         ctx,
       ),
-    ).rejects.toThrow("Meta API error: Invalid OAuth access token");
+    ).rejects.toThrow(
+      "Meta API error at POST /ig-1/media: Invalid OAuth access token",
+    );
+  });
+
+  it("includes operation, status, and non-json body for Meta 422 responses", async () => {
+    const { fetchImpl } = sequencedFetch([
+      makeTextResponse("Validation failed access_token=secret-token"),
+    ]);
+    const { ctx } = makeCtx();
+    const provider = createMetaProvider({ fetchImpl });
+
+    await expect(
+      provider.publish(
+        input("facebook", makePost({ postType: "story", mediaKind: "image" }), {
+          url: "https://media.example.com/a.png",
+          kind: "image",
+        }),
+        ctx,
+      ),
+    ).rejects.toThrow(
+      "Meta API error at POST /page-1/photos: HTTP 422 body=Validation failed access_token=[redacted]",
+    );
   });
 });

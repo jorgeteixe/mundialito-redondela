@@ -68,12 +68,6 @@ export async function createPublication(
     return invalid({ postType: "Selecciona un tipo de publicación." });
   }
 
-  if (platforms.includes("facebook") && postType === "story") {
-    return invalid({
-      platforms: "Facebook no admite stories en esta versión.",
-    });
-  }
-
   const scheduledRaw = readString(formData, "scheduledAt");
   // No date = publish now. A past date is allowed and goes out on the next poll.
   const scheduledAt = scheduledRaw ? new Date(scheduledRaw) : new Date();

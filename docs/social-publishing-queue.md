@@ -21,8 +21,7 @@ a PostgreSQL-backed queue and a dedicated worker, mirroring the video pipeline.
 ## State machine (`social_post_target`)
 
 `scheduled` → `publishing` → `published`. A failure re-queues to `scheduled`
-until `max_attempts`, then becomes `failed` (retryable from the UI). Pending
-targets can be `cancelled`.
+until `max_attempts`, then becomes `failed` (retryable from the UI).
 
 ## Meta setup (one-time)
 
@@ -68,11 +67,12 @@ be public:
 
 ## Platform support
 
-| Post type       | Instagram                        | Facebook                       |
-| --------------- | -------------------------------- | ------------------------------ |
-| Feed image      | ✅ `/media` (image)              | ✅ `/photos`                   |
-| Feed/Reel video | ✅ `/media` `REELS` + async poll | ✅ `/videos`                   |
-| Story           | ✅ `/media` `STORIES`            | ❌ not supported via Graph API |
+| Post type       | Instagram                        | Facebook            |
+| --------------- | -------------------------------- | ------------------- |
+| Feed image      | ✅ `/media` (image)              | ✅ `/photos`        |
+| Feed/Reel video | ✅ `/media` `REELS` + async poll | ✅ `/videos`        |
+| Story image     | ✅ `/media` `STORIES`            | ✅ `/photo_stories` |
+| Story video     | ✅ `/media` `STORIES` + poll     | ✅ `/video_stories` |
 
 ## Verification command (publishes real posts)
 

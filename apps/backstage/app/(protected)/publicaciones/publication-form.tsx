@@ -109,15 +109,6 @@ export function PublicationForm({
     setInputProps(selectedTemplate?.defaultProps ?? {});
   }, [selectedTemplate]);
 
-  // Facebook can't publish stories; drop it from the selection when type=story.
-  useEffect(() => {
-    if (postType === "story") {
-      setPlatforms((prev) =>
-        prev.filter((platform) => platform !== "facebook"),
-      );
-    }
-  }, [postType]);
-
   useEffect(() => {
     if (state.status === "idle") return;
     const key = `${state.status}:${state.message ?? ""}`;
@@ -191,28 +182,18 @@ export function PublicationForm({
             onValueChange={(value) => setPlatforms(value as SocialPlatform[])}
             className="w-full"
           >
-            {platformOptions.map((platform) => {
-              const disabled =
-                platform.value === "facebook" && postType === "story";
-              return (
-                <ToggleGroupItem
-                  key={platform.value}
-                  value={platform.value}
-                  aria-label={platform.label}
-                  disabled={disabled}
-                  className="flex-1 gap-2"
-                >
-                  <PlatformIcon platform={platform.value} className="size-4" />
-                  {platform.label}
-                </ToggleGroupItem>
-              );
-            })}
+            {platformOptions.map((platform) => (
+              <ToggleGroupItem
+                key={platform.value}
+                value={platform.value}
+                aria-label={platform.label}
+                className="flex-1 gap-2"
+              >
+                <PlatformIcon platform={platform.value} className="size-4" />
+                {platform.label}
+              </ToggleGroupItem>
+            ))}
           </ToggleGroup>
-          {postType === "story" ? (
-            <p className="text-xs text-muted-foreground">
-              Facebook no admite stories.
-            </p>
-          ) : null}
           {state.fieldErrors?.platforms && (
             <p className="text-xs text-destructive">
               {state.fieldErrors.platforms}

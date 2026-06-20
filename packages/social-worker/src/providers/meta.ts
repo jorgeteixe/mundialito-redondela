@@ -16,22 +16,58 @@ function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
-async function parseGraphResponse(response: Response) {
-  const json = (await response.json().catch(() => null)) as {
-    id?: string;
-    post_id?: string;
-    status_code?: string;
-    permalink?: string;
-    permalink_url?: string;
-    error?: { message?: string };
-  } | null;
+type GraphResponse = {
+  id?: string;
+  post_id?: string;
+  video_id?: string;
+  upload_url?: string;
+  status_code?: string;
+  permalink?: string;
+  permalink_url?: string;
+  error?: { message?: string };
+};
+
+function sanitizeMetaDetails(value: string) {
+  return value
+    .replaceAll(/access_token=([^&\s"]+)/g, "access_token=[redacted]")
+    .replaceAll(/"access_token"\s*:\s*"[^"]+"/g, '"access_token":"[redacted]"');
+}
+
+async function readGraphResponseBody(response: Response) {
+  const jsonResponse =
+    typeof response.clone === "function" ? response.clone() : response;
+  const json = (await jsonResponse
+    .json()
+    .catch(() => null)) as GraphResponse | null;
+  if (json) {
+    return { json, details: sanitizeMetaDetails(JSON.stringify(json)) };
+  }
+
+  const text = await response
+    .text()
+    .then((value) => value.trim())
+    .catch(() => "");
+  return {
+    json: null,
+    details: text ? sanitizeMetaDetails(text) : null,
+  };
+}
+
+async function parseGraphResponse(
+  response: Response,
+  operation: string,
+): Promise<GraphResponse> {
+  const { json, details } = await readGraphResponseBody(response);
 
   if (!response.ok || json?.error) {
     const message =
-      json?.error?.message ?? `HTTP ${response.status.toString()}`;
-    throw new Error(`Meta API error: ${message}`);
+      json?.error?.message ??
+      `HTTP ${response.status.toString()}${details ? ` body=${details}` : ""}`;
+    throw new Error(`Meta API error at ${operation}: ${message}`);
   }
-  if (!json) throw new Error("Meta API returned an empty response.");
+  if (!json) {
+    throw new Error(`Meta API error at ${operation}: empty response`);
+  }
   return json;
 }
 
@@ -46,7 +82,7 @@ async function graphPost(
     method: "POST",
     body: new URLSearchParams(params),
   });
-  return parseGraphResponse(response);
+  return parseGraphResponse(response, `POST /${path}`);
 }
 
 async function graphGet(
@@ -58,7 +94,7 @@ async function graphGet(
   const query = new URLSearchParams(params).toString();
   const url = `https://graph.facebook.com/${apiVersion}/${path}?${query}`;
   const response = await fetchImpl(url);
-  return parseGraphResponse(response);
+  return parseGraphResponse(response, `GET /${path}`);
 }
 
 // Best-effort permalink lookup; never fails the publish if it can't resolve.
@@ -180,9 +216,11 @@ async function publishFacebook(
   const { meta } = ctx;
 
   if (input.post.postType === "story") {
-    throw new Error(
-      "Facebook stories are not supported via the Graph API in this worker.",
-    );
+    if (input.media.kind === "video") {
+      return publishFacebookVideoStory(input, ctx, fetchImpl);
+    }
+
+    return publishFacebookPhotoStory(input, ctx, fetchImpl);
   }
 
   if (input.media.kind === "video") {
@@ -218,6 +256,103 @@ async function publishFacebook(
   );
   const id = res.post_id ?? res.id;
   if (!id) throw new Error("Facebook did not return a photo id.");
+  const permalink = await fetchPermalink(fetchImpl, meta, id, "permalink_url");
+  return { providerPostId: id, permalink };
+}
+
+async function publishFacebookPhotoStory(
+  input: PublishInput,
+  ctx: PublishContext,
+  fetchImpl: FetchImpl,
+): Promise<PublishResult> {
+  const { meta } = ctx;
+  ctx.logger.info(
+    `[social-worker] facebook story target=${input.target.id} step=upload-photo endpoint=/${meta.pageId}/photos`,
+  );
+  const uploaded = await graphPost(
+    fetchImpl,
+    meta.apiVersion,
+    `${meta.pageId}/photos`,
+    {
+      access_token: meta.pageAccessToken,
+      url: input.media.url,
+      published: "false",
+    },
+  );
+  const photoId = uploaded.id;
+  if (!photoId) throw new Error("Facebook did not return a photo id.");
+  await ctx.setContainerId(photoId);
+
+  ctx.logger.info(
+    `[social-worker] facebook story target=${input.target.id} step=publish-photo endpoint=/${meta.pageId}/photo_stories container=${photoId}`,
+  );
+  const published = await graphPost(
+    fetchImpl,
+    meta.apiVersion,
+    `${meta.pageId}/photo_stories`,
+    {
+      access_token: meta.pageAccessToken,
+      photo_id: photoId,
+    },
+  );
+  const id = published.post_id ?? published.id;
+  if (!id) throw new Error("Facebook did not return a story post id.");
+  const permalink = await fetchPermalink(fetchImpl, meta, id, "permalink_url");
+  return { providerPostId: id, permalink };
+}
+
+async function publishFacebookVideoStory(
+  input: PublishInput,
+  ctx: PublishContext,
+  fetchImpl: FetchImpl,
+): Promise<PublishResult> {
+  const { meta } = ctx;
+  ctx.logger.info(
+    `[social-worker] facebook story target=${input.target.id} step=start-video endpoint=/${meta.pageId}/video_stories`,
+  );
+  const started = await graphPost(
+    fetchImpl,
+    meta.apiVersion,
+    `${meta.pageId}/video_stories`,
+    {
+      access_token: meta.pageAccessToken,
+      upload_phase: "start",
+    },
+  );
+  const videoId = started.video_id;
+  if (!videoId) throw new Error("Facebook did not return a story video id.");
+  if (!started.upload_url) {
+    throw new Error("Facebook did not return a story video upload URL.");
+  }
+  await ctx.setContainerId(videoId);
+
+  ctx.logger.info(
+    `[social-worker] facebook story target=${input.target.id} step=upload-video container=${videoId}`,
+  );
+  const uploaded = await fetchImpl(started.upload_url, {
+    method: "POST",
+    headers: {
+      Authorization: `OAuth ${meta.pageAccessToken}`,
+      file_url: input.media.url,
+    },
+  });
+  await parseGraphResponse(uploaded, "POST Facebook story video upload URL");
+
+  ctx.logger.info(
+    `[social-worker] facebook story target=${input.target.id} step=finish-video endpoint=/${meta.pageId}/video_stories container=${videoId}`,
+  );
+  const published = await graphPost(
+    fetchImpl,
+    meta.apiVersion,
+    `${meta.pageId}/video_stories`,
+    {
+      access_token: meta.pageAccessToken,
+      upload_phase: "finish",
+      video_id: videoId,
+    },
+  );
+  const id = published.post_id ?? published.id;
+  if (!id) throw new Error("Facebook did not return a story post id.");
   const permalink = await fetchPermalink(fetchImpl, meta, id, "permalink_url");
   return { providerPostId: id, permalink };
 }
