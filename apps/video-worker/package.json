@@ -1,22 +1,26 @@
 {
-  "name": "@mr/social-worker",
+  "name": "@mr/video-worker",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "exports": {
     "./config": "./src/config.ts",
-    "./worker": "./src/worker.ts",
-    "./providers": "./src/providers/index.ts"
+    "./worker": "./src/worker.ts"
   },
   "scripts": {
-    "dev": "nodemon --quiet --signal SIGTERM --ext ts --watch src --watch ../db/src --exec \"tsx src/index.ts\"",
+    "dev": "nodemon --quiet --signal SIGTERM --ext ts,tsx --watch src --watch ../../packages/db/src --watch ../../packages/remotion/src --exec \"tsx src/index.ts\"",
     "worker": "tsx src/index.ts",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1073.0",
     "@mr/db": "workspace:*",
+    "@mr/remotion": "workspace:*",
+    "@remotion/bundler": "4.0.477",
+    "@remotion/renderer": "4.0.477",
+    "@remotion/tailwind-v4": "4.0.477",
     "dotenv": "^17.4.2",
     "tsx": "^4.19.4"
   },

@@ -1,7 +1,7 @@
 # Video worker image.
 #
 # Build from the repo root so the whole pnpm workspace is in context:
-#   docker build -f packages/video-worker/Dockerfile -t mr-video-worker .
+#   docker build -f apps/video-worker/Dockerfile -t mr-video-worker .
 #
 # Run (env supplies DB + S3 config):
 #   docker run --rm --env-file packages/db/.env -e S3_ENDPOINT=... mr-video-worker
@@ -47,7 +47,7 @@ COPY packages/remotion/package.json ./packages/remotion/package.json
 COPY packages/tools/package.json ./packages/tools/package.json
 COPY packages/typescript-config/package.json ./packages/typescript-config/package.json
 COPY packages/ui/package.json ./packages/ui/package.json
-COPY packages/video-worker/package.json ./packages/video-worker/package.json
+COPY apps/video-worker/package.json ./apps/video-worker/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile
@@ -58,7 +58,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
 COPY packages/db ./packages/db
 COPY packages/ui ./packages/ui
 COPY packages/remotion ./packages/remotion
-COPY packages/video-worker ./packages/video-worker
+COPY apps/video-worker ./apps/video-worker
 
 # Pre-download the headless Chrome shell so the container runs offline.
 RUN pnpm --filter @mr/video-worker exec node --input-type=module \

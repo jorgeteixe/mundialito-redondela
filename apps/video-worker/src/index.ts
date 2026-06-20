@@ -2,7 +2,9 @@ import { fileURLToPath } from "node:url";
 import { config as loadEnv } from "dotenv";
 import { getVideoWorkerConfig } from "./config";
 
-const dbEnvPath = fileURLToPath(new URL("../../db/.env", import.meta.url));
+const dbEnvPath = fileURLToPath(
+  new URL("../../../packages/db/.env", import.meta.url),
+);
 
 loadEnv({
   path: [".env.local", ".env", dbEnvPath],

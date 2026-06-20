@@ -1,7 +1,7 @@
 # Social worker image.
 #
 # Build from the repo root so the whole pnpm workspace is in context:
-#   docker build -f packages/social-worker/Dockerfile -t mr-social-worker .
+#   docker build -f apps/social-worker/Dockerfile -t mr-social-worker .
 #
 # Run (env supplies DB + Meta config):
 #   docker run --rm --env-file packages/db/.env \
@@ -29,7 +29,7 @@ COPY packages/remotion/package.json ./packages/remotion/package.json
 COPY packages/tools/package.json ./packages/tools/package.json
 COPY packages/typescript-config/package.json ./packages/typescript-config/package.json
 COPY packages/ui/package.json ./packages/ui/package.json
-COPY packages/social-worker/package.json ./packages/social-worker/package.json
+COPY apps/social-worker/package.json ./apps/social-worker/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile
@@ -37,7 +37,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
 # ---- source ---------------------------------------------------------------
 # The worker runs via tsx, so it needs the source of @mr/social-worker and @mr/db.
 COPY packages/db ./packages/db
-COPY packages/social-worker ./packages/social-worker
+COPY apps/social-worker ./apps/social-worker
 
 ENV NODE_ENV=production
 

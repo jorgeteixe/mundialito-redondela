@@ -14,10 +14,12 @@ import type { S3StorageConfig } from "./config";
 import { createS3Client, uploadRenderedFile } from "./storage";
 
 const remotionEntryPoint = fileURLToPath(
-  new URL("../../remotion/src/remotion-entry.ts", import.meta.url),
+  new URL("../../../packages/remotion/src/remotion-entry.ts", import.meta.url),
 );
 
-const uiSrc = fileURLToPath(new URL("../../ui/src", import.meta.url));
+const uiSrc = fileURLToPath(
+  new URL("../../../packages/ui/src", import.meta.url),
+);
 
 let serveUrlPromise: Promise<string> | null = null;
 
