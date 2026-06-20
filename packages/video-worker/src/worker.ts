@@ -5,9 +5,9 @@ import {
   type VideoGenerationJob,
 } from "@mr/db";
 import type { VideoWorkerConfig } from "./config";
-import type { renderVideoGenerationJob } from "./render";
+import type { renderGenerationJob } from "./render";
 
-type RenderVideoGenerationJob = typeof renderVideoGenerationJob;
+type RenderGenerationJob = typeof renderGenerationJob;
 
 export type VideoWorkerLogger = {
   info(message: string): void;
@@ -38,9 +38,9 @@ export const consoleVideoWorkerLogger: VideoWorkerLogger = {
   error: (message) => console.error(message),
 };
 
-async function defaultRenderJob(...args: Parameters<RenderVideoGenerationJob>) {
-  const { renderVideoGenerationJob } = await import("./render");
-  return renderVideoGenerationJob(...args);
+async function defaultRenderJob(...args: Parameters<RenderGenerationJob>) {
+  const { renderGenerationJob } = await import("./render");
+  return renderGenerationJob(...args);
 }
 
 export async function processNextVideoJob({
@@ -51,7 +51,7 @@ export async function processNextVideoJob({
 }: {
   config: VideoWorkerConfig;
   queue?: VideoJobQueue;
-  render?: RenderVideoGenerationJob;
+  render?: RenderGenerationJob;
   logger?: VideoWorkerLogger;
 }) {
   const renderJob = render ?? defaultRenderJob;

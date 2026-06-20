@@ -40,10 +40,14 @@ export async function enqueueVideoGenerationJob(
   return job;
 }
 
-export async function listVideoGenerationJobs(limit = 50) {
+export async function listVideoGenerationJobs(
+  limit = 50,
+  kind?: VideoGenerationJobKind,
+) {
   return db
     .select()
     .from(videoGenerationJob)
+    .where(kind ? eq(videoGenerationJob.kind, kind) : undefined)
     .orderBy(desc(videoGenerationJob.createdAt))
     .limit(limit);
 }

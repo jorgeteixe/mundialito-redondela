@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Clapperboard, LogOut, Users } from "lucide-react";
+import { Clapperboard, Image as ImageIcon, LogOut, Users } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -22,6 +22,7 @@ import { authClient } from "@/lib/auth-client";
 const navItems = [
   { title: "Equipos", url: "/teams", icon: Users },
   { title: "Vídeos", url: "/videos", icon: Clapperboard },
+  { title: "Imágenes", url: "/images", icon: ImageIcon },
 ];
 
 export function AppSidebar() {

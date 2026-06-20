@@ -19,6 +19,7 @@ import {
 const segmentLabels: Record<string, string> = {
   teams: "Equipos",
   videos: "Vídeos",
+  images: "Imágenes",
 };
 
 function label(segment: string) {

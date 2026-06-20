@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { S3StorageConfig } from "./config";
-import { getObjectUrl } from "./storage";
+import { contentTypeForPath, getObjectUrl } from "./storage";
 
 const config: S3StorageConfig = {
   endpoint: "http://localhost:9000",
@@ -32,5 +32,19 @@ describe("getObjectUrl", () => {
         "videos/job.mp4",
       ),
     ).toBe("https://media.mundialitoredondela.com/videos/job.mp4");
+  });
+});
+
+describe("contentTypeForPath", () => {
+  it("maps mp4 to video/mp4", () => {
+    expect(contentTypeForPath("/tmp/job.mp4")).toBe("video/mp4");
+  });
+
+  it("maps png to image/png", () => {
+    expect(contentTypeForPath("/tmp/job.png")).toBe("image/png");
+  });
+
+  it("falls back to octet-stream for unknown extensions", () => {
+    expect(contentTypeForPath("/tmp/job.bin")).toBe("application/octet-stream");
   });
 });

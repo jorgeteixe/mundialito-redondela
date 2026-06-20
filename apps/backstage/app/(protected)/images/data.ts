@@ -4,14 +4,14 @@ import {
   type TemplateParameter,
 } from "@mr/remotion/templates";
 
-export type VideoTemplateSummary = {
+export type ImageTemplateSummary = {
   id: string;
   title: string;
   parameters: TemplateParameter[];
   defaultProps: Record<string, unknown>;
 };
 
-export type VideoJobSummary = {
+export type ImageJobSummary = {
   id: string;
   templateId: string;
   templateTitle: string;
@@ -23,9 +23,9 @@ export type VideoJobSummary = {
   createdAt: string;
 };
 
-export function listVideoTemplates(): VideoTemplateSummary[] {
+export function listImageTemplates(): ImageTemplateSummary[] {
   return TEMPLATE_DEFINITIONS.filter(
-    (template) => template.kind === "video",
+    (template) => template.kind === "image",
   ).map((template) => ({
     id: template.id,
     title: template.title,
@@ -34,8 +34,8 @@ export function listVideoTemplates(): VideoTemplateSummary[] {
   }));
 }
 
-export async function listVideoJobs(): Promise<VideoJobSummary[]> {
-  const jobs = await listVideoGenerationJobs(50, "video");
+export async function listImageJobs(): Promise<ImageJobSummary[]> {
+  const jobs = await listVideoGenerationJobs(50, "image");
 
   return jobs.map((job) => ({
     id: job.id,

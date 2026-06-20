@@ -99,6 +99,44 @@ describe("processNextVideoJob", () => {
     expect(queue.markFailed).not.toHaveBeenCalled();
   });
 
+  it("renders and succeeds an image job the same way", async () => {
+    const imageJob: VideoGenerationJob = {
+      ...baseJob,
+      templateId: "result-card",
+      kind: "image",
+      inputProps: {
+        homeTeam: "Redondela",
+        awayTeam: "A Xunqueira",
+        homeScore: 2,
+        awayScore: 1,
+        category: "Senior",
+      },
+    };
+    const queue = createQueue(imageJob);
+    const render = vi.fn().mockResolvedValue({
+      outputLocation: "/tmp/videos/job.png",
+      publicPath:
+        "http://localhost:9000/test-videos/images/result-card/job.png",
+    });
+
+    await expect(
+      processNextVideoJob({
+        config: testConfig,
+        queue,
+        logger: silentLogger,
+        render,
+      }),
+    ).resolves.toBe(true);
+
+    expect(render).toHaveBeenCalledWith(
+      expect.objectContaining({ job: imageJob }),
+    );
+    expect(queue.markSucceeded).toHaveBeenCalledWith(
+      imageJob.id,
+      "http://localhost:9000/test-videos/images/result-card/job.png",
+    );
+  });
+
   it("marks claimed job failed when render throws", async () => {
     const queue = createQueue(baseJob);
 

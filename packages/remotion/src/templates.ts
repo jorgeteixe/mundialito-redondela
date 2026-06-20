@@ -1,6 +1,7 @@
 import type { z } from "zod";
 import { PRESETS, type PresetName } from "./presets";
 import { helloWorldSchema } from "./compositions/hello-world/schema";
+import { resultCardSchema } from "./compositions/result-card/schema";
 
 export type TemplateParameter = {
   name: string;
@@ -58,6 +59,54 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
       },
     ],
     defaultProps: { title: "Mundialito Redondela" },
+  }),
+  defineTemplateDefinition({
+    id: "result-card",
+    title: "Tarjeta de resultado",
+    kind: "image",
+    preset: "square",
+    schema: resultCardSchema,
+    parameters: [
+      {
+        name: "homeTeam",
+        label: "Equipo local",
+        type: "text",
+        required: true,
+      },
+      {
+        name: "awayTeam",
+        label: "Equipo visitante",
+        type: "text",
+        required: true,
+      },
+      {
+        name: "homeScore",
+        label: "Goles local",
+        type: "integer",
+        required: true,
+        min: 0,
+      },
+      {
+        name: "awayScore",
+        label: "Goles visitante",
+        type: "integer",
+        required: true,
+        min: 0,
+      },
+      {
+        name: "category",
+        label: "Categoría",
+        type: "text",
+        required: true,
+      },
+    ],
+    defaultProps: {
+      homeTeam: "Redondela",
+      awayTeam: "A Xunqueira",
+      homeScore: 2,
+      awayScore: 1,
+      category: "Senior",
+    },
   }),
   // schedule / result / goal templates are built but parked for now.
   // Re-enable by adding template definitions here and matching Components in

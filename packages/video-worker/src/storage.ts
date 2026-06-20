@@ -33,7 +33,7 @@ export function getObjectUrl(config: S3StorageConfig, key: string) {
     : `${baseUrl}/${key}`;
 }
 
-export async function ensureVideoBucket({
+export async function ensureBucket({
   client,
   config,
 }: {
@@ -66,7 +66,7 @@ export async function ensureVideoBucket({
   );
 }
 
-export async function uploadVideoFile({
+export async function uploadRenderedFile({
   client,
   config,
   filePath,
@@ -77,7 +77,7 @@ export async function uploadVideoFile({
   filePath: string;
   key: string;
 }): Promise<StoredObject> {
-  await ensureVideoBucket({ client, config });
+  await ensureBucket({ client, config });
 
   await client.send(
     new PutObjectCommand({
@@ -94,7 +94,13 @@ export async function uploadVideoFile({
   };
 }
 
-function contentTypeForPath(filePath: string) {
-  if (path.extname(filePath) === ".mp4") return "video/mp4";
-  return "application/octet-stream";
+export function contentTypeForPath(filePath: string) {
+  switch (path.extname(filePath)) {
+    case ".mp4":
+      return "video/mp4";
+    case ".png":
+      return "image/png";
+    default:
+      return "application/octet-stream";
+  }
 }
