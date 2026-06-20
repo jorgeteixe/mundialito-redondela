@@ -18,8 +18,17 @@ import {
 
 const segmentLabels: Record<string, string> = {
   teams: "Equipos",
+  groups: "Grupos",
   videos: "Vídeos",
   images: "Imágenes",
+};
+
+const entityEndpoints: Record<
+  string,
+  { apiPath: string; loadingLabel: string }
+> = {
+  teams: { apiPath: "teams", loadingLabel: "Cargando equipo" },
+  groups: { apiPath: "groups", loadingLabel: "Cargando grupo" },
 };
 
 function label(segment: string) {
@@ -35,22 +44,27 @@ function isUuid(segment: string) {
 export function AppHeader() {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
-  const [teamLabels, setTeamLabels] = useState<Record<string, string>>({});
+  const [entityLabels, setEntityLabels] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    const teamId = segments.find(isUuid);
-    if (!teamId || teamLabels[teamId]) return;
+    const entityIndex = segments.findIndex(isUuid);
+    const entityId = segments[entityIndex];
+    const entitySegment = segments[entityIndex - 1];
+    const endpoint = entitySegment ? entityEndpoints[entitySegment] : undefined;
+    const labelKey =
+      entityId && entitySegment ? `${entitySegment}:${entityId}` : "";
+    if (!entityId || !endpoint || entityLabels[labelKey]) return;
 
     let cancelled = false;
 
-    fetch(`/api/teams/${teamId}`)
+    fetch(`/api/${endpoint.apiPath}/${entityId}`)
       .then((response) => {
         if (!response.ok) return null;
         return response.json() as Promise<{ name: string }>;
       })
       .then((data) => {
         if (!cancelled && data?.name) {
-          setTeamLabels((current) => ({ ...current, [teamId]: data.name }));
+          setEntityLabels((current) => ({ ...current, [labelKey]: data.name }));
         }
       })
       .catch(() => {});
@@ -58,7 +72,7 @@ export function AppHeader() {
     return () => {
       cancelled = true;
     };
-  }, [segments, teamLabels]);
+  }, [entityLabels, segments]);
 
   return (
     <header className="flex h-14 items-center gap-2 border-b px-4">
@@ -71,18 +85,23 @@ export function AppHeader() {
         <BreadcrumbList>
           {segments.map((segment, index) => {
             const isLast = index === segments.length - 1;
+            const entitySegment = segments[index - 1];
+            const labelKey = `${entitySegment}:${segment}`;
+            const endpoint = entitySegment
+              ? entityEndpoints[entitySegment]
+              : undefined;
             return (
               <Fragment key={`${segment}-${index}`}>
                 <BreadcrumbItem>
                   {isLast ? (
                     <BreadcrumbPage>
-                      {isUuid(segment) && !teamLabels[segment] ? (
+                      {isUuid(segment) && !entityLabels[labelKey] ? (
                         <Skeleton
                           className="h-4 w-28"
-                          aria-label="Cargando equipo"
+                          aria-label={endpoint?.loadingLabel ?? "Cargando"}
                         />
                       ) : isUuid(segment) ? (
-                        teamLabels[segment]
+                        entityLabels[labelKey]
                       ) : (
                         label(segment)
                       )}

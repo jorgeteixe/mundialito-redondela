@@ -3,7 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Clapperboard, Image as ImageIcon, LogOut, Users } from "lucide-react";
+import {
+  Clapperboard,
+  Image as ImageIcon,
+  LogOut,
+  Trophy,
+  Users,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -21,6 +27,7 @@ import { authClient } from "@/lib/auth-client";
 
 const navItems = [
   { title: "Equipos", url: "/teams", icon: Users },
+  { title: "Grupos", url: "/groups", icon: Trophy },
   { title: "Vídeos", url: "/videos", icon: Clapperboard },
   { title: "Imágenes", url: "/images", icon: ImageIcon },
 ];
@@ -59,7 +66,13 @@ export function AppSidebar() {
             <SidebarMenu>
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton asChild isActive={pathname === item.url}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={
+                      pathname === item.url ||
+                      pathname.startsWith(`${item.url}/`)
+                    }
+                  >
                     <Link href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
