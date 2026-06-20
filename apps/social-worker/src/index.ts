@@ -2,17 +2,22 @@ import { fileURLToPath } from "node:url";
 import { config as loadEnv } from "dotenv";
 import { getSocialWorkerConfig } from "./config";
 
-const dbEnvPath = fileURLToPath(
-  new URL("../../../packages/db/.env", import.meta.url),
+const rootEnvLocalPath = fileURLToPath(
+  new URL("../../../.env.local", import.meta.url),
 );
+const rootEnvPath = fileURLToPath(new URL("../../../.env", import.meta.url));
+const appEnvLocalPath = fileURLToPath(
+  new URL("../.env.local", import.meta.url),
+);
+const appEnvPath = fileURLToPath(new URL("../.env", import.meta.url));
 
 loadEnv({
-  path: [".env.local", ".env", dbEnvPath],
+  path: [appEnvLocalPath, appEnvPath, rootEnvLocalPath, rootEnvPath],
 });
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
-    "DATABASE_URL is required. Set it in the shell or packages/db/.env.",
+    "DATABASE_URL is required. Set it in the shell or root .env.",
   );
 }
 

@@ -82,14 +82,14 @@ publication per post type, and publishes through the social worker to Meta. It
 **publishes real posts** and is intentionally excluded from `pnpm test`.
 
 It prompts for confirmation; in non-interactive shells set `CONFIRM_PUBLISH=PUBLISH`.
-Requires the DB, R2, and Meta env vars set in `packages/db/.env`.
+Requires the DB, R2, and Meta env vars set in root `.env`.
 
 ## Local workflow
 
 1. `docker compose up -d` (Postgres + MinIO).
 2. `pnpm --filter @mr/db db:migrate`.
-3. Set the Meta env vars and a public `S3_PUBLIC_BASE_URL` (tunnel) in
-   `packages/db/.env`.
+3. Set the Meta env vars and a public `S3_PUBLIC_BASE_URL` (tunnel) in root
+   `.env`.
 4. `pnpm --filter @mr/backstage dev`.
 5. `pnpm social:worker` (and `pnpm video:worker` if using the generate-new flow).
 6. Open `http://localhost:3001/publicaciones`, schedule a publication, and watch

@@ -21,9 +21,18 @@ import { fileURLToPath } from "node:url";
 import { config as loadEnv } from "dotenv";
 import * as p from "@clack/prompts";
 
-const dbEnvPath = fileURLToPath(new URL("../../db/.env", import.meta.url));
-// db/.env first so it wins for DATABASE_URL / Meta / R2.
-loadEnv({ path: [dbEnvPath, ".env.local", ".env"] });
+const rootEnvLocalPath = fileURLToPath(
+  new URL("../../../.env.local", import.meta.url),
+);
+const rootEnvPath = fileURLToPath(new URL("../../../.env", import.meta.url));
+const packageEnvLocalPath = fileURLToPath(
+  new URL("../.env.local", import.meta.url),
+);
+const packageEnvPath = fileURLToPath(new URL("../.env", import.meta.url));
+
+loadEnv({
+  path: [packageEnvLocalPath, packageEnvPath, rootEnvLocalPath, rootEnvPath],
+});
 
 for (const key of [
   "DATABASE_URL",

@@ -4,7 +4,7 @@
 #   docker build -f apps/video-worker/Dockerfile -t mr-video-worker .
 #
 # Run (env supplies DB + S3 config):
-#   docker run --rm --env-file packages/db/.env -e S3_ENDPOINT=... mr-video-worker
+#   docker run --rm --env-file .env -e S3_ENDPOINT=... mr-video-worker
 #
 # syntax=docker/dockerfile:1
 

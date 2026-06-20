@@ -18,7 +18,7 @@ BETTER_AUTH_URL=http://localhost:3001
 NEXT_PUBLIC_BETTER_AUTH_URL=http://localhost:3001
 ```
 
-Copy `apps/backstage/.env.example` to `apps/backstage/.env.local` and fill `BETTER_AUTH_SECRET` with a random 32+ char string.
+Copy `.env.example` to root `.env` and fill `BETTER_AUTH_SECRET` with a random 32+ char string.
 
 ## Creating admin users
 

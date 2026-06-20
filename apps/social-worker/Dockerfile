@@ -4,7 +4,7 @@
 #   docker build -f apps/social-worker/Dockerfile -t mr-social-worker .
 #
 # Run (env supplies DB + Meta config):
-#   docker run --rm --env-file packages/db/.env \
+#   docker run --rm --env-file .env \
 #     -e META_IG_USER_ID=... -e META_PAGE_ID=... -e META_PAGE_ACCESS_TOKEN=... \
 #     -e S3_PUBLIC_BASE_URL=https://media.example.com mr-social-worker
 #

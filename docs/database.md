@@ -15,8 +15,8 @@ Shared Drizzle + PostgreSQL package (`@mr/db`) consumed by all apps.
 # Start PostgreSQL
 docker compose up -d
 
-# Copy and fill env
-cp apps/backstage/.env.example apps/backstage/.env.local
+# Copy and fill root env
+cp .env.example .env
 ```
 
 Default connection string (matches docker-compose defaults):
@@ -35,7 +35,7 @@ pnpm --filter @mr/db db:generate
 pnpm --filter @mr/db db:migrate
 ```
 
-Migrations run against `DATABASE_URL`. For production, set the env var to the prod connection string before running.
+Migrations run against `DATABASE_URL` from the shell or root `.env`. For production, set the env var to the prod connection string before running.
 
 ## Adding new tables
 
