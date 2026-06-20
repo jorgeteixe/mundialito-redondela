@@ -18,6 +18,8 @@ const config = getVideoWorkerConfig();
 const { runVideoWorker } = await import("./worker");
 await runVideoWorker({ config });
 
-if (config.once) {
-  process.exit(0);
-}
+// runVideoWorker only resolves after the in-flight job (if any) has drained, so
+// the DB writes are committed. The postgres pool keeps the event loop alive, so
+// exit explicitly instead of lingering — otherwise the dev watcher would have to
+// force-kill us on restart.
+process.exit(0);
