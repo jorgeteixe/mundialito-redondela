@@ -5,6 +5,7 @@ import { ResultCard } from "./compositions/result-card/Component";
 import { InstagramProfile } from "./compositions/dummy/InstagramProfile";
 import { FacebookProfile } from "./compositions/dummy/FacebookProfile";
 import { FacebookCover } from "./compositions/dummy/FacebookCover";
+import { OgShare } from "./compositions/og-share/Component";
 import { TEMPLATE_DEFINITIONS } from "./templates";
 import type { PresetName } from "./presets";
 
@@ -79,6 +80,10 @@ export const TEMPLATES: Template[] = [
     Component: FacebookCover as unknown as ComponentType<
       Record<string, unknown>
     >,
+  }),
+  defineTemplate({
+    ...getTemplateDefinition("og-share"),
+    Component: OgShare as unknown as ComponentType<Record<string, unknown>>,
   }),
   // Keep this list aligned with TEMPLATE_DEFINITIONS in templates.ts.
 ];

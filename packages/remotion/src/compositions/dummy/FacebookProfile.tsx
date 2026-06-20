@@ -1,7 +1,6 @@
-import { DummyPlaceholder } from "./DummyPlaceholder";
+import { SocialProfile } from "./SocialProfile";
+import type { SocialProps } from "./schema";
 
-export function FacebookProfile() {
-  return (
-    <DummyPlaceholder label="Facebook · Perfil" width={320} height={320} />
-  );
+export function FacebookProfile({ variant }: SocialProps) {
+  return <SocialProfile variant={variant} />;
 }

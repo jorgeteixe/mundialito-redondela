@@ -1,7 +1,6 @@
-import { DummyPlaceholder } from "./DummyPlaceholder";
+import { SocialProfile } from "./SocialProfile";
+import type { SocialProps } from "./schema";
 
-export function InstagramProfile() {
-  return (
-    <DummyPlaceholder label="Instagram · Perfil" width={320} height={320} />
-  );
+export function InstagramProfile({ variant }: SocialProps) {
+  return <SocialProfile variant={variant} />;
 }

@@ -2,7 +2,7 @@ import type { z } from "zod";
 import { PRESETS, type PresetName } from "./presets";
 import { helloWorldSchema } from "./compositions/hello-world/schema";
 import { resultCardSchema } from "./compositions/result-card/schema";
-import { dummySchema } from "./compositions/dummy/schema";
+import { socialSchema } from "./compositions/dummy/schema";
 
 export type TemplateParameter = {
   name: string;
@@ -114,27 +114,36 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
     title: "Instagram · Perfil (320×320)",
     kind: "image",
     preset: "instagram-profile",
-    schema: dummySchema,
+    schema: socialSchema,
     parameters: [],
-    defaultProps: {},
+    defaultProps: { variant: "light" },
   }),
   defineTemplateDefinition({
     id: "facebook-profile",
     title: "Facebook · Perfil (320×320)",
     kind: "image",
     preset: "facebook-profile",
-    schema: dummySchema,
+    schema: socialSchema,
     parameters: [],
-    defaultProps: {},
+    defaultProps: { variant: "light" },
   }),
   defineTemplateDefinition({
     id: "facebook-cover",
     title: "Facebook · Portada (851×315)",
     kind: "image",
     preset: "facebook-cover",
-    schema: dummySchema,
+    schema: socialSchema,
     parameters: [],
-    defaultProps: {},
+    defaultProps: { variant: "light" },
+  }),
+  defineTemplateDefinition({
+    id: "og-share",
+    title: "Open Graph · Compartir (1200×630)",
+    kind: "image",
+    preset: "og-share",
+    schema: socialSchema,
+    parameters: [],
+    defaultProps: { variant: "light" },
   }),
   // schedule / result / goal templates are built but parked for now.
   // Re-enable by adding template definitions here and matching Components in

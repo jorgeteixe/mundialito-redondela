@@ -1,9 +1,12 @@
 import { z } from "zod";
 
 /**
- * Shared empty schema for the parameterless dummy social templates — one-off
- * generation, no form inputs.
+ * Social templates expose a single `variant` toggle ("light" vs "filled") so both
+ * directions can be A/B rendered via `--props`. Optional with a default so the
+ * worker/backstage (which pass no inputs) still get a finished image.
  */
-export const dummySchema = z.object({});
+export const socialSchema = z.object({
+  variant: z.enum(["light", "filled"]).default("filled"),
+});
 
-export type DummyProps = z.infer<typeof dummySchema>;
+export type SocialProps = z.infer<typeof socialSchema>;

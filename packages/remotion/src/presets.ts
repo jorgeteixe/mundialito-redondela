@@ -24,6 +24,7 @@ export const PRESETS = {
   },
   "facebook-profile": { width: 320, height: 320, fps: 30, durationInFrames: 1 },
   "facebook-cover": { width: 851, height: 315, fps: 30, durationInFrames: 1 },
+  "og-share": { width: 1200, height: 630, fps: 30, durationInFrames: 1 },
 } as const satisfies Record<string, Preset>;
 
 export type PresetName = keyof typeof PRESETS;

@@ -45,3 +45,4 @@ storybook-static
 test-results/
 apps/backstage/public/generated/videos/
 apps/*/next-env.d.ts
+tmp/
