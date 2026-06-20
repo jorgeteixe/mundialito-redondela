@@ -9,4 +9,10 @@ export default [
   globalIgnores(["storybook-static/**", "artifacts/**", ".turbo/**"]),
   ...config,
   ...storybook.configs["flat/recommended"],
+  {
+    // shadcn primitives are CLI-generated and not hand-edited; prop-types are
+    // redundant in this TypeScript codebase.
+    files: ["src/ui/**"],
+    rules: { "react/prop-types": "off" },
+  },
 ];

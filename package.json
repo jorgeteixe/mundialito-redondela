@@ -13,6 +13,7 @@
     "storybook": "turbo run storybook",
     "build-storybook": "turbo run build-storybook",
     "video:worker": "turbo run worker --filter @mr/video-worker",
+    "social:worker": "turbo run worker --filter @mr/social-worker",
     "prepare": "husky",
     "screenshot:storybook": "turbo run screenshot:storybook"
   },

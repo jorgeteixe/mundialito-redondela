@@ -7,6 +7,7 @@ import {
   Clapperboard,
   Image as ImageIcon,
   LogOut,
+  Send,
   Trophy,
   Users,
 } from "lucide-react";
@@ -30,6 +31,7 @@ const navItems = [
   { title: "Grupos", url: "/groups", icon: Trophy },
   { title: "Vídeos", url: "/videos", icon: Clapperboard },
   { title: "Imágenes", url: "/images", icon: ImageIcon },
+  { title: "Publicaciones", url: "/publicaciones", icon: Send },
 ];
 
 export function AppSidebar() {

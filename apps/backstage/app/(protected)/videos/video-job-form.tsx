@@ -125,7 +125,7 @@ export function VideoJobForm({ templates, onSuccess }: VideoJobFormProps) {
   );
 }
 
-function ParameterField({
+export function ParameterField({
   parameter,
   value,
   onChange,

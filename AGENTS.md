@@ -8,6 +8,8 @@
 - Admin app: `apps/backstage`, Next.js App Router, package name `@mr/backstage` (port 3001).
 - Shared UI: `packages/ui`, React components exported as `@mr/ui`.
 - Shared DB: `packages/db`, Drizzle + PostgreSQL exported as `@mr/db`.
+- Video worker: `packages/video-worker`, `@mr/video-worker`, renders Remotion jobs from the DB queue.
+- Social worker: `packages/social-worker`, `@mr/social-worker`, publishes queued posts to Instagram/Facebook via the Meta Graph API (see `docs/social-publishing-queue.md`).
 - Shared tooling: `packages/tools`, CLI utilities exported as `@mr/tools`.
 - Shared config: `@mr/eslint-config` and `@mr/typescript-config`.
 
@@ -30,6 +32,8 @@
 - DB generate migrations: `pnpm --filter @mr/db db:generate`
 - DB run migrations: `pnpm --filter @mr/db db:migrate`
 - Seed admin user: `pnpm --filter @mr/tools seed-admin`
+- Run video worker: `pnpm video:worker`
+- Run social worker: `pnpm social:worker`
 
 ## UI Component Structure
 
@@ -68,6 +72,14 @@ pnpm --filter @mr/ui exec shadcn add <component-name>
 ```
 
 Current config: **style `radix-lyra`, base color `mist`** (`packages/ui/components.json`). All installed primitives go to `src/ui/`.
+
+**ALWAYS after `shadcn add`: verify the `"use client"` directive.** `@mr/ui` is a barrel re-exported into Server Components (e.g. `apps/web/app/layout.tsx`), so any primitive that uses a client-only API at module scope must declare `"use client"` or the app crashes with `createContext only works in Client Components`. This registry's CLI sometimes omits the directive. After every `shadcn add`, run:
+
+```sh
+for f in packages/ui/src/ui/*.tsx; do head -1 "$f" | grep -q 'use client' || grep -lE 'createContext|useState|useEffect|useContext|createServerReference' "$f"; done
+```
+
+Any file printed that genuinely uses those client APIs needs `"use client"` added as its first line. radix-based wrappers (Select, Sheet, etc.) inherit the boundary from `radix-ui` and don't need it; files that call `React.createContext` themselves (Calendar via react-day-picker, ToggleGroup) **do**.
 
 **Decision rule — when to build a custom component:**
 

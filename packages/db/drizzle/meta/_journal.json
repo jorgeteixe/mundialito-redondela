@@ -36,6 +36,20 @@
       "when": 1781967819181,
       "tag": "0004_sturdy_leper_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1781975002938,
+      "tag": "0005_fearless_golden_guardian",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1781978942396,
+      "tag": "0006_grey_caretaker",
+      "breakpoints": true
     }
   ]
 }

@@ -1,30 +1,31 @@
 {
-  "name": "@mr/tools",
+  "name": "@mr/social-worker",
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "./config": "./src/config.ts",
+    "./worker": "./src/worker.ts",
+    "./providers": "./src/providers/index.ts"
+  },
   "scripts": {
+    "dev": "nodemon --quiet --signal SIGTERM --ext ts --watch src --watch ../db/src --exec \"tsx src/index.ts\"",
+    "worker": "tsx src/index.ts",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests",
-    "seed-admin": "tsx src/seed-admin.ts",
-    "verify-social-publish": "tsx src/verify-social-publish.ts"
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@clack/prompts": "^1.5.1",
     "@mr/db": "workspace:*",
-    "@mr/social-worker": "workspace:*",
-    "@mr/video-worker": "workspace:*",
-    "better-auth": "^1.2.12",
     "dotenv": "^17.4.2",
-    "drizzle-orm": "^0.45.2"
+    "tsx": "^4.19.4"
   },
   "devDependencies": {
     "@mr/eslint-config": "workspace:*",
     "@mr/typescript-config": "workspace:*",
     "@types/node": "^22.15.3",
     "eslint": "^9.39.1",
-    "tsx": "^4.19.4",
+    "nodemon": "^3.1.14",
     "typescript": "5.9.2",
     "vitest": "^4.1.8"
   }
