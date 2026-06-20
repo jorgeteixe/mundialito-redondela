@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx src/index.ts",
+    "dev": "tsx watch --clear-screen=false --include \"../db/src/**\" --include \"../remotion/src/**\" src/index.ts",
     "worker": "tsx src/index.ts",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",

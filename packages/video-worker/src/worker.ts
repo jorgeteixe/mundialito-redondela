@@ -92,9 +92,15 @@ export async function runVideoWorker({
   logger?: VideoWorkerLogger;
 }) {
   let keepRunning = true;
+  // When idle we sleep on a timer; stop() resolves it early so shutdown is prompt
+  // instead of waiting out a full poll interval.
+  let wakeFromIdle: (() => void) | null = null;
   const stop = () => {
-    logger.info("[video-worker] stop requested");
+    logger.info(
+      "[video-worker] stop requested; will finish current job and exit",
+    );
     keepRunning = false;
+    wakeFromIdle?.();
   };
 
   process.once("SIGINT", stop);
@@ -108,6 +114,8 @@ export async function runVideoWorker({
     let processed = false;
 
     try {
+      // An in-flight render runs to completion here; a stop request during it
+      // only takes effect once this resolves, so no job is interrupted.
       processed = await processNextVideoJob({ config, queue, logger });
     } catch (error) {
       logger.error(`[video-worker] queue error="${toErrorMessage(error)}"`);
@@ -119,8 +127,18 @@ export async function runVideoWorker({
       break;
     }
 
+    // Bail before claiming another job once a stop was requested.
+    if (!keepRunning) break;
+
     if (!processed) {
-      await new Promise((resolve) => setTimeout(resolve, config.pollMs));
+      await new Promise<void>((resolve) => {
+        const timer = setTimeout(resolve, config.pollMs);
+        wakeFromIdle = () => {
+          clearTimeout(timer);
+          resolve();
+        };
+      });
+      wakeFromIdle = null;
     }
   }
 
