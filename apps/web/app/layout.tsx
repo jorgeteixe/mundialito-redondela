@@ -18,8 +18,13 @@ export const metadata: Metadata = {
     "Mundialito Redondela 2026 | Mundialito da Xunqueira (Resultados, Estadísticas y Calendario)",
   description:
     "Sigue los resultados en vivo, estadísticas, calendario y toda la información del Mundialito Redondela 2026 (Mundialito da Xunqueira). El mítico torneo de fútbol de calle.",
+  manifest: "/site.webmanifest",
   icons: {
-    icon: "/favicon.svg",
+    icon: [
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
   },
   keywords: [
     "Mundialito Redondela",
