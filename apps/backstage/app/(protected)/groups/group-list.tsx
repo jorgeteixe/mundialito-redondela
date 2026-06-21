@@ -50,9 +50,10 @@ import { categoryLabel } from "../teams/avatar-utils";
 
 type GroupsListProps = {
   groups: GroupSummary[];
+  canWrite: boolean;
 };
 
-export function GroupsList({ groups }: GroupsListProps) {
+export function GroupsList({ groups, canWrite }: GroupsListProps) {
   const [search, setSearch] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -76,25 +77,30 @@ export function GroupsList({ groups }: GroupsListProps) {
       searchPlaceholder="Buscar grupos..."
       onSearchChange={setSearch}
       actions={
-        <Sheet open={createOpen} onOpenChange={setCreateOpen}>
-          <SheetTrigger asChild>
-            <Button size="sm">
-              <Plus className="h-4 w-4" />
-              Registrar grupo
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Registrar grupo</SheetTitle>
-              <SheetDescription>
-                Crea un grupo para organizar equipos.
-              </SheetDescription>
-            </SheetHeader>
-            <div className="px-4">
-              <GroupForm mode="create" onSuccess={() => setCreateOpen(false)} />
-            </div>
-          </SheetContent>
-        </Sheet>
+        canWrite ? (
+          <Sheet open={createOpen} onOpenChange={setCreateOpen}>
+            <SheetTrigger asChild>
+              <Button size="sm">
+                <Plus className="h-4 w-4" />
+                Registrar grupo
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Registrar grupo</SheetTitle>
+                <SheetDescription>
+                  Crea un grupo para organizar equipos.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="px-4">
+                <GroupForm
+                  mode="create"
+                  onSuccess={() => setCreateOpen(false)}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
+        ) : null
       }
       isEmpty={isEmpty}
       emptyState={
@@ -110,10 +116,12 @@ export function GroupsList({ groups }: GroupsListProps) {
             title="Sin grupos registrados"
             description="Añade el primer grupo para comenzar."
             action={
-              <Button size="sm" onClick={() => setCreateOpen(true)}>
-                <Plus className="h-4 w-4" />
-                Registrar grupo
-              </Button>
+              canWrite ? (
+                <Button size="sm" onClick={() => setCreateOpen(true)}>
+                  <Plus className="h-4 w-4" />
+                  Registrar grupo
+                </Button>
+              ) : undefined
             }
           />
         )
@@ -121,7 +129,7 @@ export function GroupsList({ groups }: GroupsListProps) {
     >
       <div className="flex flex-col gap-3 md:hidden">
         {filteredGroups.map((group) => (
-          <GroupCard key={group.id} group={group} />
+          <GroupCard key={group.id} group={group} canWrite={canWrite} />
         ))}
       </div>
       <div className="hidden rounded-none border md:block">
@@ -131,9 +139,11 @@ export function GroupsList({ groups }: GroupsListProps) {
               <TableHead>Grupo</TableHead>
               <TableHead>Categoría</TableHead>
               <TableHead>Equipos</TableHead>
-              <TableHead className="w-12">
-                <span className="sr-only">Acciones</span>
-              </TableHead>
+              {canWrite ? (
+                <TableHead className="w-12">
+                  <span className="sr-only">Acciones</span>
+                </TableHead>
+              ) : null}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -154,9 +164,11 @@ export function GroupsList({ groups }: GroupsListProps) {
                   </Badge>
                 </TableCell>
                 <TableCell>{group.teamCount}</TableCell>
-                <TableCell>
-                  <GroupActions group={group} />
-                </TableCell>
+                {canWrite ? (
+                  <TableCell>
+                    <GroupActions group={group} />
+                  </TableCell>
+                ) : null}
               </TableRow>
             ))}
           </TableBody>
@@ -166,7 +178,13 @@ export function GroupsList({ groups }: GroupsListProps) {
   );
 }
 
-function GroupCard({ group }: { group: GroupSummary }) {
+function GroupCard({
+  group,
+  canWrite,
+}: {
+  group: GroupSummary;
+  canWrite: boolean;
+}) {
   return (
     <Card size="sm">
       <CardHeader>
@@ -183,9 +201,11 @@ function GroupCard({ group }: { group: GroupSummary }) {
           <Badge variant="secondary">{categoryLabel(group.category)}</Badge>
           <span>{group.teamCount} equipos</span>
         </CardDescription>
-        <CardAction>
-          <GroupActions group={group} />
-        </CardAction>
+        {canWrite ? (
+          <CardAction>
+            <GroupActions group={group} />
+          </CardAction>
+        ) : null}
       </CardHeader>
       <CardContent>
         <Button asChild variant="outline" size="sm" className="w-full">

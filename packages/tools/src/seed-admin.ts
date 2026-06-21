@@ -19,6 +19,7 @@ loadEnv({
 
 const { db } = await import("@mr/db");
 const schema = await import("@mr/db/schema");
+const { eq } = await import("drizzle-orm");
 
 const auth = betterAuth({
   secret:
@@ -43,6 +44,10 @@ try {
   await auth.api.signUpEmail({
     body: { email, password, name: "Admin" },
   });
+  await db
+    .update(schema.user)
+    .set({ role: "super-admin" })
+    .where(eq(schema.user.email, String(email)));
   spinner.stop(`Admin created: ${email}`);
   process.exit(0);
 } catch (err: unknown) {

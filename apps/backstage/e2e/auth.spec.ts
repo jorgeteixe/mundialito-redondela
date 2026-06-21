@@ -1,13 +1,13 @@
 import { expect, test } from "@playwright/test";
-import { testAdmin } from "./test-constants";
+import { testAdmin, testContentAdmin, testViewer } from "./test-constants";
 
 test.describe.configure({ mode: "serial" });
 
-async function signIn(page: import("@playwright/test").Page) {
+async function signIn(page: import("@playwright/test").Page, user = testAdmin) {
   await page.goto("/login");
 
-  await page.getByLabel("Correo electrónico").fill(testAdmin.email);
-  await page.getByLabel("Contraseña").fill(testAdmin.password);
+  await page.getByLabel("Correo electrónico").fill(user.email);
+  await page.getByLabel("Contraseña").fill(user.password);
   await page.getByRole("button", { name: "Entrar" }).click();
 }
 
@@ -37,6 +37,7 @@ test("seeded admin can access teams and sign out", async ({ page }) => {
   await expect(page.getByText("Backstage", { exact: true })).toBeVisible();
   await expect(page.locator('a[href="/teams"]')).toBeVisible();
   await expect(page.locator('a[href="/groups"]')).toBeVisible();
+  await expect(page.locator('a[href="/users"]')).toBeVisible();
   await expect(page.getByText("Sin equipos registrados")).toBeVisible();
   await expect(
     page.getByText("Añade el primer equipo para comenzar."),
@@ -61,6 +62,129 @@ test("root redirects into the protected teams workflow", async ({ page }) => {
 
   await expect(page).toHaveURL(/\/teams$/);
   await expect(page.getByText("Sin equipos registrados")).toBeVisible();
+});
+
+test("super admin can create users, change roles, and reset passwords", async ({
+  page,
+}) => {
+  await signIn(page);
+
+  await page.getByRole("link", { name: "Usuarios" }).click();
+  await expect(page).toHaveURL(/\/users$/);
+
+  await page.getByRole("button", { name: "Crear usuario" }).first().click();
+  await page.getByLabel("Nombre").fill(testContentAdmin.name);
+  await page.getByLabel("Correo electrónico").fill(testContentAdmin.email);
+  await page.getByLabel("Contraseña").fill(testContentAdmin.password);
+  await page.getByRole("combobox", { name: "Rol" }).click();
+  await page.getByRole("option", { name: "Admin", exact: true }).click();
+  await page.getByRole("button", { name: "Crear usuario" }).click();
+  await expect(page.getByText("Usuario creado.")).toBeVisible();
+  await expect(page.getByText(testContentAdmin.email)).toBeVisible();
+
+  await page.getByRole("button", { name: "Crear usuario" }).first().click();
+  await page.getByLabel("Nombre").fill(testViewer.name);
+  await page.getByLabel("Correo electrónico").fill(testViewer.email);
+  await page.getByLabel("Contraseña").fill(testViewer.password);
+  await page.getByRole("combobox", { name: "Rol" }).click();
+  await page.getByRole("option", { name: "Solo lectura" }).click();
+  await page.getByRole("button", { name: "Crear usuario" }).click();
+  await expect(page.getByText("Usuario creado.")).toBeVisible();
+  await expect(page.getByText(testViewer.email)).toBeVisible();
+  await expect(
+    page.getByRole("columnheader", { name: "Nombre" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("columnheader", { name: "Correo" }),
+  ).toBeVisible();
+
+  const updatedAdminName = "Admin Contenido Renombrado";
+  const updatedAdminEmail =
+    "content-admin-renamed.e2e@mundialitoredondela.test";
+  const adminRow = page
+    .locator("tr")
+    .filter({ hasText: testContentAdmin.email });
+  await adminRow.getByRole("button", { name: "Acciones" }).click();
+  await page.getByRole("menuitem", { name: "Editar" }).click();
+  await page.getByLabel("Nombre").fill(updatedAdminName);
+  await page.getByLabel("Correo electrónico").fill(updatedAdminEmail);
+  await page.getByRole("combobox", { name: "Rol" }).click();
+  await page.getByRole("option", { name: "Admin", exact: true }).click();
+  await page.getByRole("button", { name: "Guardar cambios" }).click();
+  await expect(page.getByText("Usuario actualizado.")).toBeVisible();
+  await expect(
+    page.getByRole("dialog", { name: "Editar usuario" }),
+  ).toHaveCount(0);
+  await expect(page.getByText(updatedAdminName)).toBeVisible();
+  await expect(
+    page.locator("tr").filter({ hasText: updatedAdminEmail }),
+  ).toBeVisible();
+
+  const updatedAdminRow = page
+    .locator("tr")
+    .filter({ hasText: updatedAdminEmail });
+  await updatedAdminRow.getByRole("button", { name: "Acciones" }).click();
+  await page.getByRole("menuitem", { name: "Cambiar contraseña" }).click();
+  await page
+    .getByLabel("Nueva contraseña")
+    .fill(testContentAdmin.resetPassword);
+  await page.getByRole("button", { name: "Cambiar contraseña" }).click();
+  await expect(page.getByText("Contraseña actualizada.")).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  const viewerRow = page.locator("tr").filter({ hasText: testViewer.email });
+  await viewerRow.getByRole("button", { name: "Acciones" }).click();
+  await page.getByRole("menuitem", { name: "Editar" }).click();
+  await page.getByRole("combobox", { name: "Rol" }).click();
+  await page.getByRole("option", { name: "Solo lectura" }).click();
+  await page.getByRole("button", { name: "Guardar cambios" }).click();
+  await expect(page.getByText("Usuario actualizado.")).toBeVisible();
+});
+
+test("admin can mutate content but cannot manage users", async ({ page }) => {
+  await signIn(page, {
+    email: "content-admin-renamed.e2e@mundialitoredondela.test",
+    name: "Admin Contenido Renombrado",
+    password: testContentAdmin.resetPassword,
+  });
+
+  await expect(page).toHaveURL(/\/teams$/);
+  await expect(page.locator('a[href="/users"]')).toHaveCount(0);
+  await page.goto("/users");
+  await expect(page.getByText("404")).toBeVisible();
+
+  await page.goto("/teams");
+  await page.getByRole("button", { name: "Registrar equipo" }).first().click();
+  await page.getByLabel("Nombre del equipo").fill("Equipo Admin");
+  await page.getByRole("combobox", { name: "Categoría" }).click();
+  await page.getByRole("option", { name: "Senior" }).click();
+  await page.getByRole("button", { name: "Registrar equipo" }).click();
+  await expect(page.getByText("Equipo registrado.")).toBeVisible();
+  await expect(page.getByRole("link", { name: /Equipo Admin/ })).toBeVisible();
+
+  const row = page.locator("tr").filter({ hasText: "Equipo Admin" });
+  await row.getByRole("button", { name: "Acciones" }).click();
+  await page.getByRole("menuitem", { name: "Eliminar" }).click();
+  await page.getByRole("button", { name: "Eliminar equipo" }).click();
+  await expect(page.getByRole("link", { name: /Equipo Admin/ })).toHaveCount(0);
+});
+
+test("viewer can read backstage but cannot see mutation controls", async ({
+  page,
+}) => {
+  await signIn(page, testViewer);
+
+  await expect(page).toHaveURL(/\/teams$/);
+  await expect(page.locator('a[href="/users"]')).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Registrar equipo" }),
+  ).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Acciones" })).toHaveCount(0);
+
+  await page.getByRole("link", { name: "Grupos" }).click();
+  await expect(
+    page.getByRole("button", { name: "Registrar grupo" }),
+  ).toHaveCount(0);
 });
 
 test("admin can manage groups and team membership", async ({ page }) => {

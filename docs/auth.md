@@ -1,6 +1,6 @@
 # Authentication
 
-better-auth (email/password only) protects `apps/backstage`. The product exposes no signup UI; admin users are created with tooling or test setup.
+better-auth (email/password only) protects `apps/backstage`. The product exposes no signup UI and no email invitation/password-reset flows; super admins create users and reset passwords directly from backstage.
 
 ## How it works
 
@@ -8,6 +8,15 @@ better-auth (email/password only) protects `apps/backstage`. The product exposes
 - `apps/backstage/lib/auth-client.ts` — client-side `createAuthClient` for React components.
 - `apps/backstage/app/api/auth/[...all]/route.ts` — mounts better-auth handlers.
 - `apps/backstage/app/(protected)/layout.tsx` — checks session for protected routes; unauthenticated → `/login`.
+- `apps/backstage/lib/authz.ts` — central server-side role checks for write access and user management.
+
+## Roles
+
+- `viewer` — can log in and view backstage pages, but cannot create, edit, delete, retry, cancel, or publish anything.
+- `admin` — can manage backstage content, but cannot create users, reset passwords, change roles, or delete users.
+- `super-admin` — full access, including user management.
+
+Existing users are backfilled to `super-admin` by the roles migration to prevent lockout during deployment. New users default to `viewer` unless a super admin selects another role.
 
 ## Environment variables
 
@@ -20,15 +29,24 @@ NEXT_PUBLIC_BETTER_AUTH_URL=http://localhost:3001
 
 Copy `.env.example` to root `.env` and fill `BETTER_AUTH_SECRET` with a random 32+ char string.
 
-## Creating admin users
+## Creating users
 
-No signup form exists. Use the interactive CLI in `packages/tools`:
+No signup form exists.
+
+For the first user or local recovery, use the interactive CLI in `packages/tools`; it creates a `super-admin`:
 
 ```sh
 # Ensure DATABASE_URL is set (uses .env or shell env)
 pnpm --filter @mr/tools seed-admin
-# Prompts for email and password, then creates the admin user
+# Prompts for email and password, then creates a super-admin user
 ```
+
+After a super admin can log in, use `/users` in backstage to:
+
+- create users with a direct password,
+- change user roles,
+- reset a user's password by entering the new password,
+- delete users, except yourself or the last `super-admin`.
 
 ## E2E tests
 

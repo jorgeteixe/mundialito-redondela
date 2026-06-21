@@ -1,11 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@mr/db";
-import { auth } from "@/lib/auth";
+import { requireAdminWrite } from "@/lib/authz";
 import type { TeamCategory } from "./data";
 
 const { player, team } = schema;
@@ -19,11 +18,6 @@ export type FormState = {
     teamId?: string;
   };
 };
-
-async function requireSession() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) redirect("/login");
-}
 
 function readString(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -59,7 +53,7 @@ export async function createTeam(
   _state: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  await requireSession();
+  await requireAdminWrite();
 
   const nameResult = validateName(formData);
   const category = parseCategory(readString(formData, "category"));
@@ -88,7 +82,7 @@ export async function updateTeam(
   _state: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  await requireSession();
+  await requireAdminWrite();
 
   const id = readString(formData, "id");
   const nameResult = validateName(formData);
@@ -116,7 +110,7 @@ export async function updateTeam(
 }
 
 export async function deleteTeam(formData: FormData) {
-  await requireSession();
+  await requireAdminWrite();
 
   const id = readString(formData, "id");
   const redirectTo = readString(formData, "redirectTo");
@@ -133,7 +127,7 @@ export async function createPlayer(
   _state: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  await requireSession();
+  await requireAdminWrite();
 
   const teamId = readString(formData, "teamId");
   const nameResult = validateName(formData);
@@ -163,7 +157,7 @@ export async function updatePlayer(
   _state: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  await requireSession();
+  await requireAdminWrite();
 
   const id = readString(formData, "id");
   const teamId = readString(formData, "teamId");
@@ -191,7 +185,7 @@ export async function updatePlayer(
 }
 
 export async function deletePlayer(formData: FormData) {
-  await requireSession();
+  await requireAdminWrite();
 
   const id = readString(formData, "id");
   const teamId = readString(formData, "teamId");

@@ -1,13 +1,11 @@
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { requireSession } from "@/lib/authz";
+import { canWriteBackstage } from "@/lib/roles";
 import { listMediaOptions, listMediaTemplates, listPublications } from "./data";
 import { PublicationQueueRefresh } from "./publication-queue-refresh";
 import { PublicacionesList } from "./publicaciones-list";
 
 export default async function PublicacionesPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) redirect("/login");
+  const session = await requireSession();
 
   const [publications, mediaOptions] = await Promise.all([
     listPublications(),
@@ -30,6 +28,7 @@ export default async function PublicacionesPage() {
         publications={publications}
         mediaOptions={mediaOptions}
         templates={templates}
+        canWrite={canWriteBackstage(session.user.role)}
       />
     </>
   );

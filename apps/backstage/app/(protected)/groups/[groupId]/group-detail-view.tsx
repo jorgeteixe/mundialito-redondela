@@ -45,11 +45,13 @@ import type { GroupDetail, GroupTeamSummary } from "../data";
 type GroupDetailViewProps = {
   group: GroupDetail;
   availableTeams: GroupTeamSummary[];
+  canWrite: boolean;
 };
 
 export function GroupDetailView({
   group,
   availableTeams,
+  canWrite,
 }: GroupDetailViewProps) {
   const [editGroupOpen, setEditGroupOpen] = useState(false);
   const [addTeamOpen, setAddTeamOpen] = useState(false);
@@ -66,27 +68,29 @@ export function GroupDetailView({
             <Badge variant="secondary">{categoryLabel(group.category)}</Badge>
             <span>{group.teams.length} equipos</span>
           </CardDescription>
-          <CardAction className="flex items-center gap-2">
-            <Sheet open={editGroupOpen} onOpenChange={setEditGroupOpen}>
-              <SheetTriggerButton label="Editar" icon={<Pencil />} />
-              <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>Editar grupo</SheetTitle>
-                  <SheetDescription>
-                    Actualiza los datos del grupo.
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="px-4">
-                  <GroupForm
-                    mode="edit"
-                    group={group}
-                    onSuccess={() => setEditGroupOpen(false)}
-                  />
-                </div>
-              </SheetContent>
-            </Sheet>
-            <DeleteGroupButton group={group} />
-          </CardAction>
+          {canWrite ? (
+            <CardAction className="flex items-center gap-2">
+              <Sheet open={editGroupOpen} onOpenChange={setEditGroupOpen}>
+                <SheetTriggerButton label="Editar" icon={<Pencil />} />
+                <SheetContent>
+                  <SheetHeader>
+                    <SheetTitle>Editar grupo</SheetTitle>
+                    <SheetDescription>
+                      Actualiza los datos del grupo.
+                    </SheetDescription>
+                  </SheetHeader>
+                  <div className="px-4">
+                    <GroupForm
+                      mode="edit"
+                      group={group}
+                      onSuccess={() => setEditGroupOpen(false)}
+                    />
+                  </div>
+                </SheetContent>
+              </Sheet>
+              <DeleteGroupButton group={group} />
+            </CardAction>
+          ) : null}
         </CardHeader>
       </Card>
 
@@ -97,30 +101,32 @@ export function GroupDetailView({
             Equipos registrados en este grupo.
           </p>
         </div>
-        <Sheet open={addTeamOpen} onOpenChange={setAddTeamOpen}>
-          <SheetTrigger asChild>
-            <Button size="sm" className="ml-auto">
-              <Plus />
-              Añadir equipo
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Añadir equipo</SheetTitle>
-              <SheetDescription>
-                Selecciona un equipo sin grupo para {group.name}.
-              </SheetDescription>
-            </SheetHeader>
-            <div className="px-4">
-              <AddTeamForm
-                groupId={group.id}
-                groupCategory={group.category}
-                teams={availableTeams}
-                onSuccess={() => setAddTeamOpen(false)}
-              />
-            </div>
-          </SheetContent>
-        </Sheet>
+        {canWrite ? (
+          <Sheet open={addTeamOpen} onOpenChange={setAddTeamOpen}>
+            <SheetTrigger asChild>
+              <Button size="sm" className="ml-auto">
+                <Plus />
+                Añadir equipo
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Añadir equipo</SheetTitle>
+                <SheetDescription>
+                  Selecciona un equipo sin grupo para {group.name}.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="px-4">
+                <AddTeamForm
+                  groupId={group.id}
+                  groupCategory={group.category}
+                  teams={availableTeams}
+                  onSuccess={() => setAddTeamOpen(false)}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
+        ) : null}
       </div>
 
       {group.teams.length === 0 ? (
@@ -129,16 +135,23 @@ export function GroupDetailView({
           title="Sin equipos registrados"
           description="Añade el primer equipo para completar el grupo."
           action={
-            <Button size="sm" onClick={() => setAddTeamOpen(true)}>
-              <Plus />
-              Añadir equipo
-            </Button>
+            canWrite ? (
+              <Button size="sm" onClick={() => setAddTeamOpen(true)}>
+                <Plus />
+                Añadir equipo
+              </Button>
+            ) : undefined
           }
         />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {group.teams.map((team) => (
-            <GroupTeamCard key={team.id} team={team} groupId={group.id} />
+            <GroupTeamCard
+              key={team.id}
+              team={team}
+              groupId={group.id}
+              canWrite={canWrite}
+            />
           ))}
         </div>
       )}
@@ -210,9 +223,11 @@ function DeleteGroupButton({ group }: { group: GroupDetail }) {
 function GroupTeamCard({
   team,
   groupId,
+  canWrite,
 }: {
   team: GroupTeamSummary;
   groupId: string;
+  canWrite: boolean;
 }) {
   return (
     <Card size="sm">
@@ -232,33 +247,39 @@ function GroupTeamCard({
         <CardDescription>
           <Badge variant="secondary">{categoryLabel(team.category)}</Badge>
         </CardDescription>
-        <CardAction>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon-sm" aria-label="Quitar equipo">
-                <Trash2 />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Quitar equipo</AlertDialogTitle>
-                <AlertDialogDescription>
-                  “{team.name}” quedará sin grupo.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <form action={removeTeamFromGroup}>
-                  <input type="hidden" name="groupId" value={groupId} />
-                  <input type="hidden" name="teamId" value={team.id} />
-                  <AlertDialogAction type="submit" variant="destructive">
-                    Quitar equipo
-                  </AlertDialogAction>
-                </form>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </CardAction>
+        {canWrite ? (
+          <CardAction>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Quitar equipo"
+                >
+                  <Trash2 />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Quitar equipo</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    “{team.name}” quedará sin grupo.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <form action={removeTeamFromGroup}>
+                    <input type="hidden" name="groupId" value={groupId} />
+                    <input type="hidden" name="teamId" value={team.id} />
+                    <AlertDialogAction type="submit" variant="destructive">
+                      Quitar equipo
+                    </AlertDialogAction>
+                  </form>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </CardAction>
+        ) : null}
       </CardHeader>
     </Card>
   );

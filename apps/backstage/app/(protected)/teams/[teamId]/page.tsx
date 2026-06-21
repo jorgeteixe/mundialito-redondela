@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { requireSession } from "@/lib/authz";
+import { canWriteBackstage } from "@/lib/roles";
 import { getTeamDetail } from "../data";
 import { TeamDetailView } from "./team-detail-view";
 
@@ -9,6 +11,7 @@ type TeamDetailPageProps = {
 };
 
 export default async function TeamDetailPage({ params }: TeamDetailPageProps) {
+  const session = await requireSession();
   const { teamId } = await params;
   const team = await getTeamDetail(teamId);
 
@@ -16,7 +19,10 @@ export default async function TeamDetailPage({ params }: TeamDetailPageProps) {
 
   return (
     <main className="flex flex-col gap-4 p-4 sm:p-6">
-      <TeamDetailView team={team} />
+      <TeamDetailView
+        team={team}
+        canWrite={canWriteBackstage(session.user.role)}
+      />
     </main>
   );
 }

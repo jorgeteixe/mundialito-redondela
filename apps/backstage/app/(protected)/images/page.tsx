@@ -1,13 +1,11 @@
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { requireSession } from "@/lib/authz";
+import { canWriteBackstage } from "@/lib/roles";
 import { listImageJobs, listImageTemplates } from "./data";
 import { ImagesList } from "./images-list";
 import { ImageQueueRefresh } from "./image-queue-refresh";
 
 export default async function ImagesPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) redirect("/login");
+  const session = await requireSession();
 
   const [templates, jobs] = await Promise.all([
     listImageTemplates(),
@@ -20,7 +18,11 @@ export default async function ImagesPage() {
   return (
     <>
       <ImageQueueRefresh enabled={hasActiveJobs} />
-      <ImagesList templates={templates} jobs={jobs} />
+      <ImagesList
+        templates={templates}
+        jobs={jobs}
+        canWrite={canWriteBackstage(session.user.role)}
+      />
     </>
   );
 }

@@ -59,13 +59,19 @@ function JobStatusBadge({ status }: { status: ImageJobSummary["status"] }) {
   return <Badge variant="secondary">{statusLabels[status]}</Badge>;
 }
 
-function JobActions({ job }: { job: ImageJobSummary }) {
+function JobActions({
+  job,
+  canWrite,
+}: {
+  job: ImageJobSummary;
+  canWrite: boolean;
+}) {
   return (
     <div className="flex justify-end gap-2">
       {job.status === "succeeded" && job.outputPath ? (
         <ImagePreviewDialog job={job} />
       ) : null}
-      {job.status === "failed" ? (
+      {canWrite && job.status === "failed" ? (
         <form action={retryFailedImageGenerationJob}>
           <input type="hidden" name="id" value={job.id} />
           <Button variant="outline" size="icon-sm" aria-label="Reintentar">
@@ -73,7 +79,7 @@ function JobActions({ job }: { job: ImageJobSummary }) {
           </Button>
         </form>
       ) : null}
-      {job.status === "queued" ? (
+      {canWrite && job.status === "queued" ? (
         <form action={cancelImageGenerationJob}>
           <input type="hidden" name="id" value={job.id} />
           <Button variant="outline" size="icon-sm" aria-label="Cancelar">
@@ -146,7 +152,13 @@ function JobMeta({ job }: { job: ImageJobSummary }) {
   );
 }
 
-export function ImageJobsList({ jobs }: { jobs: ImageJobSummary[] }) {
+export function ImageJobsList({
+  jobs,
+  canWrite,
+}: {
+  jobs: ImageJobSummary[];
+  canWrite: boolean;
+}) {
   return (
     <>
       <div className="flex flex-col gap-3 md:hidden">
@@ -165,7 +177,7 @@ export function ImageJobsList({ jobs }: { jobs: ImageJobSummary[] }) {
               {job.errorMessage ? (
                 <p className="text-sm text-destructive">{job.errorMessage}</p>
               ) : null}
-              <JobActions job={job} />
+              <JobActions job={job} canWrite={canWrite} />
             </CardContent>
           </Card>
         ))}
@@ -200,7 +212,7 @@ export function ImageJobsList({ jobs }: { jobs: ImageJobSummary[] }) {
                 </TableCell>
                 <TableCell>{formatDate(job.createdAt)}</TableCell>
                 <TableCell>
-                  <JobActions job={job} />
+                  <JobActions job={job} canWrite={canWrite} />
                 </TableCell>
               </TableRow>
             ))}

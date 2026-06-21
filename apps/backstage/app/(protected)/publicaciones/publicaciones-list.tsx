@@ -15,12 +15,14 @@ type PublicacionesListProps = {
   publications: PublicationSummary[];
   mediaOptions: MediaOption[];
   templates: MediaTemplateSummary[];
+  canWrite: boolean;
 };
 
 export function PublicacionesList({
   publications,
   mediaOptions,
   templates,
+  canWrite,
 }: PublicacionesListProps) {
   const [search, setSearch] = useState("");
 
@@ -40,9 +42,9 @@ export function PublicacionesList({
   const isSearching = search.trim().length > 0;
   const isEmpty = publications.length === 0 || filtered.length === 0;
 
-  const createSheet = (
+  const createSheet = canWrite ? (
     <CreatePublicationSheet mediaOptions={mediaOptions} templates={templates} />
-  );
+  ) : null;
 
   return (
     <DashboardPage
@@ -62,12 +64,12 @@ export function PublicacionesList({
             icon={<Send className="h-10 w-10" />}
             title="Sin publicaciones"
             description="Programa la primera publicación para Instagram o Facebook."
-            action={createSheet}
+            action={createSheet ?? undefined}
           />
         )
       }
     >
-      <PublicationsList publications={filtered} />
+      <PublicationsList publications={filtered} canWrite={canWrite} />
     </DashboardPage>
   );
 }

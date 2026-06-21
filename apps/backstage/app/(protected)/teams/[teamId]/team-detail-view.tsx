@@ -53,9 +53,10 @@ import type { PlayerSummary, TeamDetail } from "../data";
 
 type TeamDetailViewProps = {
   team: TeamDetail;
+  canWrite: boolean;
 };
 
-export function TeamDetailView({ team }: TeamDetailViewProps) {
+export function TeamDetailView({ team, canWrite }: TeamDetailViewProps) {
   const [editTeamOpen, setEditTeamOpen] = useState(false);
   const [createPlayerOpen, setCreatePlayerOpen] = useState(false);
 
@@ -77,27 +78,29 @@ export function TeamDetailView({ team }: TeamDetailViewProps) {
             <Badge variant="secondary">{categoryLabel(team.category)}</Badge>
             <span className="leading-5">{team.players.length} jugadores</span>
           </CardDescription>
-          <CardAction className="flex items-center gap-2">
-            <Sheet open={editTeamOpen} onOpenChange={setEditTeamOpen}>
-              <SheetTriggerButton label="Editar" icon={<Pencil />} />
-              <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>Editar equipo</SheetTitle>
-                  <SheetDescription>
-                    Actualiza los datos del equipo.
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="px-4">
-                  <TeamForm
-                    mode="edit"
-                    team={team}
-                    onSuccess={() => setEditTeamOpen(false)}
-                  />
-                </div>
-              </SheetContent>
-            </Sheet>
-            <DeleteTeamButton team={team} />
-          </CardAction>
+          {canWrite ? (
+            <CardAction className="flex items-center gap-2">
+              <Sheet open={editTeamOpen} onOpenChange={setEditTeamOpen}>
+                <SheetTriggerButton label="Editar" icon={<Pencil />} />
+                <SheetContent>
+                  <SheetHeader>
+                    <SheetTitle>Editar equipo</SheetTitle>
+                    <SheetDescription>
+                      Actualiza los datos del equipo.
+                    </SheetDescription>
+                  </SheetHeader>
+                  <div className="px-4">
+                    <TeamForm
+                      mode="edit"
+                      team={team}
+                      onSuccess={() => setEditTeamOpen(false)}
+                    />
+                  </div>
+                </SheetContent>
+              </Sheet>
+              <DeleteTeamButton team={team} />
+            </CardAction>
+          ) : null}
         </CardHeader>
       </Card>
 
@@ -108,29 +111,31 @@ export function TeamDetailView({ team }: TeamDetailViewProps) {
             Jugadores registrados en este equipo.
           </p>
         </div>
-        <Sheet open={createPlayerOpen} onOpenChange={setCreatePlayerOpen}>
-          <SheetTrigger asChild>
-            <Button size="sm" className="ml-auto">
-              <Plus />
-              Añadir jugador
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Añadir jugador</SheetTitle>
-              <SheetDescription>
-                Registra un jugador en {team.name}.
-              </SheetDescription>
-            </SheetHeader>
-            <div className="px-4">
-              <PlayerForm
-                mode="create"
-                teamId={team.id}
-                onSuccess={() => setCreatePlayerOpen(false)}
-              />
-            </div>
-          </SheetContent>
-        </Sheet>
+        {canWrite ? (
+          <Sheet open={createPlayerOpen} onOpenChange={setCreatePlayerOpen}>
+            <SheetTrigger asChild>
+              <Button size="sm" className="ml-auto">
+                <Plus />
+                Añadir jugador
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Añadir jugador</SheetTitle>
+                <SheetDescription>
+                  Registra un jugador en {team.name}.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="px-4">
+                <PlayerForm
+                  mode="create"
+                  teamId={team.id}
+                  onSuccess={() => setCreatePlayerOpen(false)}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
+        ) : null}
       </div>
 
       {team.players.length === 0 ? (
@@ -139,16 +144,23 @@ export function TeamDetailView({ team }: TeamDetailViewProps) {
           title="Sin jugadores registrados"
           description="Añade el primer jugador para completar la plantilla."
           action={
-            <Button size="sm" onClick={() => setCreatePlayerOpen(true)}>
-              <Plus />
-              Añadir jugador
-            </Button>
+            canWrite ? (
+              <Button size="sm" onClick={() => setCreatePlayerOpen(true)}>
+                <Plus />
+                Añadir jugador
+              </Button>
+            ) : undefined
           }
         />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {team.players.map((player) => (
-            <PlayerCard key={player.id} player={player} teamId={team.id} />
+            <PlayerCard
+              key={player.id}
+              player={player}
+              teamId={team.id}
+              canWrite={canWrite}
+            />
           ))}
         </div>
       )}
@@ -208,9 +220,11 @@ function DeleteTeamButton({ team }: { team: TeamDetail }) {
 function PlayerCard({
   player,
   teamId,
+  canWrite,
 }: {
   player: PlayerSummary;
   teamId: string;
+  canWrite: boolean;
 }) {
   const [editOpen, setEditOpen] = useState(false);
 
@@ -228,68 +242,74 @@ function PlayerCard({
           <span className="truncate">{player.name}</span>
         </CardTitle>
         <CardDescription>Jugador</CardDescription>
-        <CardAction>
-          <Sheet open={editOpen} onOpenChange={setEditOpen}>
-            <AlertDialog>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon-sm" aria-label="Acciones">
-                    <MoreHorizontal />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onSelect={() => setEditOpen(true)}>
-                    <Pencil />
-                    Editar
-                  </DropdownMenuItem>
-                  <AlertDialogTrigger asChild>
-                    <DropdownMenuItem
-                      variant="destructive"
-                      onSelect={(event) => event.preventDefault()}
+        {canWrite ? (
+          <CardAction>
+            <Sheet open={editOpen} onOpenChange={setEditOpen}>
+              <AlertDialog>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label="Acciones"
                     >
-                      <Trash2 />
-                      Eliminar
+                      <MoreHorizontal />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onSelect={() => setEditOpen(true)}>
+                      <Pencil />
+                      Editar
                     </DropdownMenuItem>
-                  </AlertDialogTrigger>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>Editar jugador</SheetTitle>
-                  <SheetDescription>
-                    Actualiza los datos del jugador.
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="px-4">
-                  <PlayerForm
-                    mode="edit"
-                    teamId={teamId}
-                    player={player}
-                    onSuccess={() => setEditOpen(false)}
-                  />
-                </div>
-              </SheetContent>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Eliminar jugador</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Se eliminará “{player.name}” de la plantilla.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <form action={deletePlayer}>
-                    <input type="hidden" name="id" value={player.id} />
-                    <input type="hidden" name="teamId" value={teamId} />
-                    <AlertDialogAction type="submit" variant="destructive">
-                      Eliminar jugador
-                    </AlertDialogAction>
-                  </form>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </Sheet>
-        </CardAction>
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onSelect={(event) => event.preventDefault()}
+                      >
+                        <Trash2 />
+                        Eliminar
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <SheetContent>
+                  <SheetHeader>
+                    <SheetTitle>Editar jugador</SheetTitle>
+                    <SheetDescription>
+                      Actualiza los datos del jugador.
+                    </SheetDescription>
+                  </SheetHeader>
+                  <div className="px-4">
+                    <PlayerForm
+                      mode="edit"
+                      teamId={teamId}
+                      player={player}
+                      onSuccess={() => setEditOpen(false)}
+                    />
+                  </div>
+                </SheetContent>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Eliminar jugador</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Se eliminará “{player.name}” de la plantilla.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <form action={deletePlayer}>
+                      <input type="hidden" name="id" value={player.id} />
+                      <input type="hidden" name="teamId" value={teamId} />
+                      <AlertDialogAction type="submit" variant="destructive">
+                        Eliminar jugador
+                      </AlertDialogAction>
+                    </form>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </Sheet>
+          </CardAction>
+        ) : null}
       </CardHeader>
     </Card>
   );

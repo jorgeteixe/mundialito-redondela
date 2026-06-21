@@ -86,6 +86,8 @@ async function seedAdmin() {
   Object.assign(process.env, { NODE_ENV: "development" });
 
   const { auth } = await import("../lib/auth");
+  const { db, schema } = await import("@mr/db");
+  const { eq } = await import("drizzle-orm");
 
   await auth.api.signUpEmail({
     body: {
@@ -94,6 +96,10 @@ async function seedAdmin() {
       name: testAdmin.name,
     },
   });
+  await db
+    .update(schema.user)
+    .set({ role: "super-admin" })
+    .where(eq(schema.user.email, testAdmin.email));
 }
 
 export default async function globalSetup() {

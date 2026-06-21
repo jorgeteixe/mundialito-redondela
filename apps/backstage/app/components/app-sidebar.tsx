@@ -9,6 +9,7 @@ import {
   LogOut,
   Send,
   Trophy,
+  UserCog,
   Users,
 } from "lucide-react";
 import {
@@ -34,7 +35,7 @@ const navItems = [
   { title: "Publicaciones", url: "/publicaciones", icon: Send },
 ];
 
-export function AppSidebar() {
+export function AppSidebar({ canManageUsers }: { canManageUsers: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const { toggleSidebar } = useSidebar();
@@ -66,7 +67,12 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => (
+              {[
+                ...navItems,
+                ...(canManageUsers
+                  ? [{ title: "Usuarios", url: "/users", icon: UserCog }]
+                  : []),
+              ].map((item) => (
                 <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton
                     asChild

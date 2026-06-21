@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
+import { canManageUsers } from "@/lib/roles";
 import { TooltipProvider, SidebarProvider, SidebarInset } from "@mr/ui";
 import { AppSidebar } from "@/app/components/app-sidebar";
 import { AppHeader } from "@/app/components/app-header";
@@ -16,7 +17,7 @@ export default async function ProtectedLayout({
   return (
     <TooltipProvider>
       <SidebarProvider>
-        <AppSidebar />
+        <AppSidebar canManageUsers={canManageUsers(session.user.role)} />
         <SidebarInset>
           <AppHeader />
           {children}

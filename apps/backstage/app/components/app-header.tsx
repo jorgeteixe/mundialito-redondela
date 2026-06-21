@@ -21,6 +21,8 @@ const segmentLabels: Record<string, string> = {
   groups: "Grupos",
   videos: "Vídeos",
   images: "Imágenes",
+  publicaciones: "Publicaciones",
+  users: "Usuarios",
 };
 
 const entityEndpoints: Record<

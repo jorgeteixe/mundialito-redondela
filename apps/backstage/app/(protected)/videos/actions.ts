@@ -1,15 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import {
   cancelQueuedVideoGenerationJob,
   enqueueVideoGenerationJob,
   retryVideoGenerationJob,
 } from "@mr/db";
 import { TEMPLATE_DEFINITIONS } from "@mr/remotion/templates";
-import { auth } from "@/lib/auth";
+import { requireAdminWrite } from "@/lib/authz";
 
 export type VideoJobFormState = {
   status: "idle" | "success" | "error";
@@ -20,12 +18,6 @@ export type VideoJobFormState = {
   };
 };
 
-async function requireSession() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) redirect("/login");
-  return session;
-}
-
 function readString(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
@@ -35,7 +27,7 @@ export async function createVideoGenerationJob(
   _state: VideoJobFormState,
   formData: FormData,
 ): Promise<VideoJobFormState> {
-  const session = await requireSession();
+  const session = await requireAdminWrite();
   const templateId = readString(formData, "templateId");
   const inputPropsValue = readString(formData, "inputProps");
   const template = TEMPLATE_DEFINITIONS.find(
@@ -86,7 +78,7 @@ export async function createVideoGenerationJob(
 }
 
 export async function cancelVideoGenerationJob(formData: FormData) {
-  await requireSession();
+  await requireAdminWrite();
   const id = readString(formData, "id");
   if (!id) return;
 
@@ -95,7 +87,7 @@ export async function cancelVideoGenerationJob(formData: FormData) {
 }
 
 export async function retryFailedVideoGenerationJob(formData: FormData) {
-  await requireSession();
+  await requireAdminWrite();
   const id = readString(formData, "id");
   if (!id) return;
 

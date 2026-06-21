@@ -1,8 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import {
   createSocialPost,
   enqueueVideoGenerationJob,
@@ -12,7 +10,7 @@ import {
   type SocialPostType,
 } from "@mr/db";
 import { TEMPLATE_DEFINITIONS } from "@mr/remotion/templates";
-import { auth } from "@/lib/auth";
+import { requireAdminWrite } from "@/lib/authz";
 
 export type PublicationFormState = {
   status: "idle" | "success" | "error";
@@ -28,12 +26,6 @@ export type PublicationFormState = {
 const PLATFORMS: SocialPlatform[] = ["instagram", "facebook"];
 const POST_TYPES: SocialPostType[] = ["feed", "reel", "story"];
 const MEDIA_KINDS: SocialMediaKind[] = ["image", "video"];
-
-async function requireSession() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) redirect("/login");
-  return session;
-}
 
 function readString(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -52,7 +44,7 @@ export async function createPublication(
   _state: PublicationFormState,
   formData: FormData,
 ): Promise<PublicationFormState> {
-  const session = await requireSession();
+  const session = await requireAdminWrite();
 
   const platforms = formData
     .getAll("platforms")
@@ -154,7 +146,7 @@ export async function createPublication(
 }
 
 export async function retryPublicationTarget(formData: FormData) {
-  await requireSession();
+  await requireAdminWrite();
   const id = readString(formData, "id");
   if (!id) return;
 

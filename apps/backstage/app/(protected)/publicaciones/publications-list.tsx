@@ -230,8 +230,10 @@ function RowActions({ publication }: { publication: PublicationSummary }) {
 
 export function PublicationsList({
   publications,
+  canWrite,
 }: {
   publications: PublicationSummary[];
+  canWrite: boolean;
 }) {
   return (
     <>
@@ -256,7 +258,11 @@ export function PublicationsList({
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
               <TargetBadges publication={publication} />
-              <RowActions publication={publication} />
+              {canWrite ? (
+                <RowActions publication={publication} />
+              ) : (
+                <MediaPreviewDialog publication={publication} />
+              )}
             </CardContent>
           </Card>
         ))}
@@ -293,7 +299,11 @@ export function PublicationsList({
                   {formatDate(publication.scheduledAt)}
                 </TableCell>
                 <TableCell>
-                  <RowActions publication={publication} />
+                  {canWrite ? (
+                    <RowActions publication={publication} />
+                  ) : (
+                    <MediaPreviewDialog publication={publication} />
+                  )}
                 </TableCell>
               </TableRow>
             ))}

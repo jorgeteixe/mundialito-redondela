@@ -1,11 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { and, eq, isNull } from "drizzle-orm";
 import { db, schema } from "@mr/db";
-import { auth } from "@/lib/auth";
+import { requireAdminWrite } from "@/lib/authz";
 import type { TeamCategory } from "../teams/data";
 
 const { team, tournamentGroup } = schema;
@@ -21,11 +20,6 @@ export type FormState = {
     teamId?: string;
   };
 };
-
-async function requireSession() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) redirect("/login");
-}
 
 function readString(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -81,7 +75,7 @@ export async function createGroup(
   _state: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  await requireSession();
+  await requireAdminWrite();
 
   const nameResult = validateName(formData);
   const avatarResult = validateAvatarLabel(formData);
@@ -113,7 +107,7 @@ export async function updateGroup(
   _state: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  await requireSession();
+  await requireAdminWrite();
 
   const id = readString(formData, "id");
   const nameResult = validateName(formData);
@@ -171,7 +165,7 @@ export async function updateGroup(
 }
 
 export async function deleteGroup(formData: FormData) {
-  await requireSession();
+  await requireAdminWrite();
 
   const id = readString(formData, "id");
   const redirectTo = readString(formData, "redirectTo");
@@ -189,7 +183,7 @@ export async function addTeamToGroup(
   _state: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  await requireSession();
+  await requireAdminWrite();
 
   const groupId = readString(formData, "groupId");
   const teamId = readString(formData, "teamId");
@@ -250,7 +244,7 @@ export async function addTeamToGroup(
 }
 
 export async function removeTeamFromGroup(formData: FormData) {
-  await requireSession();
+  await requireAdminWrite();
 
   const groupId = readString(formData, "groupId");
   const teamId = readString(formData, "teamId");

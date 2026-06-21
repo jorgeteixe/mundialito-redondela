@@ -10,6 +10,7 @@ import { ImageJobsList } from "./image-jobs-list";
 type ImagesListProps = {
   jobs: ImageJobSummary[];
   templates: ImageTemplateSummary[];
+  canWrite: boolean;
 };
 
 const statusLabels = {
@@ -20,7 +21,7 @@ const statusLabels = {
   cancelled: "Cancelado",
 } as const;
 
-export function ImagesList({ jobs, templates }: ImagesListProps) {
+export function ImagesList({ jobs, templates, canWrite }: ImagesListProps) {
   const [search, setSearch] = useState("");
 
   const filteredJobs = useMemo(() => {
@@ -43,7 +44,7 @@ export function ImagesList({ jobs, templates }: ImagesListProps) {
     <DashboardPage
       searchPlaceholder="Buscar imágenes..."
       onSearchChange={setSearch}
-      actions={<CreateImageSheet templates={templates} />}
+      actions={canWrite ? <CreateImageSheet templates={templates} /> : null}
       isEmpty={isEmpty}
       emptyState={
         isSearching ? (
@@ -57,12 +58,14 @@ export function ImagesList({ jobs, templates }: ImagesListProps) {
             icon={<ImageIcon className="h-10 w-10" />}
             title="Sin imágenes en la cola"
             description="Añade la primera imagen para comenzar."
-            action={<CreateImageSheet templates={templates} />}
+            action={
+              canWrite ? <CreateImageSheet templates={templates} /> : undefined
+            }
           />
         )
       }
     >
-      <ImageJobsList jobs={filteredJobs} />
+      <ImageJobsList jobs={filteredJobs} canWrite={canWrite} />
     </DashboardPage>
   );
 }

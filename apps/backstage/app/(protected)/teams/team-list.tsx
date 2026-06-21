@@ -50,9 +50,10 @@ import { TeamForm } from "./team-form";
 
 type TeamsListProps = {
   teams: TeamSummary[];
+  canWrite: boolean;
 };
 
-export function TeamsList({ teams }: TeamsListProps) {
+export function TeamsList({ teams, canWrite }: TeamsListProps) {
   const [search, setSearch] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -76,25 +77,30 @@ export function TeamsList({ teams }: TeamsListProps) {
       searchPlaceholder="Buscar equipos..."
       onSearchChange={setSearch}
       actions={
-        <Sheet open={createOpen} onOpenChange={setCreateOpen}>
-          <SheetTrigger asChild>
-            <Button size="sm">
-              <Plus className="h-4 w-4" />
-              Registrar equipo
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Registrar equipo</SheetTitle>
-              <SheetDescription>
-                Crea un equipo para gestionar su plantilla.
-              </SheetDescription>
-            </SheetHeader>
-            <div className="px-4">
-              <TeamForm mode="create" onSuccess={() => setCreateOpen(false)} />
-            </div>
-          </SheetContent>
-        </Sheet>
+        canWrite ? (
+          <Sheet open={createOpen} onOpenChange={setCreateOpen}>
+            <SheetTrigger asChild>
+              <Button size="sm">
+                <Plus className="h-4 w-4" />
+                Registrar equipo
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Registrar equipo</SheetTitle>
+                <SheetDescription>
+                  Crea un equipo para gestionar su plantilla.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="px-4">
+                <TeamForm
+                  mode="create"
+                  onSuccess={() => setCreateOpen(false)}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
+        ) : null
       }
       isEmpty={isEmpty}
       emptyState={
@@ -110,10 +116,12 @@ export function TeamsList({ teams }: TeamsListProps) {
             title="Sin equipos registrados"
             description="Añade el primer equipo para comenzar."
             action={
-              <Button size="sm" onClick={() => setCreateOpen(true)}>
-                <Plus className="h-4 w-4" />
-                Registrar equipo
-              </Button>
+              canWrite ? (
+                <Button size="sm" onClick={() => setCreateOpen(true)}>
+                  <Plus className="h-4 w-4" />
+                  Registrar equipo
+                </Button>
+              ) : undefined
             }
           />
         )
@@ -121,7 +129,7 @@ export function TeamsList({ teams }: TeamsListProps) {
     >
       <div className="flex flex-col gap-3 md:hidden">
         {filteredTeams.map((team) => (
-          <TeamCard key={team.id} team={team} />
+          <TeamCard key={team.id} team={team} canWrite={canWrite} />
         ))}
       </div>
       <div className="hidden rounded-none border md:block">
@@ -131,9 +139,11 @@ export function TeamsList({ teams }: TeamsListProps) {
               <TableHead>Equipo</TableHead>
               <TableHead>Categoría</TableHead>
               <TableHead>Jugadores</TableHead>
-              <TableHead className="w-12">
-                <span className="sr-only">Acciones</span>
-              </TableHead>
+              {canWrite ? (
+                <TableHead className="w-12">
+                  <span className="sr-only">Acciones</span>
+                </TableHead>
+              ) : null}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -154,9 +164,11 @@ export function TeamsList({ teams }: TeamsListProps) {
                   </Badge>
                 </TableCell>
                 <TableCell>{team.playerCount}</TableCell>
-                <TableCell>
-                  <TeamActions team={team} />
-                </TableCell>
+                {canWrite ? (
+                  <TableCell>
+                    <TeamActions team={team} />
+                  </TableCell>
+                ) : null}
               </TableRow>
             ))}
           </TableBody>
@@ -166,7 +178,13 @@ export function TeamsList({ teams }: TeamsListProps) {
   );
 }
 
-function TeamCard({ team }: { team: TeamSummary }) {
+function TeamCard({
+  team,
+  canWrite,
+}: {
+  team: TeamSummary;
+  canWrite: boolean;
+}) {
   return (
     <Card size="sm">
       <CardHeader>
@@ -183,9 +201,11 @@ function TeamCard({ team }: { team: TeamSummary }) {
           <Badge variant="secondary">{categoryLabel(team.category)}</Badge>
           <span>{team.playerCount} jugadores</span>
         </CardDescription>
-        <CardAction>
-          <TeamActions team={team} />
-        </CardAction>
+        {canWrite ? (
+          <CardAction>
+            <TeamActions team={team} />
+          </CardAction>
+        ) : null}
       </CardHeader>
       <CardContent>
         <Button asChild variant="outline" size="sm" className="w-full">

@@ -10,6 +10,7 @@ import { VideoJobsList } from "./video-jobs-list";
 type VideosListProps = {
   jobs: VideoJobSummary[];
   templates: VideoTemplateSummary[];
+  canWrite: boolean;
 };
 
 const statusLabels = {
@@ -20,7 +21,7 @@ const statusLabels = {
   cancelled: "Cancelado",
 } as const;
 
-export function VideosList({ jobs, templates }: VideosListProps) {
+export function VideosList({ jobs, templates, canWrite }: VideosListProps) {
   const [search, setSearch] = useState("");
 
   const filteredJobs = useMemo(() => {
@@ -43,7 +44,7 @@ export function VideosList({ jobs, templates }: VideosListProps) {
     <DashboardPage
       searchPlaceholder="Buscar vídeos..."
       onSearchChange={setSearch}
-      actions={<CreateVideoSheet templates={templates} />}
+      actions={canWrite ? <CreateVideoSheet templates={templates} /> : null}
       isEmpty={isEmpty}
       emptyState={
         isSearching ? (
@@ -57,12 +58,14 @@ export function VideosList({ jobs, templates }: VideosListProps) {
             icon={<Clapperboard className="h-10 w-10" />}
             title="Sin vídeos en la cola"
             description="Añade el primer vídeo para comenzar."
-            action={<CreateVideoSheet templates={templates} />}
+            action={
+              canWrite ? <CreateVideoSheet templates={templates} /> : undefined
+            }
           />
         )
       }
     >
-      <VideoJobsList jobs={filteredJobs} />
+      <VideoJobsList jobs={filteredJobs} canWrite={canWrite} />
     </DashboardPage>
   );
 }
