@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { SocialPost, SocialPostTarget } from "@mr/db";
 import type { MetaConfig } from "../config";
 import type { ResolvedMedia } from "../media";
-import { createMetaProvider, type FetchImpl } from "./meta";
+import { createMetaProvider, MetaApiError, type FetchImpl } from "./meta";
 import type { PublishContext, SocialWorkerLogger } from "./types";
 
 const meta: MetaConfig = {
@@ -380,5 +380,42 @@ describe("createMetaProvider — errors", () => {
     ).rejects.toThrow(
       "Meta API error at POST /page-1/photos: HTTP 422 body=Validation failed access_token=[redacted]",
     );
+  });
+
+  it("keeps Meta retriable=false from upload URL responses", async () => {
+    const { fetchImpl } = sequencedFetch([
+      makeResponse({
+        video_id: "video-story-1",
+        upload_url: "https://upload.example.com/video-story-1",
+      }),
+      makeResponse(
+        {
+          debug_info: {
+            retriable: false,
+            type: "FileUrlProcessingError",
+            message:
+              "Unable to fetch media from URL, got status code: 403 Restricted by robots.txt",
+          },
+        },
+        false,
+        422,
+      ),
+    ]);
+    const { ctx } = makeCtx();
+    const provider = createMetaProvider({ fetchImpl });
+
+    await expect(
+      provider.publish(
+        input("facebook", makePost({ postType: "story", mediaKind: "video" }), {
+          url: "https://media.example.com/story.mp4",
+          kind: "video",
+        }),
+        ctx,
+      ),
+    ).rejects.toMatchObject({
+      name: "MetaApiError",
+      retriable: false,
+      message: expect.stringContaining("FileUrlProcessingError"),
+    } satisfies Partial<MetaApiError>);
   });
 });

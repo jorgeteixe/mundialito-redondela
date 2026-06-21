@@ -23,7 +23,11 @@ export type SocialJobQueue = {
     providerPostId: string,
     permalink?: string | null,
   ): Promise<unknown>;
-  markFailed(id: string, errorMessage: string): Promise<unknown>;
+  markFailed(
+    id: string,
+    errorMessage: string,
+    options?: { retryable?: boolean },
+  ): Promise<unknown>;
 };
 
 export const databaseSocialJobQueue: SocialJobQueue = {
@@ -37,6 +41,19 @@ export const databaseSocialJobQueue: SocialJobQueue = {
 export function toErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
   return String(error);
+}
+
+function retryableFromError(error: unknown) {
+  if (
+    error &&
+    typeof error === "object" &&
+    "retriable" in error &&
+    (error as { retriable?: unknown }).retriable === false
+  ) {
+    return false;
+  }
+
+  return undefined;
 }
 
 export const consoleSocialWorkerLogger: SocialWorkerLogger = {
@@ -99,7 +116,12 @@ export async function processNextSocialPost({
     );
   } catch (error) {
     const message = toErrorMessage(error);
-    await queue.markFailed(target.id, message);
+    const retryable = retryableFromError(error);
+    if (retryable === false) {
+      await queue.markFailed(target.id, message, { retryable });
+    } else {
+      await queue.markFailed(target.id, message);
+    }
     logger.error(
       `[social-worker] failed target=${target.id} error="${message}"`,
     );

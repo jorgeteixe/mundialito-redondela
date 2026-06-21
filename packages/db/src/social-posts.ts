@@ -231,11 +231,14 @@ export async function markSocialPostTargetPublished(
 export async function markSocialPostTargetFailed(
   id: string,
   errorMessage: string,
+  options: { retryable?: boolean } = {},
 ) {
   const rows = await db.execute<SocialPostTarget>(sql`
     update ${socialPostTarget}
     set
       status = case
+        when ${options.retryable === false}
+          then 'failed'::social_post_target_status
         when ${socialPostTarget.attempts} >= ${socialPostTarget.maxAttempts}
           then 'failed'::social_post_target_status
         else 'scheduled'::social_post_target_status

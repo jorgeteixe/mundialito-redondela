@@ -25,7 +25,18 @@ type GraphResponse = {
   permalink?: string;
   permalink_url?: string;
   error?: { message?: string };
+  debug_info?: { retriable?: boolean };
 };
+
+export class MetaApiError extends Error {
+  readonly retriable: boolean | null;
+
+  constructor(message: string, retriable: boolean | null) {
+    super(message);
+    this.name = "MetaApiError";
+    this.retriable = retriable;
+  }
+}
 
 function sanitizeMetaDetails(value: string) {
   return value
@@ -63,7 +74,10 @@ async function parseGraphResponse(
     const message =
       json?.error?.message ??
       `HTTP ${response.status.toString()}${details ? ` body=${details}` : ""}`;
-    throw new Error(`Meta API error at ${operation}: ${message}`);
+    throw new MetaApiError(
+      `Meta API error at ${operation}: ${message}`,
+      json?.debug_info?.retriable ?? null,
+    );
   }
   if (!json) {
     throw new Error(`Meta API error at ${operation}: empty response`);

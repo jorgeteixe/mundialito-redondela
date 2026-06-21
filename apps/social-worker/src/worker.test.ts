@@ -155,6 +155,29 @@ describe("processNextSocialPost", () => {
     expect(queue.markPublished).not.toHaveBeenCalled();
   });
 
+  it("marks failed without retry when the provider error is non-retriable", async () => {
+    const queue = createQueue(baseTarget);
+    const error = new Error("Meta API error: robots.txt") as Error & {
+      retriable: boolean;
+    };
+    error.retriable = false;
+    const registry = createRegistry(vi.fn().mockRejectedValue(error));
+
+    await processNextSocialPost({
+      config: testConfig,
+      queue,
+      providers: registry,
+      logger: silentLogger,
+    });
+
+    expect(queue.markFailed).toHaveBeenCalledWith(
+      "target-1",
+      "Meta API error: robots.txt",
+      { retryable: false },
+    );
+    expect(queue.markPublished).not.toHaveBeenCalled();
+  });
+
   it("fails fast when media resolves to a localhost URL", async () => {
     const queue = createQueue(baseTarget, {
       post: { ...basePost, mediaUrl: "http://localhost:9000/x.png" },
