@@ -34,6 +34,7 @@ export default defineConfig({
     env: {
       ...process.env,
       BETTER_AUTH_URL: baseURL,
+      NEXT_DIST_DIR: ".next-e2e",
       NEXT_PUBLIC_BETTER_AUTH_URL: baseURL,
     },
   },

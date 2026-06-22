@@ -2,12 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { db, schema } from "@mr/db";
 import { requireAdminWrite } from "@/lib/authz";
 import type { TeamCategory } from "../teams/data";
 
-const { team, tournamentGroup } = schema;
+const { match, team, tournamentGroup } = schema;
+const tournamentTimeZone = "Europe/Madrid";
 
 export type FormState = {
   status: "idle" | "success" | "error";
@@ -18,6 +19,9 @@ export type FormState = {
     category?: string;
     groupId?: string;
     teamId?: string;
+    homeTeamId?: string;
+    awayTeamId?: string;
+    scheduledAt?: string;
   };
 };
 
@@ -69,6 +73,125 @@ function validateAvatarLabel(formData: FormData) {
   }
 
   return { avatarLabel };
+}
+
+function parseMadridDateTime(value: string) {
+  const parsed =
+    /^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})T(?<hour>\d{2}):(?<minute>\d{2})$/.exec(
+      value,
+    );
+  const groups = parsed?.groups;
+  if (!groups) return null;
+
+  const parts = {
+    year: Number.parseInt(groups.year!, 10),
+    month: Number.parseInt(groups.month!, 10),
+    day: Number.parseInt(groups.day!, 10),
+    hour: Number.parseInt(groups.hour!, 10),
+    minute: Number.parseInt(groups.minute!, 10),
+  };
+
+  if (
+    parts.month < 1 ||
+    parts.month > 12 ||
+    parts.day < 1 ||
+    parts.day > 31 ||
+    parts.hour > 23 ||
+    parts.minute > 59
+  ) {
+    return null;
+  }
+
+  const utc = zonedWallTimeToUtc(parts, tournamentTimeZone);
+  return matchesZonedWallTime(utc, parts, tournamentTimeZone) ? utc : null;
+}
+
+function zonedWallTimeToUtc(
+  parts: {
+    year: number;
+    month: number;
+    day: number;
+    hour: number;
+    minute: number;
+  },
+  timeZone: string,
+) {
+  let utcMs = Date.UTC(
+    parts.year,
+    parts.month - 1,
+    parts.day,
+    parts.hour,
+    parts.minute,
+  );
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const zonedParts = getZonedParts(new Date(utcMs), timeZone);
+    const zonedAsUtcMs = Date.UTC(
+      zonedParts.year,
+      zonedParts.month - 1,
+      zonedParts.day,
+      zonedParts.hour,
+      zonedParts.minute,
+    );
+    const targetAsUtcMs = Date.UTC(
+      parts.year,
+      parts.month - 1,
+      parts.day,
+      parts.hour,
+      parts.minute,
+    );
+    utcMs -= zonedAsUtcMs - targetAsUtcMs;
+  }
+
+  return new Date(utcMs);
+}
+
+function matchesZonedWallTime(
+  date: Date,
+  expected: {
+    year: number;
+    month: number;
+    day: number;
+    hour: number;
+    minute: number;
+  },
+  timeZone: string,
+) {
+  const actual = getZonedParts(date, timeZone);
+  return (
+    actual.year === expected.year &&
+    actual.month === expected.month &&
+    actual.day === expected.day &&
+    actual.hour === expected.hour &&
+    actual.minute === expected.minute
+  );
+}
+
+function getZonedParts(date: Date, timeZone: string) {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    hour12: false,
+  });
+  const parts = Object.fromEntries(
+    formatter
+      .formatToParts(date)
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+
+  return {
+    year: Number.parseInt(parts.year!, 10),
+    month: Number.parseInt(parts.month!, 10),
+    day: Number.parseInt(parts.day!, 10),
+    hour: Number.parseInt(parts.hour!, 10),
+    minute: Number.parseInt(parts.minute!, 10),
+  };
 }
 
 export async function createGroup(
@@ -259,4 +382,183 @@ export async function removeTeamFromGroup(formData: FormData) {
   revalidatePath("/groups");
   revalidatePath(`/groups/${groupId}`);
   revalidatePath("/teams");
+}
+
+export async function createGroupMatch(
+  _state: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  await requireAdminWrite();
+
+  const groupId = readString(formData, "groupId");
+  const homeTeamId = readString(formData, "homeTeamId");
+  const awayTeamId = readString(formData, "awayTeamId");
+  const scheduledRaw = readString(formData, "scheduledAt");
+  const scheduledAt = scheduledRaw ? parseMadridDateTime(scheduledRaw) : null;
+
+  if (
+    !groupId ||
+    !homeTeamId ||
+    !awayTeamId ||
+    !scheduledAt ||
+    Number.isNaN(scheduledAt.getTime())
+  ) {
+    return {
+      status: "error",
+      message: "Revisa los campos marcados.",
+      fieldErrors: {
+        groupId: groupId ? undefined : "Falta el grupo.",
+        homeTeamId: homeTeamId ? undefined : "Selecciona un equipo.",
+        awayTeamId: awayTeamId ? undefined : "Selecciona un equipo.",
+        scheduledAt:
+          scheduledAt && !Number.isNaN(scheduledAt.getTime())
+            ? undefined
+            : "Indica una fecha y hora válidas.",
+      },
+    };
+  }
+
+  if (homeTeamId === awayTeamId) {
+    return {
+      status: "error",
+      message: "Selecciona dos equipos distintos.",
+      fieldErrors: {
+        awayTeamId: "El rival debe ser distinto.",
+      },
+    };
+  }
+
+  const groupTeams = await db
+    .select({ id: team.id })
+    .from(team)
+    .where(
+      and(
+        eq(team.groupId, groupId),
+        inArray(team.id, [homeTeamId, awayTeamId]),
+      ),
+    );
+
+  if (groupTeams.length !== 2) {
+    return {
+      status: "error",
+      message: "Selecciona equipos del grupo.",
+      fieldErrors: {
+        homeTeamId: "El equipo debe pertenecer al grupo.",
+        awayTeamId: "El equipo debe pertenecer al grupo.",
+      },
+    };
+  }
+
+  await db.insert(match).values({
+    groupId,
+    homeTeamId,
+    awayTeamId,
+    scheduledAt,
+  });
+
+  revalidatePath(`/groups/${groupId}`);
+  return { status: "success", message: "Partido programado." };
+}
+
+export async function updateGroupMatch(
+  _state: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  await requireAdminWrite();
+
+  const id = readString(formData, "id");
+  const groupId = readString(formData, "groupId");
+  const homeTeamId = readString(formData, "homeTeamId");
+  const awayTeamId = readString(formData, "awayTeamId");
+  const scheduledRaw = readString(formData, "scheduledAt");
+  const scheduledAt = scheduledRaw ? parseMadridDateTime(scheduledRaw) : null;
+
+  if (
+    !id ||
+    !groupId ||
+    !homeTeamId ||
+    !awayTeamId ||
+    !scheduledAt ||
+    Number.isNaN(scheduledAt.getTime())
+  ) {
+    return {
+      status: "error",
+      message: "Revisa los campos marcados.",
+      fieldErrors: {
+        groupId: groupId ? undefined : "Falta el grupo.",
+        homeTeamId: homeTeamId ? undefined : "Selecciona un equipo.",
+        awayTeamId: awayTeamId ? undefined : "Selecciona un equipo.",
+        scheduledAt:
+          scheduledAt && !Number.isNaN(scheduledAt.getTime())
+            ? undefined
+            : "Indica una fecha y hora válidas.",
+      },
+    };
+  }
+
+  if (homeTeamId === awayTeamId) {
+    return {
+      status: "error",
+      message: "Selecciona dos equipos distintos.",
+      fieldErrors: {
+        awayTeamId: "El rival debe ser distinto.",
+      },
+    };
+  }
+
+  const groupTeams = await db
+    .select({ id: team.id })
+    .from(team)
+    .where(
+      and(
+        eq(team.groupId, groupId),
+        inArray(team.id, [homeTeamId, awayTeamId]),
+      ),
+    );
+
+  if (groupTeams.length !== 2) {
+    return {
+      status: "error",
+      message: "Selecciona equipos del grupo.",
+      fieldErrors: {
+        homeTeamId: "El equipo debe pertenecer al grupo.",
+        awayTeamId: "El equipo debe pertenecer al grupo.",
+      },
+    };
+  }
+
+  const [updatedMatch] = await db
+    .update(match)
+    .set({
+      homeTeamId,
+      awayTeamId,
+      scheduledAt,
+    })
+    .where(and(eq(match.id, id), eq(match.groupId, groupId)))
+    .returning({ id: match.id });
+
+  if (!updatedMatch) {
+    return {
+      status: "error",
+      message: "El partido no existe.",
+    };
+  }
+
+  revalidatePath(`/groups/${groupId}`);
+  return { status: "success", message: "Partido actualizado." };
+}
+
+export async function deleteGroupMatch(formData: FormData) {
+  await requireAdminWrite();
+
+  const id = readString(formData, "id");
+  const groupId = readString(formData, "groupId");
+
+  if (!id || !groupId) return;
+
+  await db
+    .delete(match)
+    .where(and(eq(match.id, id), eq(match.groupId, groupId)));
+
+  revalidatePath(`/groups/${groupId}`);
 }

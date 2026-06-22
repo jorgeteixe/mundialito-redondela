@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Pencil, Plus, Trash2, UserRoundPlus } from "lucide-react";
+import {
+  CalendarPlus,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Trash2,
+  UserRoundPlus,
+} from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +30,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   EmptyState,
   Sheet,
   SheetContent,
@@ -34,17 +45,24 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@mr/ui";
 import { AddTeamForm } from "../add-team-form";
-import { deleteGroup, removeTeamFromGroup } from "../actions";
+import { deleteGroup, deleteGroupMatch, removeTeamFromGroup } from "../actions";
 import { groupAvatarStyle } from "../avatar-utils";
 import { GroupForm } from "../group-form";
+import { ScheduleMatchForm } from "../schedule-match-form";
 import {
   categoryLabel,
   initials,
   teamAvatarUrl,
 } from "../../teams/avatar-utils";
-import type { GroupDetail, GroupTeamSummary } from "../data";
+import type { GroupDetail, GroupMatchSummary, GroupTeamSummary } from "../data";
 
 type GroupDetailViewProps = {
   group: GroupDetail;
@@ -59,6 +77,7 @@ export function GroupDetailView({
 }: GroupDetailViewProps) {
   const [editGroupOpen, setEditGroupOpen] = useState(false);
   const [addTeamOpen, setAddTeamOpen] = useState(false);
+  const [scheduleMatchOpen, setScheduleMatchOpen] = useState(false);
 
   return (
     <Tabs defaultValue="teams" className="gap-4">
@@ -104,13 +123,13 @@ export function GroupDetailView({
         </div>
         <TabsList
           variant="line"
-          className="h-12 w-full justify-start gap-8 p-0"
+          className="h-12 w-full justify-start gap-5 p-0"
         >
           <TabsTrigger value="teams" className="flex-none">
             Equipos
           </TabsTrigger>
-          <TabsTrigger value="empty" className="flex-none">
-            Vacío
+          <TabsTrigger value="schedule" className="flex-none">
+            Calendario
           </TabsTrigger>
         </TabsList>
       </header>
@@ -178,9 +197,220 @@ export function GroupDetailView({
           </div>
         )}
       </TabsContent>
-      <TabsContent value="empty" className="min-h-24" />
+      <TabsContent value="schedule" className="flex flex-col gap-4 text-sm">
+        <div className="flex items-center gap-3">
+          <div>
+            <h2 className="text-sm font-medium">Calendario</h2>
+            <p className="text-xs text-muted-foreground">
+              Partidos programados para este grupo.
+            </p>
+          </div>
+          {canWrite ? (
+            <Sheet open={scheduleMatchOpen} onOpenChange={setScheduleMatchOpen}>
+              <SheetTrigger asChild>
+                <Button size="sm" className="ml-auto">
+                  <CalendarPlus />
+                  Programar partido
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Programar partido</SheetTitle>
+                  <SheetDescription>
+                    Selecciona dos equipos de {group.name} y una fecha.
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="px-4">
+                  <ScheduleMatchForm
+                    groupId={group.id}
+                    teams={group.teams}
+                    onSuccess={() => setScheduleMatchOpen(false)}
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
+          ) : null}
+        </div>
+        {group.matches.length === 0 ? (
+          <EmptyState
+            icon={<CalendarPlus className="h-10 w-10" />}
+            title="Sin partidos programados"
+            description="Programa el primer partido del grupo."
+            action={
+              canWrite ? (
+                <Button size="sm" onClick={() => setScheduleMatchOpen(true)}>
+                  <CalendarPlus />
+                  Programar partido
+                </Button>
+              ) : undefined
+            }
+          />
+        ) : (
+          <>
+            <div className="flex flex-col gap-3 md:hidden">
+              {group.matches.map((match) => (
+                <MatchCard
+                  key={match.id}
+                  groupId={group.id}
+                  match={match}
+                  teams={group.teams}
+                  canWrite={canWrite}
+                />
+              ))}
+            </div>
+            <div className="hidden rounded-none border md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Local</TableHead>
+                    <TableHead>Visitante</TableHead>
+                    {canWrite ? (
+                      <TableHead className="w-12">
+                        <span className="sr-only">Acciones</span>
+                      </TableHead>
+                    ) : null}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {group.matches.map((match) => (
+                    <TableRow key={match.id}>
+                      <TableCell>
+                        {formatMatchDate(match.scheduledAt)}
+                      </TableCell>
+                      <TableCell>{match.homeTeamName}</TableCell>
+                      <TableCell>{match.awayTeamName}</TableCell>
+                      {canWrite ? (
+                        <TableCell>
+                          <MatchActions
+                            groupId={group.id}
+                            match={match}
+                            teams={group.teams}
+                          />
+                        </TableCell>
+                      ) : null}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
+        )}
+      </TabsContent>
     </Tabs>
   );
+}
+
+function MatchCard({
+  groupId,
+  match,
+  teams,
+  canWrite,
+}: {
+  groupId: string;
+  match: GroupMatchSummary;
+  teams: GroupTeamSummary[];
+  canWrite: boolean;
+}) {
+  return (
+    <Card size="sm">
+      <CardHeader>
+        <CardTitle>{formatMatchDate(match.scheduledAt)}</CardTitle>
+        <CardDescription>
+          {match.homeTeamName} contra {match.awayTeamName}
+        </CardDescription>
+        {canWrite ? (
+          <CardAction>
+            <MatchActions groupId={groupId} match={match} teams={teams} />
+          </CardAction>
+        ) : null}
+      </CardHeader>
+    </Card>
+  );
+}
+
+function MatchActions({
+  groupId,
+  match,
+  teams,
+}: {
+  groupId: string;
+  match: GroupMatchSummary;
+  teams: GroupTeamSummary[];
+}) {
+  const [editOpen, setEditOpen] = useState(false);
+
+  return (
+    <Sheet open={editOpen} onOpenChange={setEditOpen}>
+      <AlertDialog>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon-sm" aria-label="Acciones">
+              <MoreHorizontal />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={() => setEditOpen(true)}>
+              <Pencil />
+              Editar
+            </DropdownMenuItem>
+            <AlertDialogTrigger asChild>
+              <DropdownMenuItem
+                variant="destructive"
+                onSelect={(event) => event.preventDefault()}
+              >
+                <Trash2 />
+                Eliminar
+              </DropdownMenuItem>
+            </AlertDialogTrigger>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>Editar partido</SheetTitle>
+            <SheetDescription>
+              Actualiza equipos y fecha del partido.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="px-4">
+            <ScheduleMatchForm
+              mode="edit"
+              groupId={groupId}
+              teams={teams}
+              match={match}
+              onSuccess={() => setEditOpen(false)}
+            />
+          </div>
+        </SheetContent>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar partido</AlertDialogTitle>
+            <AlertDialogDescription>
+              {`Se eliminará el partido entre “${match.homeTeamName}” y “${match.awayTeamName}”.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <form action={deleteGroupMatch}>
+              <input type="hidden" name="id" value={match.id} />
+              <input type="hidden" name="groupId" value={groupId} />
+              <AlertDialogAction type="submit" variant="destructive">
+                Eliminar partido
+              </AlertDialogAction>
+            </form>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Sheet>
+  );
+}
+
+function formatMatchDate(value: string) {
+  return new Intl.DateTimeFormat("es-ES", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Europe/Madrid",
+  }).format(new Date(value));
 }
 
 function GroupAvatar({ group }: { group: GroupDetail }) {

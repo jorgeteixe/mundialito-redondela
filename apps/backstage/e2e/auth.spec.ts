@@ -189,20 +189,33 @@ test("viewer can read backstage but cannot see mutation controls", async ({
 
 test("admin can manage groups and team membership", async ({ page }) => {
   await signIn(page);
+  const expectToast = async (message: string) => {
+    await expect(page.getByText(message).last()).toBeVisible();
+  };
 
   await page.getByRole("button", { name: "Registrar equipo" }).first().click();
   await page.getByLabel("Nombre del equipo").fill("Grupo Norte");
   await page.getByRole("combobox", { name: "Categoría" }).click();
   await page.getByRole("option", { name: "Senior" }).click();
   await page.getByRole("button", { name: "Registrar equipo" }).click();
-  await expect(page.getByText("Equipo registrado.")).toBeVisible();
+  await expectToast("Equipo registrado.");
+  await expect(page.getByRole("link", { name: /Grupo Norte/ })).toBeVisible();
+
+  await page.getByRole("button", { name: "Registrar equipo" }).first().click();
+  await page.getByLabel("Nombre del equipo").fill("Grupo Este");
+  await page.getByRole("combobox", { name: "Categoría" }).click();
+  await page.getByRole("option", { name: "Senior" }).click();
+  await page.getByRole("button", { name: "Registrar equipo" }).click();
+  await expectToast("Equipo registrado.");
+  await expect(page.getByRole("link", { name: /Grupo Este/ })).toBeVisible();
 
   await page.getByRole("button", { name: "Registrar equipo" }).first().click();
   await page.getByLabel("Nombre del equipo").fill("Grupo Sur");
   await page.getByRole("combobox", { name: "Categoría" }).click();
   await page.getByRole("option", { name: "Cadete" }).click();
   await page.getByRole("button", { name: "Registrar equipo" }).click();
-  await expect(page.getByText("Equipo registrado.")).toBeVisible();
+  await expectToast("Equipo registrado.");
+  await expect(page.getByRole("link", { name: /Grupo Sur/ })).toBeVisible();
 
   await page.getByRole("link", { name: "Grupos" }).click();
   await expect(page).toHaveURL(/\/groups$/);
@@ -215,7 +228,7 @@ test("admin can manage groups and team membership", async ({ page }) => {
   await page.getByRole("option", { name: "Senior" }).click();
   await page.getByRole("button", { name: "Registrar grupo" }).click();
 
-  await expect(page.getByText("Grupo registrado.")).toBeVisible();
+  await expectToast("Grupo registrado.");
   await expect(page.getByRole("link", { name: /Grupo A/ })).toBeVisible();
   await expect(
     page.locator('[data-slot="avatar-fallback"]:visible').filter({
@@ -229,7 +242,7 @@ test("admin can manage groups and team membership", async ({ page }) => {
   await page.getByLabel("Letra o número").fill("B");
   await page.getByRole("button", { name: "Guardar cambios" }).click();
 
-  await expect(page.getByText("Grupo actualizado.")).toBeVisible();
+  await expectToast("Grupo actualizado.");
   await expect(page.getByRole("link", { name: /Grupo B/ })).toBeVisible();
   await expect(
     page.locator('[data-slot="avatar-fallback"]:visible').filter({
@@ -246,9 +259,62 @@ test("admin can manage groups and team membership", async ({ page }) => {
   await page.getByRole("option", { name: /Grupo Norte/ }).click();
   await page.getByRole("button", { name: "Añadir equipo" }).click();
 
-  await expect(page.getByText("Equipo añadido.")).toBeVisible();
+  await expectToast("Equipo añadido.");
   await expect(page.getByRole("link", { name: "Grupo Norte" })).toBeVisible();
 
+  await page.getByRole("button", { name: "Añadir equipo" }).first().click();
+  await page.getByRole("combobox", { name: "Equipo" }).click();
+  await expect(page.getByRole("option", { name: /Grupo Norte/ })).toHaveCount(
+    0,
+  );
+  await page.getByRole("option", { name: /Grupo Este/ }).click();
+  await page.getByRole("button", { name: "Añadir equipo" }).click();
+  await expectToast("Equipo añadido.");
+  await expect(page.getByRole("link", { name: "Grupo Este" })).toBeVisible();
+
+  await page.getByRole("tab", { name: "Calendario" }).click();
+  await expect(page.getByText("Sin partidos programados")).toBeVisible();
+  await page.getByRole("button", { name: "Programar partido" }).first().click();
+  await expect(
+    page.getByRole("dialog", { name: "Programar partido" }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Programar" })).toBeDisabled();
+  await page.getByRole("combobox", { name: "Equipo local" }).click();
+  await page.getByRole("option", { name: "Grupo Norte" }).click();
+  await page.getByRole("combobox", { name: "Equipo visitante" }).click();
+  await expect(
+    page.getByRole("option", { name: "Grupo Norte" }),
+  ).toBeDisabled();
+  await page.getByRole("option", { name: "Grupo Este" }).click();
+  await expect(page.getByRole("button", { name: "Programar" })).toBeDisabled();
+  await page.getByRole("button", { name: "Fecha y hora (Madrid)" }).click();
+  await page
+    .locator('[data-slot="calendar"] button')
+    .filter({ hasText: /^15$/ })
+    .first()
+    .click();
+  await page.getByRole("textbox", { name: "Hora" }).fill("18:30");
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Programar" }).click();
+  await expectToast("Partido programado.");
+  const matchRow = page.locator("tr").filter({ hasText: "Grupo Norte" });
+  await expect(matchRow).toContainText("Grupo Este");
+  await matchRow.getByRole("button", { name: "Acciones" }).click();
+  await page.getByRole("menuitem", { name: "Editar" }).click();
+  await expect(
+    page.getByRole("dialog", { name: "Editar partido" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Guardar cambios" }).click();
+  await expectToast("Partido actualizado.");
+  await expect(
+    page.getByRole("dialog", { name: "Editar partido" }),
+  ).toHaveCount(0);
+  await matchRow.getByRole("button", { name: "Acciones" }).click();
+  await page.getByRole("menuitem", { name: "Eliminar" }).click();
+  await page.getByRole("button", { name: "Eliminar partido" }).click();
+  await expect(page.getByText("Sin partidos programados")).toBeVisible();
+
+  await page.getByRole("tab", { name: "Equipos" }).click();
   await page.getByRole("button", { name: "Añadir equipo" }).first().click();
   await expect(
     page.getByText("No hay equipos senior sin grupo disponibles."),
@@ -264,8 +330,13 @@ test("admin can manage groups and team membership", async ({ page }) => {
   await expect(page.getByRole("option", { name: /Grupo Sur/ })).toHaveCount(0);
   await page.keyboard.press("Escape");
 
-  await page.getByRole("button", { name: "Quitar equipo" }).click();
-  await page.getByRole("button", { name: "Quitar equipo" }).click();
+  for (const teamName of ["Grupo Norte", "Grupo Este"]) {
+    const teamCard = page.locator('[data-slot="card"]').filter({
+      hasText: teamName,
+    });
+    await teamCard.getByRole("button", { name: "Quitar equipo" }).click();
+    await page.getByRole("button", { name: "Quitar equipo" }).click();
+  }
 
   await expect(page.getByText("Sin equipos registrados")).toBeVisible();
 
@@ -280,7 +351,7 @@ test("admin can manage groups and team membership", async ({ page }) => {
   await page.getByRole("combobox", { name: "Categoría" }).click();
   await page.getByRole("option", { name: "Cadete" }).click();
   await page.getByRole("button", { name: "Guardar cambios" }).click();
-  await expect(page.getByText("Grupo actualizado.")).toBeVisible();
+  await expectToast("Grupo actualizado.");
 
   await page.getByRole("button", { name: "Añadir equipo" }).first().click();
   await page.getByRole("combobox", { name: "Equipo" }).click();
@@ -299,7 +370,7 @@ test("admin can manage groups and team membership", async ({ page }) => {
 
   await page.goto("/teams");
 
-  for (const teamName of ["Grupo Norte", "Grupo Sur"]) {
+  for (const teamName of ["Grupo Norte", "Grupo Este", "Grupo Sur"]) {
     const row = page.locator("tr").filter({ hasText: teamName });
     await row.getByRole("button", { name: "Acciones" }).click();
     await page.getByRole("menuitem", { name: "Eliminar" }).click();

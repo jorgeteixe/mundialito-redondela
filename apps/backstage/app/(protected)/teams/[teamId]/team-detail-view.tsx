@@ -116,7 +116,7 @@ export function TeamDetailView({ team, canWrite }: TeamDetailViewProps) {
         </div>
         <TabsList
           variant="line"
-          className="h-12 w-full justify-start gap-8 p-0"
+          className="h-12 w-full justify-start gap-5 p-0"
         >
           <TabsTrigger value="players" className="flex-none">
             Plantilla
