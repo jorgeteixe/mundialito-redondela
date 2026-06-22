@@ -1,5 +1,5 @@
 import type { SocialPost, SocialPostTarget } from "@mr/db";
-import type { MetaConfig } from "../config";
+import type { PostizConfig } from "../config";
 import type { ResolvedMedia } from "../media";
 
 export type SocialWorkerLogger = {
@@ -15,7 +15,9 @@ export type PublishInput = {
 };
 
 export type PublishContext = {
-  meta: MetaConfig;
+  // Provider config is supplied per the registered providers; each provider
+  // validates that its own config is present before publishing.
+  postiz?: PostizConfig;
   logger: SocialWorkerLogger;
   // Persists an intermediate provider container id (e.g. IG creation_id) so the
   // state is observable mid-flight.

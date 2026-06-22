@@ -5,9 +5,12 @@ import type {
   SocialPostTarget,
 } from "@mr/db";
 import type { SocialWorkerConfig } from "./config";
-import { processNextSocialPost, type SocialJobQueue } from "./worker";
-import type { ProviderRegistry } from "./providers";
-import type { SocialWorkerLogger } from "./providers/types";
+import {
+  processNextSocialPost,
+  reconcileSocialPermalinks,
+  type SocialJobQueue,
+} from "./worker";
+import type { PublishProvider, SocialWorkerLogger } from "./providers/types";
 
 const silentLogger: SocialWorkerLogger = {
   info: vi.fn(),
@@ -20,20 +23,16 @@ const testConfig: SocialWorkerConfig = {
   pollMs: 1,
   once: true,
   s3PublicBaseUrl: "https://media.example.com",
-  meta: {
-    apiVersion: "v21.0",
-    igUserId: "ig-1",
-    pageId: "page-1",
-    pageAccessToken: "token",
-    containerPollMs: 0,
-    containerPollMaxAttempts: 3,
+  postiz: {
+    apiUrl: "https://api.postiz.com/public/v1",
+    apiKey: "postiz-key",
+    integrationIds: {},
   },
 };
 
 const baseTarget: SocialPostTarget = {
   id: "target-1",
   postId: "post-1",
-  provider: "meta",
   platform: "instagram",
   status: "publishing",
   scheduledAt: new Date(),
@@ -78,43 +77,43 @@ function createQueue(
     setContainerId: vi.fn().mockResolvedValue(null),
     markPublished: vi.fn().mockResolvedValue(null),
     markFailed: vi.fn().mockResolvedValue(null),
+    listAwaitingPermalink: vi.fn().mockResolvedValue([]),
+    setPermalink: vi.fn().mockResolvedValue(null),
   };
 }
 
-function createRegistry(publish = vi.fn()): ProviderRegistry {
-  return { meta: { publish } };
+function createProvider(publish = vi.fn()): PublishProvider {
+  return { publish };
 }
 
 describe("processNextSocialPost", () => {
   it("returns false when no target is due", async () => {
     const queue = createQueue(null);
-    const registry = createRegistry();
+    const provider = createProvider();
 
     await expect(
       processNextSocialPost({
         config: testConfig,
         queue,
-        providers: registry,
+        provider,
         logger: silentLogger,
       }),
     ).resolves.toBe(false);
 
-    expect(registry.meta.publish).not.toHaveBeenCalled();
+    expect(provider.publish).not.toHaveBeenCalled();
     expect(queue.markPublished).not.toHaveBeenCalled();
   });
 
   it("publishes a claimed target and marks it published", async () => {
     const queue = createQueue(baseTarget);
-    const publish = vi
-      .fn()
-      .mockResolvedValue({ providerPostId: "ig-media-99" });
-    const registry = createRegistry(publish);
+    const publish = vi.fn().mockResolvedValue({ providerPostId: "postiz-99" });
+    const provider = createProvider(publish);
 
     await expect(
       processNextSocialPost({
         config: testConfig,
         queue,
-        providers: registry,
+        provider,
         logger: silentLogger,
       }),
     ).resolves.toBe(true);
@@ -125,11 +124,11 @@ describe("processNextSocialPost", () => {
         post: basePost,
         media: { url: "https://media.example.com/post-1.png", kind: "image" },
       }),
-      expect.objectContaining({ meta: testConfig.meta }),
+      expect.objectContaining({ postiz: testConfig.postiz }),
     );
     expect(queue.markPublished).toHaveBeenCalledWith(
       "target-1",
-      "ig-media-99",
+      "postiz-99",
       undefined,
     );
     expect(queue.markFailed).not.toHaveBeenCalled();
@@ -137,42 +136,42 @@ describe("processNextSocialPost", () => {
 
   it("marks failed when the provider throws", async () => {
     const queue = createQueue(baseTarget);
-    const registry = createRegistry(
-      vi.fn().mockRejectedValue(new Error("Meta API error: bad token")),
+    const provider = createProvider(
+      vi.fn().mockRejectedValue(new Error("Postiz API error: bad key")),
     );
 
     await processNextSocialPost({
       config: testConfig,
       queue,
-      providers: registry,
+      provider,
       logger: silentLogger,
     });
 
     expect(queue.markFailed).toHaveBeenCalledWith(
       "target-1",
-      "Meta API error: bad token",
+      "Postiz API error: bad key",
     );
     expect(queue.markPublished).not.toHaveBeenCalled();
   });
 
   it("marks failed without retry when the provider error is non-retriable", async () => {
     const queue = createQueue(baseTarget);
-    const error = new Error("Meta API error: robots.txt") as Error & {
+    const error = new Error("Postiz API error: unauthorized") as Error & {
       retriable: boolean;
     };
     error.retriable = false;
-    const registry = createRegistry(vi.fn().mockRejectedValue(error));
+    const provider = createProvider(vi.fn().mockRejectedValue(error));
 
     await processNextSocialPost({
       config: testConfig,
       queue,
-      providers: registry,
+      provider,
       logger: silentLogger,
     });
 
     expect(queue.markFailed).toHaveBeenCalledWith(
       "target-1",
-      "Meta API error: robots.txt",
+      "Postiz API error: unauthorized",
       { retryable: false },
     );
     expect(queue.markPublished).not.toHaveBeenCalled();
@@ -183,19 +182,19 @@ describe("processNextSocialPost", () => {
       post: { ...basePost, mediaUrl: "http://localhost:9000/x.png" },
       videoOutputPath: null,
     });
-    const registry = createRegistry();
+    const provider = createProvider();
 
     await processNextSocialPost({
       config: testConfig,
       queue,
-      providers: registry,
+      provider,
       logger: silentLogger,
     });
 
-    expect(registry.meta.publish).not.toHaveBeenCalled();
+    expect(provider.publish).not.toHaveBeenCalled();
     expect(queue.markFailed).toHaveBeenCalledWith(
       "target-1",
-      expect.stringContaining("not reachable by Meta"),
+      expect.stringContaining("not publicly reachable"),
     );
   });
 
@@ -213,12 +212,12 @@ describe("processNextSocialPost", () => {
       },
     );
     const publish = vi.fn().mockResolvedValue({ providerPostId: "fb-1" });
-    const registry = createRegistry(publish);
+    const provider = createProvider(publish);
 
     await processNextSocialPost({
       config: testConfig,
       queue,
-      providers: registry,
+      provider,
       logger: silentLogger,
     });
 
@@ -231,5 +230,46 @@ describe("processNextSocialPost", () => {
       }),
       expect.anything(),
     );
+  });
+});
+
+describe("reconcileSocialPermalinks", () => {
+  it("backfills permalinks for published targets once Postiz releases them", async () => {
+    const queue = createQueue(null);
+    queue.listAwaitingPermalink = vi.fn().mockResolvedValue([
+      { ...baseTarget, id: "t-1", providerPostId: "p1" },
+      { ...baseTarget, id: "t-2", providerPostId: "p2" },
+    ]);
+    const resolvePermalinks = vi
+      .fn()
+      .mockResolvedValue(new Map([["p1", "https://insta/p/1"]]));
+
+    const updated = await reconcileSocialPermalinks({
+      config: testConfig,
+      queue,
+      logger: silentLogger,
+      resolvePermalinks,
+    });
+
+    expect(resolvePermalinks).toHaveBeenCalledWith(testConfig.postiz);
+    expect(queue.setPermalink).toHaveBeenCalledTimes(1);
+    expect(queue.setPermalink).toHaveBeenCalledWith("t-1", "https://insta/p/1");
+    expect(updated).toBe(1);
+  });
+
+  it("does nothing when no targets await a permalink", async () => {
+    const queue = createQueue(null);
+    const resolvePermalinks = vi.fn();
+
+    const updated = await reconcileSocialPermalinks({
+      config: testConfig,
+      queue,
+      logger: silentLogger,
+      resolvePermalinks,
+    });
+
+    expect(resolvePermalinks).not.toHaveBeenCalled();
+    expect(queue.setPermalink).not.toHaveBeenCalled();
+    expect(updated).toBe(0);
   });
 });

@@ -11,8 +11,6 @@ import {
 import { user } from "./auth";
 import { videoGenerationJob } from "./video";
 
-export const socialProviderEnum = pgEnum("social_provider", ["meta"]);
-
 export const socialPlatformEnum = pgEnum("social_platform", [
   "instagram",
   "facebook",
@@ -68,7 +66,6 @@ export const socialPostTarget = pgTable(
     postId: uuid("post_id")
       .notNull()
       .references(() => socialPost.id, { onDelete: "cascade" }),
-    provider: socialProviderEnum("provider").default("meta").notNull(),
     platform: socialPlatformEnum("platform").notNull(),
     status: socialPostTargetStatusEnum("status").default("scheduled").notNull(),
     // Copied from the post so the claim query can index on it directly.

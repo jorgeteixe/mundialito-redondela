@@ -9,7 +9,7 @@
 - Shared UI: `packages/ui`, React components exported as `@mr/ui`.
 - Shared DB: `packages/db`, Drizzle + PostgreSQL exported as `@mr/db`.
 - Video worker: `apps/video-worker`, `@mr/video-worker`, renders Remotion jobs from the DB queue.
-- Social worker: `apps/social-worker`, `@mr/social-worker`, publishes queued posts to Instagram/Facebook via the Meta Graph API (see `docs/social-publishing-queue.md`).
+- Social worker: `apps/social-worker`, `@mr/social-worker`, publishes queued posts to Instagram/Facebook via Postiz (see `docs/social-publishing-queue.md`).
 - Shared tooling: `packages/tools`, CLI utilities exported as `@mr/tools`.
 - Shared config: `@mr/eslint-config` and `@mr/typescript-config`.
 

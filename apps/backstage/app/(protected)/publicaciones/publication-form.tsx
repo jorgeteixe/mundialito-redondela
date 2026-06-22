@@ -93,8 +93,18 @@ export function PublicationForm({
   const [inputProps, setInputProps] = useState<Record<string, unknown>>(
     templates[0]?.defaultProps ?? {},
   );
+  const [mode, setMode] = useState<"now" | "schedule">("now");
   const [scheduledAt, setScheduledAt] = useState<Date | undefined>(undefined);
   const handledStateRef = useRef<string | null>(null);
+
+  function handleModeChange(value: string) {
+    if (value !== "now" && value !== "schedule") return;
+    setMode(value);
+    // Default the picker to the earliest allowed slot (now + 5 min).
+    if (value === "schedule" && !scheduledAt) {
+      setScheduledAt(new Date(Date.now() + 5 * 60 * 1000));
+    }
+  }
 
   const selectedTemplate = useMemo(
     () => templates.find((template) => template.id === templateId),
@@ -347,18 +357,38 @@ export function PublicationForm({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="scheduled-at">Programar (opcional)</Label>
-          <DateTimePicker
-            id="scheduled-at"
-            name="scheduledAt"
-            value={scheduledAt}
-            onChange={setScheduledAt}
-            placeholder="Publicar ahora"
-            aria-invalid={Boolean(state.fieldErrors?.scheduledAt)}
-          />
-          <p className="text-xs text-muted-foreground">
-            Déjalo vacío para publicar ahora.
-          </p>
+          <Label>Cuándo</Label>
+          <input type="hidden" name="mode" value={mode} />
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            value={mode}
+            onValueChange={handleModeChange}
+            className="w-full"
+          >
+            <ToggleGroupItem value="now" className="flex-1">
+              Publicar ahora
+            </ToggleGroupItem>
+            <ToggleGroupItem value="schedule" className="flex-1">
+              Programar
+            </ToggleGroupItem>
+          </ToggleGroup>
+
+          {mode === "schedule" && (
+            <>
+              <DateTimePicker
+                id="scheduled-at"
+                name="scheduledAt"
+                value={scheduledAt}
+                onChange={setScheduledAt}
+                placeholder="Selecciona fecha y hora"
+                aria-invalid={Boolean(state.fieldErrors?.scheduledAt)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Mínimo 5 minutos desde ahora. Postiz gestiona la publicación.
+              </p>
+            </>
+          )}
           {state.fieldErrors?.scheduledAt && (
             <p className="text-xs text-destructive">
               {state.fieldErrors.scheduledAt}
@@ -370,7 +400,7 @@ export function PublicationForm({
       <Button type="submit" disabled={pending}>
         {pending
           ? "Enviando..."
-          : scheduledAt
+          : mode === "schedule"
             ? "Programar publicación"
             : "Publicar ahora"}
       </Button>

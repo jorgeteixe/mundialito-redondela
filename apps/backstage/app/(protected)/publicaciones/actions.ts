@@ -26,6 +26,7 @@ export type PublicationFormState = {
 const PLATFORMS: SocialPlatform[] = ["instagram", "facebook"];
 const POST_TYPES: SocialPostType[] = ["feed", "reel", "story"];
 const MEDIA_KINDS: SocialMediaKind[] = ["image", "video"];
+const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
 function readString(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -60,11 +61,25 @@ export async function createPublication(
     return invalid({ postType: "Selecciona un tipo de publicación." });
   }
 
-  const scheduledRaw = readString(formData, "scheduledAt");
-  // No date = publish now. A past date is allowed and goes out on the next poll.
-  const scheduledAt = scheduledRaw ? new Date(scheduledRaw) : new Date();
-  if (Number.isNaN(scheduledAt.getTime())) {
-    return invalid({ scheduledAt: "Indica una fecha y hora válidas." });
+  // "now" publishes immediately; "schedule" delegates timing to Postiz, which
+  // needs the date at least 5 minutes out to avoid being skipped.
+  const mode = readString(formData, "mode") === "schedule" ? "schedule" : "now";
+  let scheduledAt = new Date();
+  if (mode === "schedule") {
+    const scheduledRaw = readString(formData, "scheduledAt");
+    if (!scheduledRaw) {
+      return invalid({ scheduledAt: "Indica una fecha y hora." });
+    }
+    scheduledAt = new Date(scheduledRaw);
+    if (Number.isNaN(scheduledAt.getTime())) {
+      return invalid({ scheduledAt: "Indica una fecha y hora válidas." });
+    }
+    // 30s grace for submit latency / clock skew on an exactly-+5m pick.
+    if (scheduledAt.getTime() < Date.now() + FIVE_MINUTES_MS - 30_000) {
+      return invalid({
+        scheduledAt: "Programa al menos 5 minutos desde ahora.",
+      });
+    }
   }
 
   const caption = readString(formData, "caption");
@@ -142,7 +157,11 @@ export async function createPublication(
   });
 
   revalidatePath("/publicaciones");
-  return { status: "success", message: "Publicación programada." };
+  return {
+    status: "success",
+    message:
+      mode === "schedule" ? "Publicación programada." : "Publicación en cola.",
+  };
 }
 
 export async function retryPublicationTarget(formData: FormData) {

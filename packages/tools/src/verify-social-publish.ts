@@ -11,7 +11,7 @@
  *
  * Flow: enqueue Remotion renders -> drive the video worker to render + upload to
  * R2 -> create one publication per post type -> drive the social worker to
- * publish to Meta -> report the per-target result.
+ * publish through Postiz -> report the per-target result.
  *
  * Env is loaded BEFORE any @mr/db import so the postgres client initializes with
  * the right DATABASE_URL (ESM hoists static imports, so the DB modules are
@@ -34,12 +34,7 @@ loadEnv({
   path: [packageEnvLocalPath, packageEnvPath, rootEnvLocalPath, rootEnvPath],
 });
 
-for (const key of [
-  "DATABASE_URL",
-  "META_IG_USER_ID",
-  "META_PAGE_ID",
-  "META_PAGE_ACCESS_TOKEN",
-]) {
+for (const key of ["DATABASE_URL", "POSTIZ_API_KEY"]) {
   if (!process.env[key]) throw new Error(`${key} is required.`);
 }
 
@@ -194,9 +189,9 @@ for (const spec of specs) {
   created.push({ label: spec.label, postId: result.post.id });
 }
 
-// 3) Drive the social worker to publish to Meta.
+// 3) Drive the social worker to publish through Postiz.
 const publishSpinner = p.spinner();
-publishSpinner.start("Publicando en Meta…");
+publishSpinner.start("Publicando en Postiz…");
 await drainPublishing();
 publishSpinner.stop("Publicación procesada.");
 

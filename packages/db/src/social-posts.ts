@@ -3,7 +3,6 @@ import { db } from "./client";
 import { socialPost, socialPostTarget } from "./schema/social";
 import { videoGenerationJob } from "./schema/video";
 
-export type SocialProvider = "meta";
 export type SocialPlatform = "instagram" | "facebook";
 export type SocialPostType = "feed" | "reel" | "story";
 export type SocialMediaKind = "image" | "video";
@@ -25,7 +24,6 @@ export type CreateSocialPostInput = {
   platforms: SocialPlatform[];
   videoJobId?: string | null;
   mediaUrl?: string | null;
-  provider?: SocialProvider;
   createdByUserId?: string | null;
   maxAttempts?: number;
 };
@@ -52,7 +50,6 @@ export async function createSocialPost(input: CreateSocialPostInput) {
       .values(
         input.platforms.map((platform) => ({
           postId: post.id,
-          provider: input.provider ?? ("meta" as const),
           platform,
           scheduledAt: input.scheduledAt,
           maxAttempts: input.maxAttempts ?? 3,
@@ -134,7 +131,6 @@ export async function getSocialPostMediaContext(
 const targetReturningColumns = sql`
   id,
   post_id as "postId",
-  provider,
   platform,
   status,
   scheduled_at as "scheduledAt",
@@ -175,7 +171,9 @@ export async function claimNextSocialPostTarget(workerId: string) {
         on ${videoGenerationJob.id} = ${socialPost.videoJobId}
       where
         ${socialPostTarget.status} = 'scheduled'
-        and ${socialPostTarget.scheduledAt} <= now()
+        -- No scheduledAt gate: the worker hands posts to Postiz as soon as the
+        -- media is ready. Postiz's scheduler owns the publish timing for
+        -- future-dated posts; due posts publish immediately.
         and ${socialPostTarget.attempts} < ${socialPostTarget.maxAttempts}
         and (
           ${socialPost.videoJobId} is null
@@ -200,6 +198,37 @@ export async function setSocialPostTargetContainer(
   const [target] = await db
     .update(socialPostTarget)
     .set({ providerContainerId: containerId })
+    .where(eq(socialPostTarget.id, id))
+    .returning();
+
+  return target ?? null;
+}
+
+// Published targets whose provider permalink hasn't been resolved yet. The
+// provider (Postiz) publishes asynchronously, so the permalink only becomes
+// available after release — the worker reconciles these later.
+export async function listSocialPostTargetsAwaitingPermalink(limit = 50) {
+  const rows = await db.execute<SocialPostTarget>(sql`
+    select ${targetReturningColumns}
+    from ${socialPostTarget}
+    where ${socialPostTarget.status} = 'published'
+      and ${socialPostTarget.providerPostId} is not null
+      and ${socialPostTarget.providerPermalink} is null
+      and ${socialPostTarget.finishedAt} > now() - interval '7 days'
+    order by ${socialPostTarget.finishedAt} desc
+    limit ${limit}
+  `);
+
+  return rows;
+}
+
+export async function setSocialPostTargetPermalink(
+  id: string,
+  providerPermalink: string,
+) {
+  const [target] = await db
+    .update(socialPostTarget)
+    .set({ providerPermalink })
     .where(eq(socialPostTarget.id, id))
     .returning();
 

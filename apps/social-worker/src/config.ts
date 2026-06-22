@@ -1,22 +1,23 @@
 import os from "node:os";
 
-export type MetaConfig = {
-  apiVersion: string;
-  igUserId: string;
-  pageId: string;
-  pageAccessToken: string;
-  // Polling for the async Instagram video container (IN_PROGRESS -> FINISHED).
-  containerPollMs: number;
-  containerPollMaxAttempts: number;
+export type PostizConfig = {
+  apiUrl: string;
+  apiKey: string;
+  // Optional explicit channel ids. When unset the provider resolves them from
+  // GET /integrations by matching the channel identifier to the platform.
+  integrationIds: {
+    instagram?: string;
+    facebook?: string;
+  };
 };
 
 export type SocialWorkerConfig = {
   workerId: string;
   pollMs: number;
   once: boolean;
-  // Used to turn a stored media path into a public URL Meta can fetch.
+  // Used to turn a stored media path into a public URL the provider can fetch.
   s3PublicBaseUrl: string;
-  meta: MetaConfig;
+  postiz: PostizConfig;
 };
 
 function readInt(name: string, fallback: number) {
@@ -41,13 +42,13 @@ export function getSocialWorkerConfig(): SocialWorkerConfig {
     pollMs: readInt("SOCIAL_WORKER_POLL_MS", 5000),
     once: process.env.SOCIAL_WORKER_ONCE === "true",
     s3PublicBaseUrl: process.env.S3_PUBLIC_BASE_URL ?? "http://localhost:9000",
-    meta: {
-      apiVersion: process.env.META_GRAPH_API_VERSION ?? "v21.0",
-      igUserId: required("META_IG_USER_ID"),
-      pageId: required("META_PAGE_ID"),
-      pageAccessToken: required("META_PAGE_ACCESS_TOKEN"),
-      containerPollMs: readInt("META_CONTAINER_POLL_MS", 3000),
-      containerPollMaxAttempts: readInt("META_CONTAINER_POLL_MAX_ATTEMPTS", 20),
+    postiz: {
+      apiUrl: process.env.POSTIZ_API_URL ?? "https://api.postiz.com/public/v1",
+      apiKey: required("POSTIZ_API_KEY"),
+      integrationIds: {
+        instagram: process.env.POSTIZ_INSTAGRAM_INTEGRATION_ID,
+        facebook: process.env.POSTIZ_FACEBOOK_INTEGRATION_ID,
+      },
     },
   };
 }

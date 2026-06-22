@@ -3,9 +3,9 @@
 # Build from the repo root so the whole pnpm workspace is in context:
 #   docker build -f apps/social-worker/Dockerfile -t mr-social-worker .
 #
-# Run (env supplies DB + Meta config):
+# Run (env supplies DB + Postiz config):
 #   docker run --rm --env-file .env \
-#     -e META_IG_USER_ID=... -e META_PAGE_ID=... -e META_PAGE_ACCESS_TOKEN=... \
+#     -e POSTIZ_API_KEY=... \
 #     -e S3_PUBLIC_BASE_URL=https://media.example.com mr-social-worker
 #
 # syntax=docker/dockerfile:1

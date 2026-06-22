@@ -1,16 +1,24 @@
 import {
   claimNextSocialPostTarget,
   getSocialPostMediaContext,
+  listSocialPostTargetsAwaitingPermalink,
   markSocialPostTargetFailed,
   markSocialPostTargetPublished,
   setSocialPostTargetContainer,
+  setSocialPostTargetPermalink,
   type SocialPostMediaContext,
   type SocialPostTarget,
 } from "@mr/db";
-import type { SocialWorkerConfig } from "./config";
+import type { PostizConfig, SocialWorkerConfig } from "./config";
 import { resolveMedia } from "./media";
-import { createProviderRegistry, type ProviderRegistry } from "./providers";
-import type { SocialWorkerLogger } from "./providers/types";
+import {
+  createPostizProvider,
+  fetchPostizPermalinks,
+} from "./providers/postiz";
+import type { PublishProvider, SocialWorkerLogger } from "./providers/types";
+
+// How often the idle loop reconciles missing permalinks against Postiz.
+const RECONCILE_INTERVAL_MS = 60_000;
 
 export type { SocialWorkerLogger } from "./providers/types";
 
@@ -28,6 +36,8 @@ export type SocialJobQueue = {
     errorMessage: string,
     options?: { retryable?: boolean },
   ): Promise<unknown>;
+  listAwaitingPermalink(limit: number): Promise<SocialPostTarget[]>;
+  setPermalink(id: string, permalink: string): Promise<unknown>;
 };
 
 export const databaseSocialJobQueue: SocialJobQueue = {
@@ -36,6 +46,8 @@ export const databaseSocialJobQueue: SocialJobQueue = {
   setContainerId: setSocialPostTargetContainer,
   markPublished: markSocialPostTargetPublished,
   markFailed: markSocialPostTargetFailed,
+  listAwaitingPermalink: listSocialPostTargetsAwaitingPermalink,
+  setPermalink: setSocialPostTargetPermalink,
 };
 
 export function toErrorMessage(error: unknown) {
@@ -65,20 +77,19 @@ export const consoleSocialWorkerLogger: SocialWorkerLogger = {
 export async function processNextSocialPost({
   config,
   queue = databaseSocialJobQueue,
-  providers,
+  provider = createPostizProvider(),
   logger = consoleSocialWorkerLogger,
 }: {
   config: SocialWorkerConfig;
   queue?: SocialJobQueue;
-  providers?: ProviderRegistry;
+  provider?: PublishProvider;
   logger?: SocialWorkerLogger;
 }) {
-  const registry = providers ?? createProviderRegistry();
   const target = await queue.claimNext(config.workerId);
   if (!target) return false;
 
   logger.info(
-    `[social-worker] picked target=${target.id} platform=${target.platform} provider=${target.provider} attempt=${target.attempts.toString()}/${target.maxAttempts.toString()}`,
+    `[social-worker] picked target=${target.id} platform=${target.platform} attempt=${target.attempts.toString()}/${target.maxAttempts.toString()}`,
   );
 
   try {
@@ -91,15 +102,10 @@ export async function processNextSocialPost({
       config.s3PublicBaseUrl,
     );
 
-    const provider = registry[target.provider];
-    if (!provider) {
-      throw new Error(`No provider registered for "${target.provider}".`);
-    }
-
     const result = await provider.publish(
       { target, post: context.post, media },
       {
-        meta: config.meta,
+        postiz: config.postiz,
         logger,
         setContainerId: (containerId) =>
           queue.setContainerId(target.id, containerId),
@@ -130,19 +136,55 @@ export async function processNextSocialPost({
   return true;
 }
 
+// Backfills permalinks for already-published targets once Postiz releases them
+// (publishing is async, so the permalink isn't known at publish time).
+export async function reconcileSocialPermalinks({
+  config,
+  queue = databaseSocialJobQueue,
+  logger = consoleSocialWorkerLogger,
+  resolvePermalinks = (postiz: PostizConfig) => fetchPostizPermalinks(postiz),
+}: {
+  config: SocialWorkerConfig;
+  queue?: SocialJobQueue;
+  logger?: SocialWorkerLogger;
+  resolvePermalinks?: (postiz: PostizConfig) => Promise<Map<string, string>>;
+}) {
+  const targets = await queue.listAwaitingPermalink(50);
+  if (targets.length === 0) return 0;
+
+  const permalinks = await resolvePermalinks(config.postiz);
+  let updated = 0;
+  for (const target of targets) {
+    const permalink = target.providerPostId
+      ? permalinks.get(target.providerPostId)
+      : undefined;
+    if (permalink) {
+      await queue.setPermalink(target.id, permalink);
+      updated += 1;
+    }
+  }
+
+  if (updated > 0) {
+    logger.info(
+      `[social-worker] reconciled ${updated.toString()} permalink(s)`,
+    );
+  }
+  return updated;
+}
+
 export async function runSocialWorker({
   config,
   queue = databaseSocialJobQueue,
-  providers,
+  provider = createPostizProvider(),
   logger = consoleSocialWorkerLogger,
 }: {
   config: SocialWorkerConfig;
   queue?: SocialJobQueue;
-  providers?: ProviderRegistry;
+  provider?: PublishProvider;
   logger?: SocialWorkerLogger;
 }) {
-  const registry = providers ?? createProviderRegistry();
   let keepRunning = true;
+  let lastReconcileAt = 0;
   // When idle we sleep on a timer; stop() resolves it early so shutdown is
   // prompt instead of waiting out a full poll interval.
   let wakeFromIdle: (() => void) | null = null;
@@ -168,7 +210,7 @@ export async function runSocialWorker({
       processed = await processNextSocialPost({
         config,
         queue,
-        providers: registry,
+        provider,
         logger,
       });
     } catch (error) {
@@ -182,6 +224,17 @@ export async function runSocialWorker({
     }
 
     if (!keepRunning) break;
+
+    if (Date.now() - lastReconcileAt >= RECONCILE_INTERVAL_MS) {
+      lastReconcileAt = Date.now();
+      try {
+        await reconcileSocialPermalinks({ config, queue, logger });
+      } catch (error) {
+        logger.warn(
+          `[social-worker] reconcile error="${toErrorMessage(error)}"`,
+        );
+      }
+    }
 
     if (!processed) {
       await new Promise<void>((resolve) => {
