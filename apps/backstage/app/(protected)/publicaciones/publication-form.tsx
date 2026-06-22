@@ -453,7 +453,7 @@ export function PublicationForm({
           </div>
         </Section>
 
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending || platforms.length === 0}>
           {pending
             ? "Enviando..."
             : mode === "schedule"

@@ -107,6 +107,7 @@ export function DateTimePicker({
             mode="single"
             selected={value}
             onSelect={handleDaySelect}
+            weekStartsOn={1}
             autoFocus
           />
           <div className="flex items-center gap-2 border-t p-3">
