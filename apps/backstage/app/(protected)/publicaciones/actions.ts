@@ -61,6 +61,13 @@ export async function createPublication(
     return invalid({ postType: "Selecciona un tipo de publicación." });
   }
 
+  // Facebook stories aren't supported yet; reject the combination outright.
+  if (postType === "story" && platforms.includes("facebook")) {
+    return invalid({
+      platforms: "Las stories de Facebook no están disponibles por ahora.",
+    });
+  }
+
   // "now" publishes immediately; "schedule" delegates timing to Postiz, which
   // needs the date at least 5 minutes out to avoid being skipped.
   const mode = readString(formData, "mode") === "schedule" ? "schedule" : "now";

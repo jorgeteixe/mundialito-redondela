@@ -16,6 +16,10 @@ import {
   Textarea,
   ToggleGroup,
   ToggleGroupItem,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@mr/ui";
 import type { SocialPlatform, SocialPostType } from "@mr/db";
 import { PlatformIcon } from "@/app/components/social-icons";
@@ -137,22 +141,135 @@ export function PublicationForm({
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-6">
-      {/* Type first: it constrains which platforms are valid. */}
-      <Section title="Destino" description="Formato y dónde se publica.">
-        <div className="flex flex-col gap-2">
-          <Label>Tipo</Label>
-          <input type="hidden" name="postType" value={postType} />
+    <TooltipProvider>
+      <form action={formAction} className="flex flex-col gap-6">
+        {/* Type first: it constrains which platforms are valid. */}
+        <Section title="Destino" description="Formato y dónde se publica.">
+          <div className="flex flex-col gap-2">
+            <Label>Tipo</Label>
+            <input type="hidden" name="postType" value={postType} />
+            <ToggleGroup
+              type="single"
+              variant="outline"
+              value={postType}
+              onValueChange={(value) => {
+                if (!value) return;
+                const next = value as SocialPostType;
+                setPostType(next);
+                // Facebook stories aren't supported yet; drop it when switching.
+                if (next === "story") {
+                  setPlatforms((prev) => prev.filter((p) => p !== "facebook"));
+                }
+              }}
+              className="w-full"
+            >
+              {postTypeOptions.map((option) => (
+                <ToggleGroupItem
+                  key={option.value}
+                  value={option.value}
+                  className="flex-1"
+                >
+                  {option.label}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+            {postType === "feed" ? (
+              <p className="text-xs text-muted-foreground">
+                Un vídeo en Feed se publica como Reel automáticamente.
+              </p>
+            ) : null}
+            {state.fieldErrors?.postType && (
+              <p className="text-xs text-destructive">
+                {state.fieldErrors.postType}
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label>Plataformas</Label>
+            {/* ToggleGroup is controlled; hidden inputs carry the value to the form. */}
+            {platforms.map((platform) => (
+              <input
+                key={platform}
+                type="hidden"
+                name="platforms"
+                value={platform}
+              />
+            ))}
+            <ToggleGroup
+              type="multiple"
+              variant="outline"
+              value={platforms}
+              onValueChange={(value) => {
+                let next = value as SocialPlatform[];
+                if (postType === "story") {
+                  next = next.filter((p) => p !== "facebook");
+                }
+                setPlatforms(next);
+              }}
+              className="w-full"
+            >
+              {platformOptions.map((platform) => {
+                // Facebook stories aren't supported by Postiz for us yet.
+                const disabled =
+                  postType === "story" && platform.value === "facebook";
+                const item = (
+                  <ToggleGroupItem
+                    key={platform.value}
+                    value={platform.value}
+                    aria-label={platform.label}
+                    disabled={disabled}
+                    className="flex-1 gap-2"
+                  >
+                    <PlatformIcon
+                      platform={platform.value}
+                      className="size-4"
+                    />
+                    {platform.label}
+                  </ToggleGroupItem>
+                );
+
+                if (!disabled) return item;
+
+                return (
+                  <Tooltip key={platform.value}>
+                    <TooltipTrigger asChild>
+                      {/* Span wrapper so the tooltip still triggers over the
+                        disabled (pointer-events-none) toggle. */}
+                      <span className="flex flex-1 [&>*]:pointer-events-none">
+                        {item}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Las stories de Facebook están deshabilitadas por ahora.
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </ToggleGroup>
+            {state.fieldErrors?.platforms && (
+              <p className="text-xs text-destructive">
+                {state.fieldErrors.platforms}
+              </p>
+            )}
+          </div>
+        </Section>
+
+        <Separator />
+
+        {/* Media: the actual asset to publish. */}
+        <Section title="Contenido" description="El medio que se va a publicar.">
+          <input type="hidden" name="mediaSource" value={mediaSource} />
           <ToggleGroup
             type="single"
             variant="outline"
-            value={postType}
+            value={mediaSource}
             onValueChange={(value) => {
-              if (value) setPostType(value as SocialPostType);
+              if (value) setMediaSource(value as MediaSource);
             }}
             className="w-full"
           >
-            {postTypeOptions.map((option) => (
+            {sourceOptions.map((option) => (
               <ToggleGroupItem
                 key={option.value}
                 value={option.value}
@@ -162,248 +279,181 @@ export function PublicationForm({
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
-          {postType === "feed" ? (
-            <p className="text-xs text-muted-foreground">
-              Un vídeo en Feed se publica como Reel automáticamente.
-            </p>
-          ) : null}
-          {state.fieldErrors?.postType && (
-            <p className="text-xs text-destructive">
-              {state.fieldErrors.postType}
-            </p>
-          )}
-        </div>
 
-        <div className="flex flex-col gap-2">
-          <Label>Plataformas</Label>
-          {/* ToggleGroup is controlled; hidden inputs carry the value to the form. */}
-          {platforms.map((platform) => (
-            <input
-              key={platform}
-              type="hidden"
-              name="platforms"
-              value={platform}
-            />
-          ))}
-          <ToggleGroup
-            type="multiple"
-            variant="outline"
-            value={platforms}
-            onValueChange={(value) => setPlatforms(value as SocialPlatform[])}
-            className="w-full"
-          >
-            {platformOptions.map((platform) => (
-              <ToggleGroupItem
-                key={platform.value}
-                value={platform.value}
-                aria-label={platform.label}
-                className="flex-1 gap-2"
-              >
-                <PlatformIcon platform={platform.value} className="size-4" />
-                {platform.label}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-          {state.fieldErrors?.platforms && (
-            <p className="text-xs text-destructive">
-              {state.fieldErrors.platforms}
-            </p>
-          )}
-        </div>
-      </Section>
-
-      <Separator />
-
-      {/* Media: the actual asset to publish. */}
-      <Section title="Contenido" description="El medio que se va a publicar.">
-        <input type="hidden" name="mediaSource" value={mediaSource} />
-        <ToggleGroup
-          type="single"
-          variant="outline"
-          value={mediaSource}
-          onValueChange={(value) => {
-            if (value) setMediaSource(value as MediaSource);
-          }}
-          className="w-full"
-        >
-          {sourceOptions.map((option) => (
-            <ToggleGroupItem
-              key={option.value}
-              value={option.value}
-              className="flex-1"
-            >
-              {option.label}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
-
-        {mediaSource === "existing" && (
-          <div className="flex flex-col gap-2">
-            {selectedJob && (
-              <input type="hidden" name="mediaKind" value={selectedJob.kind} />
-            )}
-            <Select
-              name="mediaJobId"
-              value={mediaJobId}
-              onValueChange={setMediaJobId}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Selecciona un contenido generado" />
-              </SelectTrigger>
-              <SelectContent>
-                {mediaOptions.map((option) => (
-                  <SelectItem key={option.id} value={option.id}>
-                    {option.label} (
-                    {option.kind === "video" ? "Vídeo" : "Imagen"})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {mediaOptions.length === 0 && (
-              <p className="text-xs text-muted-foreground">
-                No hay contenido generado todavía. Genera uno nuevo.
-              </p>
-            )}
-          </div>
-        )}
-
-        {mediaSource === "generate" && (
-          <div className="flex flex-col gap-3 rounded-md border border-dashed p-3">
-            <input
-              type="hidden"
-              name="inputProps"
-              value={JSON.stringify(inputProps)}
-            />
+          {mediaSource === "existing" && (
             <div className="flex flex-col gap-2">
-              <Label htmlFor="template">Plantilla</Label>
+              {selectedJob && (
+                <input
+                  type="hidden"
+                  name="mediaKind"
+                  value={selectedJob.kind}
+                />
+              )}
               <Select
-                name="templateId"
-                value={templateId}
-                onValueChange={setTemplateId}
+                name="mediaJobId"
+                value={mediaJobId}
+                onValueChange={setMediaJobId}
               >
-                <SelectTrigger id="template" className="w-full">
-                  <SelectValue placeholder="Selecciona una plantilla" />
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecciona un contenido generado" />
                 </SelectTrigger>
                 <SelectContent>
-                  {templates.map((template) => (
-                    <SelectItem key={template.id} value={template.id}>
-                      {template.title} (
-                      {template.kind === "video" ? "Vídeo" : "Imagen"})
+                  {mediaOptions.map((option) => (
+                    <SelectItem key={option.id} value={option.id}>
+                      {option.label} (
+                      {option.kind === "video" ? "Vídeo" : "Imagen"})
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {mediaOptions.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  No hay contenido generado todavía. Genera uno nuevo.
+                </p>
+              )}
             </div>
-            {selectedTemplate?.parameters.map((parameter) => (
-              <ParameterField
-                key={parameter.name}
-                parameter={parameter}
-                value={inputProps[parameter.name]}
-                onChange={(value) => setParameter(parameter.name, value)}
-              />
-            ))}
-          </div>
-        )}
-
-        {mediaSource === "url" && (
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="media-url">URL del medio</Label>
-              <Input
-                id="media-url"
-                name="mediaUrl"
-                type="url"
-                placeholder="https://media.example.com/clip.mp4"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="url-kind">Tipo de medio</Label>
-              <Select
-                name="mediaKind"
-                value={urlMediaKind}
-                onValueChange={(value) =>
-                  setUrlMediaKind(value as "image" | "video")
-                }
-              >
-                <SelectTrigger id="url-kind" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="image">Imagen</SelectItem>
-                  <SelectItem value="video">Vídeo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        )}
-
-        {state.fieldErrors?.media && (
-          <p className="text-xs text-destructive">{state.fieldErrors.media}</p>
-        )}
-      </Section>
-
-      <Separator />
-
-      {/* Publication: the text and when it goes out. */}
-      <Section title="Publicación" description="Texto y programación.">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="caption">Texto</Label>
-          <Textarea
-            id="caption"
-            name="caption"
-            rows={4}
-            placeholder="Escribe el pie de la publicación..."
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Label>Cuándo</Label>
-          <input type="hidden" name="mode" value={mode} />
-          <ToggleGroup
-            type="single"
-            variant="outline"
-            value={mode}
-            onValueChange={handleModeChange}
-            className="w-full"
-          >
-            <ToggleGroupItem value="now" className="flex-1">
-              Publicar ahora
-            </ToggleGroupItem>
-            <ToggleGroupItem value="schedule" className="flex-1">
-              Programar
-            </ToggleGroupItem>
-          </ToggleGroup>
-
-          {mode === "schedule" && (
-            <>
-              <DateTimePicker
-                id="scheduled-at"
-                name="scheduledAt"
-                value={scheduledAt}
-                onChange={setScheduledAt}
-                placeholder="Selecciona fecha y hora"
-                aria-invalid={Boolean(state.fieldErrors?.scheduledAt)}
-              />
-              <p className="text-xs text-muted-foreground">
-                Mínimo 5 minutos desde ahora. Postiz gestiona la publicación.
-              </p>
-            </>
           )}
-          {state.fieldErrors?.scheduledAt && (
+
+          {mediaSource === "generate" && (
+            <div className="flex flex-col gap-3 rounded-md border border-dashed p-3">
+              <input
+                type="hidden"
+                name="inputProps"
+                value={JSON.stringify(inputProps)}
+              />
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="template">Plantilla</Label>
+                <Select
+                  name="templateId"
+                  value={templateId}
+                  onValueChange={setTemplateId}
+                >
+                  <SelectTrigger id="template" className="w-full">
+                    <SelectValue placeholder="Selecciona una plantilla" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {templates.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.title} (
+                        {template.kind === "video" ? "Vídeo" : "Imagen"})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {selectedTemplate?.parameters.map((parameter) => (
+                <ParameterField
+                  key={parameter.name}
+                  parameter={parameter}
+                  value={inputProps[parameter.name]}
+                  onChange={(value) => setParameter(parameter.name, value)}
+                />
+              ))}
+            </div>
+          )}
+
+          {mediaSource === "url" && (
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="media-url">URL del medio</Label>
+                <Input
+                  id="media-url"
+                  name="mediaUrl"
+                  type="url"
+                  placeholder="https://media.example.com/clip.mp4"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="url-kind">Tipo de medio</Label>
+                <Select
+                  name="mediaKind"
+                  value={urlMediaKind}
+                  onValueChange={(value) =>
+                    setUrlMediaKind(value as "image" | "video")
+                  }
+                >
+                  <SelectTrigger id="url-kind" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="image">Imagen</SelectItem>
+                    <SelectItem value="video">Vídeo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+
+          {state.fieldErrors?.media && (
             <p className="text-xs text-destructive">
-              {state.fieldErrors.scheduledAt}
+              {state.fieldErrors.media}
             </p>
           )}
-        </div>
-      </Section>
+        </Section>
 
-      <Button type="submit" disabled={pending}>
-        {pending
-          ? "Enviando..."
-          : mode === "schedule"
-            ? "Programar publicación"
-            : "Publicar ahora"}
-      </Button>
-    </form>
+        <Separator />
+
+        {/* Publication: the text and when it goes out. */}
+        <Section title="Publicación" description="Texto y programación.">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="caption">Texto</Label>
+            <Textarea
+              id="caption"
+              name="caption"
+              rows={4}
+              placeholder="Escribe el pie de la publicación..."
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label>Cuándo</Label>
+            <input type="hidden" name="mode" value={mode} />
+            <ToggleGroup
+              type="single"
+              variant="outline"
+              value={mode}
+              onValueChange={handleModeChange}
+              className="w-full"
+            >
+              <ToggleGroupItem value="now" className="flex-1">
+                Publicar ahora
+              </ToggleGroupItem>
+              <ToggleGroupItem value="schedule" className="flex-1">
+                Programar
+              </ToggleGroupItem>
+            </ToggleGroup>
+
+            {mode === "schedule" && (
+              <>
+                <DateTimePicker
+                  id="scheduled-at"
+                  name="scheduledAt"
+                  value={scheduledAt}
+                  onChange={setScheduledAt}
+                  placeholder="Selecciona fecha y hora"
+                  aria-invalid={Boolean(state.fieldErrors?.scheduledAt)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Mínimo 5 minutos desde ahora. Postiz gestiona la publicación.
+                </p>
+              </>
+            )}
+            {state.fieldErrors?.scheduledAt && (
+              <p className="text-xs text-destructive">
+                {state.fieldErrors.scheduledAt}
+              </p>
+            )}
+          </div>
+        </Section>
+
+        <Button type="submit" disabled={pending}>
+          {pending
+            ? "Enviando..."
+            : mode === "schedule"
+              ? "Programar publicación"
+              : "Publicar ahora"}
+        </Button>
+      </form>
+    </TooltipProvider>
   );
 }
