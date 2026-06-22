@@ -44,7 +44,8 @@
       "valibot": "^1.4.0"
     },
     "onlyBuiltDependencies": [
-      "esbuild"
+      "esbuild",
+      "sharp"
     ]
   }
 }
