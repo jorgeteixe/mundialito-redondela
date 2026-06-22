@@ -14,6 +14,12 @@ export {
   type HelloWorldProps,
 } from "./compositions/hello-world/schema";
 
+export { Countdown } from "./compositions/countdown/Component";
+export {
+  countdownSchema,
+  type CountdownProps,
+} from "./compositions/countdown/schema";
+
 export { Schedule } from "./compositions/schedule/Component";
 export {
   scheduleSchema,

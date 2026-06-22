@@ -1,6 +1,7 @@
 import type { z } from "zod";
 import { PRESETS, type PresetName } from "./presets";
 import { helloWorldSchema } from "./compositions/hello-world/schema";
+import { countdownSchema } from "./compositions/countdown/schema";
 import { resultCardSchema } from "./compositions/result-card/schema";
 import { socialSchema } from "./compositions/dummy/schema";
 
@@ -60,6 +61,24 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
       },
     ],
     defaultProps: { title: "Mundialito Redondela" },
+  }),
+  defineTemplateDefinition({
+    id: "countdown",
+    title: "Cuenta atrás (reel diario)",
+    kind: "video",
+    preset: "story",
+    schema: countdownSchema,
+    parameters: [
+      {
+        name: "daysLeft",
+        label: "Días restantes",
+        description: "Días que faltan para el inicio. 0 = ¡hoy empieza!",
+        type: "integer",
+        required: true,
+        min: 0,
+      },
+    ],
+    defaultProps: { daysLeft: 7 },
   }),
   defineTemplateDefinition({
     id: "result-card",
