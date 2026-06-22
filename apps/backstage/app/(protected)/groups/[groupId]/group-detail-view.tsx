@@ -30,6 +30,10 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
 } from "@mr/ui";
 import { AddTeamForm } from "../add-team-form";
 import { deleteGroup, removeTeamFromGroup } from "../actions";
@@ -57,19 +61,25 @@ export function GroupDetailView({
   const [addTeamOpen, setAddTeamOpen] = useState(false);
 
   return (
-    <div className="flex flex-col gap-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex min-w-0 items-center gap-3">
+    <Tabs defaultValue="teams" className="gap-4">
+      <header className="-mx-4 border-b border-border px-4 sm:-mx-6 sm:px-6">
+        <div className="flex flex-col gap-4 pb-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
             <GroupAvatar group={group} />
-            <span className="truncate">{group.name}</span>
-          </CardTitle>
-          <CardDescription className="mt-1 flex items-center gap-2">
-            <Badge variant="secondary">{categoryLabel(group.category)}</Badge>
-            <span>{group.teams.length} equipos</span>
-          </CardDescription>
+            <div className="min-w-0">
+              <h1 className="truncate font-heading text-xl font-medium">
+                {group.name}
+              </h1>
+              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                <Badge variant="secondary">
+                  {categoryLabel(group.category)}
+                </Badge>
+                <span>{group.teams.length} equipos</span>
+              </div>
+            </div>
+          </div>
           {canWrite ? (
-            <CardAction className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
               <Sheet open={editGroupOpen} onOpenChange={setEditGroupOpen}>
                 <SheetTriggerButton label="Editar" icon={<Pencil />} />
                 <SheetContent>
@@ -89,79 +99,93 @@ export function GroupDetailView({
                 </SheetContent>
               </Sheet>
               <DeleteGroupButton group={group} />
-            </CardAction>
+            </div>
           ) : null}
-        </CardHeader>
-      </Card>
-
-      <div className="flex items-center gap-3">
-        <div>
-          <h2 className="text-sm font-medium">Equipos</h2>
-          <p className="text-xs text-muted-foreground">
-            Equipos registrados en este grupo.
-          </p>
         </div>
-        {canWrite ? (
-          <Sheet open={addTeamOpen} onOpenChange={setAddTeamOpen}>
-            <SheetTrigger asChild>
-              <Button size="sm" className="ml-auto">
-                <Plus />
-                Añadir equipo
-              </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>Añadir equipo</SheetTitle>
-                <SheetDescription>
-                  Selecciona un equipo sin grupo para {group.name}.
-                </SheetDescription>
-              </SheetHeader>
-              <div className="px-4">
-                <AddTeamForm
-                  groupId={group.id}
-                  groupCategory={group.category}
-                  teams={availableTeams}
-                  onSuccess={() => setAddTeamOpen(false)}
-                />
-              </div>
-            </SheetContent>
-          </Sheet>
-        ) : null}
-      </div>
+        <TabsList
+          variant="line"
+          className="h-12 w-full justify-start gap-8 p-0"
+        >
+          <TabsTrigger value="teams" className="flex-none">
+            Equipos
+          </TabsTrigger>
+          <TabsTrigger value="empty" className="flex-none">
+            Vacío
+          </TabsTrigger>
+        </TabsList>
+      </header>
 
-      {group.teams.length === 0 ? (
-        <EmptyState
-          icon={<UserRoundPlus className="h-10 w-10" />}
-          title="Sin equipos registrados"
-          description="Añade el primer equipo para completar el grupo."
-          action={
-            canWrite ? (
-              <Button size="sm" onClick={() => setAddTeamOpen(true)}>
-                <Plus />
-                Añadir equipo
-              </Button>
-            ) : undefined
-          }
-        />
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {group.teams.map((team) => (
-            <GroupTeamCard
-              key={team.id}
-              team={team}
-              groupId={group.id}
-              canWrite={canWrite}
-            />
-          ))}
+      <TabsContent value="teams" className="flex flex-col gap-4 text-sm">
+        <div className="flex items-center gap-3">
+          <div>
+            <h2 className="text-sm font-medium">Equipos</h2>
+            <p className="text-xs text-muted-foreground">
+              Equipos registrados en este grupo.
+            </p>
+          </div>
+          {canWrite ? (
+            <Sheet open={addTeamOpen} onOpenChange={setAddTeamOpen}>
+              <SheetTrigger asChild>
+                <Button size="sm" className="ml-auto">
+                  <Plus />
+                  Añadir equipo
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Añadir equipo</SheetTitle>
+                  <SheetDescription>
+                    Selecciona un equipo sin grupo para {group.name}.
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="px-4">
+                  <AddTeamForm
+                    groupId={group.id}
+                    groupCategory={group.category}
+                    teams={availableTeams}
+                    onSuccess={() => setAddTeamOpen(false)}
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
+          ) : null}
         </div>
-      )}
-    </div>
+
+        {group.teams.length === 0 ? (
+          <EmptyState
+            icon={<UserRoundPlus className="h-10 w-10" />}
+            title="Sin equipos registrados"
+            description="Añade el primer equipo para completar el grupo."
+            action={
+              canWrite ? (
+                <Button size="sm" onClick={() => setAddTeamOpen(true)}>
+                  <Plus />
+                  Añadir equipo
+                </Button>
+              ) : undefined
+            }
+          />
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {group.teams.map((team) => (
+              <GroupTeamCard
+                key={team.id}
+                team={team}
+                groupId={group.id}
+                canWrite={canWrite}
+              />
+            ))}
+          </div>
+        )}
+      </TabsContent>
+      <TabsContent value="empty" className="min-h-24" />
+    </Tabs>
   );
 }
 
 function GroupAvatar({ group }: { group: GroupDetail }) {
   return (
-    <Avatar size="lg">
+    <Avatar size="lg" className="flex-none">
       <AvatarFallback
         className="border font-medium"
         style={groupAvatarStyle(group.id)}

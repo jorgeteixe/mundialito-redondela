@@ -46,6 +46,7 @@ export {
 export { Badge, badgeVariants } from "./ui/badge";
 export { Toggle, toggleVariants } from "./ui/toggle";
 export { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
+export { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 export { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 export { Calendar, CalendarDayButton } from "./ui/calendar";
 export {

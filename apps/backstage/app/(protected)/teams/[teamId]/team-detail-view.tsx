@@ -39,6 +39,10 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
 } from "@mr/ui";
 import { deletePlayer, deleteTeam } from "../actions";
 import {
@@ -61,25 +65,33 @@ export function TeamDetailView({ team, canWrite }: TeamDetailViewProps) {
   const [createPlayerOpen, setCreatePlayerOpen] = useState(false);
 
   return (
-    <div className="flex flex-col gap-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex min-w-0 items-center gap-3">
-            <Avatar size="lg">
+    <Tabs defaultValue="players" className="gap-4">
+      <header className="-mx-4 border-b border-border px-4 sm:-mx-6 sm:px-6">
+        <div className="flex flex-col gap-4 pb-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <Avatar size="lg" className="flex-none">
               <AvatarImage
                 src={teamAvatarUrl(team.id)}
                 alt={`Avatar de ${team.name}`}
               />
               <AvatarFallback>{initials(team.name)}</AvatarFallback>
             </Avatar>
-            <span className="truncate">{team.name}</span>
-          </CardTitle>
-          <CardDescription className="mt-1 flex items-center gap-3">
-            <Badge variant="secondary">{categoryLabel(team.category)}</Badge>
-            <span className="leading-5">{team.players.length} jugadores</span>
-          </CardDescription>
+            <div className="min-w-0">
+              <h1 className="truncate font-heading text-xl font-medium">
+                {team.name}
+              </h1>
+              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                <Badge variant="secondary">
+                  {categoryLabel(team.category)}
+                </Badge>
+                <span className="leading-5">
+                  {team.players.length} jugadores
+                </span>
+              </div>
+            </div>
+          </div>
           {canWrite ? (
-            <CardAction className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
               <Sheet open={editTeamOpen} onOpenChange={setEditTeamOpen}>
                 <SheetTriggerButton label="Editar" icon={<Pencil />} />
                 <SheetContent>
@@ -99,72 +111,86 @@ export function TeamDetailView({ team, canWrite }: TeamDetailViewProps) {
                 </SheetContent>
               </Sheet>
               <DeleteTeamButton team={team} />
-            </CardAction>
+            </div>
           ) : null}
-        </CardHeader>
-      </Card>
-
-      <div className="flex items-center gap-3">
-        <div>
-          <h2 className="text-sm font-medium">Plantilla</h2>
-          <p className="text-xs text-muted-foreground">
-            Jugadores registrados en este equipo.
-          </p>
         </div>
-        {canWrite ? (
-          <Sheet open={createPlayerOpen} onOpenChange={setCreatePlayerOpen}>
-            <SheetTrigger asChild>
-              <Button size="sm" className="ml-auto">
-                <Plus />
-                Añadir jugador
-              </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>Añadir jugador</SheetTitle>
-                <SheetDescription>
-                  Registra un jugador en {team.name}.
-                </SheetDescription>
-              </SheetHeader>
-              <div className="px-4">
-                <PlayerForm
-                  mode="create"
-                  teamId={team.id}
-                  onSuccess={() => setCreatePlayerOpen(false)}
-                />
-              </div>
-            </SheetContent>
-          </Sheet>
-        ) : null}
-      </div>
+        <TabsList
+          variant="line"
+          className="h-12 w-full justify-start gap-8 p-0"
+        >
+          <TabsTrigger value="players" className="flex-none">
+            Plantilla
+          </TabsTrigger>
+          <TabsTrigger value="empty" className="flex-none">
+            Vacío
+          </TabsTrigger>
+        </TabsList>
+      </header>
 
-      {team.players.length === 0 ? (
-        <EmptyState
-          icon={<UserRoundPlus className="h-10 w-10" />}
-          title="Sin jugadores registrados"
-          description="Añade el primer jugador para completar la plantilla."
-          action={
-            canWrite ? (
-              <Button size="sm" onClick={() => setCreatePlayerOpen(true)}>
-                <Plus />
-                Añadir jugador
-              </Button>
-            ) : undefined
-          }
-        />
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {team.players.map((player) => (
-            <PlayerCard
-              key={player.id}
-              player={player}
-              teamId={team.id}
-              canWrite={canWrite}
-            />
-          ))}
+      <TabsContent value="players" className="flex flex-col gap-4 text-sm">
+        <div className="flex items-center gap-3">
+          <div>
+            <h2 className="text-sm font-medium">Plantilla</h2>
+            <p className="text-xs text-muted-foreground">
+              Jugadores registrados en este equipo.
+            </p>
+          </div>
+          {canWrite ? (
+            <Sheet open={createPlayerOpen} onOpenChange={setCreatePlayerOpen}>
+              <SheetTrigger asChild>
+                <Button size="sm" className="ml-auto">
+                  <Plus />
+                  Añadir jugador
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Añadir jugador</SheetTitle>
+                  <SheetDescription>
+                    Registra un jugador en {team.name}.
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="px-4">
+                  <PlayerForm
+                    mode="create"
+                    teamId={team.id}
+                    onSuccess={() => setCreatePlayerOpen(false)}
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
+          ) : null}
         </div>
-      )}
-    </div>
+
+        {team.players.length === 0 ? (
+          <EmptyState
+            icon={<UserRoundPlus className="h-10 w-10" />}
+            title="Sin jugadores registrados"
+            description="Añade el primer jugador para completar la plantilla."
+            action={
+              canWrite ? (
+                <Button size="sm" onClick={() => setCreatePlayerOpen(true)}>
+                  <Plus />
+                  Añadir jugador
+                </Button>
+              ) : undefined
+            }
+          />
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {team.players.map((player) => (
+              <PlayerCard
+                key={player.id}
+                player={player}
+                teamId={team.id}
+                canWrite={canWrite}
+              />
+            ))}
+          </div>
+        )}
+      </TabsContent>
+      <TabsContent value="empty" className="min-h-24" />
+    </Tabs>
   );
 }
 
