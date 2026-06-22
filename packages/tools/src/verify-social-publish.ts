@@ -99,20 +99,14 @@ const renderSpinner = p.spinner();
 renderSpinner.start("Renderizando media con el video worker…");
 
 const imageJob = await enqueueVideoGenerationJob({
-  templateId: "result-card",
+  templateId: "countdown-post",
   kind: "image",
-  inputProps: {
-    homeTeam: "Redondela",
-    awayTeam: "A Xunqueira",
-    homeScore: 2,
-    awayScore: 1,
-    category: "Senior",
-  },
+  inputProps: { daysLeft: 7 },
 });
 const videoJob = await enqueueVideoGenerationJob({
-  templateId: "hello-world",
+  templateId: "countdown",
   kind: "video",
-  inputProps: { title: "Mundialito Redondela" },
+  inputProps: { daysLeft: 7 },
 });
 
 if (!imageJob || !videoJob) {

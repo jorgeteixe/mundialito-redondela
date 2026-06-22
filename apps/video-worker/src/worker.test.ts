@@ -16,9 +16,9 @@ const silentLogger: VideoWorkerLogger = {
 
 const baseJob: VideoGenerationJob = {
   id: "11111111-1111-1111-1111-111111111111",
-  templateId: "hello-world",
+  templateId: "countdown",
   kind: "video",
-  inputProps: { title: "Mundialito Redondela" },
+  inputProps: { daysLeft: 7 },
   status: "running",
   priority: 0,
   attempts: 1,
@@ -87,14 +87,14 @@ describe("processNextVideoJob", () => {
         render: vi.fn().mockResolvedValue({
           outputLocation: "/tmp/videos/job.mp4",
           publicPath:
-            "http://localhost:9000/test-videos/videos/hello-world/job.mp4",
+            "http://localhost:9000/test-videos/videos/countdown/job.mp4",
         }),
       }),
     ).resolves.toBe(true);
 
     expect(queue.markSucceeded).toHaveBeenCalledWith(
       baseJob.id,
-      "http://localhost:9000/test-videos/videos/hello-world/job.mp4",
+      "http://localhost:9000/test-videos/videos/countdown/job.mp4",
     );
     expect(queue.markFailed).not.toHaveBeenCalled();
   });
@@ -102,21 +102,15 @@ describe("processNextVideoJob", () => {
   it("renders and succeeds an image job the same way", async () => {
     const imageJob: VideoGenerationJob = {
       ...baseJob,
-      templateId: "result-card",
+      templateId: "countdown-post",
       kind: "image",
-      inputProps: {
-        homeTeam: "Redondela",
-        awayTeam: "A Xunqueira",
-        homeScore: 2,
-        awayScore: 1,
-        category: "Senior",
-      },
+      inputProps: { daysLeft: 7 },
     };
     const queue = createQueue(imageJob);
     const render = vi.fn().mockResolvedValue({
       outputLocation: "/tmp/videos/job.png",
       publicPath:
-        "http://localhost:9000/test-videos/images/result-card/job.png",
+        "http://localhost:9000/test-videos/images/countdown-post/job.png",
     });
 
     await expect(
@@ -133,7 +127,7 @@ describe("processNextVideoJob", () => {
     );
     expect(queue.markSucceeded).toHaveBeenCalledWith(
       imageJob.id,
-      "http://localhost:9000/test-videos/images/result-card/job.png",
+      "http://localhost:9000/test-videos/images/countdown-post/job.png",
     );
   });
 

@@ -1,8 +1,6 @@
 import type { z } from "zod";
 import { PRESETS, type PresetName } from "./presets";
-import { helloWorldSchema } from "./compositions/hello-world/schema";
 import { countdownSchema } from "./compositions/countdown/schema";
-import { resultCardSchema } from "./compositions/result-card/schema";
 import { socialSchema } from "./compositions/dummy/schema";
 
 export type TemplateParameter = {
@@ -46,23 +44,6 @@ function defineTemplateDefinition<S extends z.ZodObject>(template: {
 
 export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
   defineTemplateDefinition({
-    id: "hello-world",
-    title: "Hello World",
-    kind: "video",
-    preset: "story",
-    schema: helloWorldSchema,
-    parameters: [
-      {
-        name: "title",
-        label: "Título",
-        description: "Texto principal del vídeo.",
-        type: "text",
-        required: true,
-      },
-    ],
-    defaultProps: { title: "Mundialito Redondela" },
-  }),
-  defineTemplateDefinition({
     id: "countdown",
     title: "Cuenta atrás (reel diario)",
     kind: "video",
@@ -81,52 +62,24 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
     defaultProps: { daysLeft: 7 },
   }),
   defineTemplateDefinition({
-    id: "result-card",
-    title: "Tarjeta de resultado",
+    id: "countdown-post",
+    title: "Cuenta atrás · Post (cuadrado)",
     kind: "image",
     preset: "square",
-    schema: resultCardSchema,
+    // 1 frame → rendered via renderStill and shown as a still in Studio.
+    durationInFrames: 1,
+    schema: countdownSchema,
     parameters: [
       {
-        name: "homeTeam",
-        label: "Equipo local",
-        type: "text",
-        required: true,
-      },
-      {
-        name: "awayTeam",
-        label: "Equipo visitante",
-        type: "text",
-        required: true,
-      },
-      {
-        name: "homeScore",
-        label: "Goles local",
+        name: "daysLeft",
+        label: "Días restantes",
+        description: "Días que faltan para el inicio. 0 = ¡hoy empieza!",
         type: "integer",
         required: true,
         min: 0,
-      },
-      {
-        name: "awayScore",
-        label: "Goles visitante",
-        type: "integer",
-        required: true,
-        min: 0,
-      },
-      {
-        name: "category",
-        label: "Categoría",
-        type: "text",
-        required: true,
       },
     ],
-    defaultProps: {
-      homeTeam: "Redondela",
-      awayTeam: "A Xunqueira",
-      homeScore: 2,
-      awayScore: 1,
-      category: "Senior",
-    },
+    defaultProps: { daysLeft: 7 },
   }),
   defineTemplateDefinition({
     id: "instagram-profile",

@@ -1,8 +1,7 @@
 import type { ComponentType } from "react";
 import type { z } from "zod";
-import { HelloWorld } from "./compositions/hello-world/Component";
 import { Countdown } from "./compositions/countdown/Component";
-import { ResultCard } from "./compositions/result-card/Component";
+import { CountdownImage } from "./compositions/countdown/Image";
 import { InstagramProfile } from "./compositions/dummy/InstagramProfile";
 import { FacebookProfile } from "./compositions/dummy/FacebookProfile";
 import { FacebookCover } from "./compositions/dummy/FacebookCover";
@@ -57,16 +56,14 @@ function getTemplateDefinition(id: string) {
 
 export const TEMPLATES: Template[] = [
   defineTemplate({
-    ...getTemplateDefinition("hello-world"),
-    Component: HelloWorld as unknown as ComponentType<Record<string, unknown>>,
-  }),
-  defineTemplate({
     ...getTemplateDefinition("countdown"),
     Component: Countdown as unknown as ComponentType<Record<string, unknown>>,
   }),
   defineTemplate({
-    ...getTemplateDefinition("result-card"),
-    Component: ResultCard as unknown as ComponentType<Record<string, unknown>>,
+    ...getTemplateDefinition("countdown-post"),
+    Component: CountdownImage as unknown as ComponentType<
+      Record<string, unknown>
+    >,
   }),
   defineTemplate({
     ...getTemplateDefinition("instagram-profile"),

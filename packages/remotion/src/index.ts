@@ -8,13 +8,8 @@ export { TOURNAMENT } from "./tournament";
 export * as theme from "./theme";
 
 // Compositions + their schemas/types
-export { HelloWorld } from "./compositions/hello-world/Component";
-export {
-  helloWorldSchema,
-  type HelloWorldProps,
-} from "./compositions/hello-world/schema";
-
 export { Countdown } from "./compositions/countdown/Component";
+export { CountdownImage } from "./compositions/countdown/Image";
 export {
   countdownSchema,
   type CountdownProps,
