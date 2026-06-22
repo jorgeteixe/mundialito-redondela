@@ -1,6 +1,7 @@
 import type * as React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
+  DayMatches,
   KnockoutBracket,
   MatchCard,
   Schedule,
@@ -8,7 +9,6 @@ import {
   TeamBadge,
   TeamCard,
   TeamList,
-  TodayMatches,
   type KnockoutRound,
   type StandingRow,
   type TournamentMatch,
@@ -258,10 +258,10 @@ export const MatchCardLive: Story = {
   ),
 };
 
-export const TodayMatchesBoard: Story = {
+export const DayMatchesBoard: Story = {
   render: () => (
     <StoryFrame>
-      <TodayMatches matches={matches.slice(0, 3)} />
+      <DayMatches dateLabel="Sábado 20 junio" matches={matches.slice(0, 3)} />
     </StoryFrame>
   ),
 };

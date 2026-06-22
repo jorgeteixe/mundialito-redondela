@@ -9,6 +9,7 @@ export {
 } from "./components/date-time-picker";
 export { EmptyState } from "./components/empty-state";
 export {
+  DayMatches,
   KnockoutBracket,
   MatchCard,
   MatchRow,

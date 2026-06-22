@@ -2,12 +2,12 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, test } from "vitest";
 import {
+  DayMatches,
   KnockoutBracket,
   MatchCard,
   MatchScore,
   StandingsTable,
   TeamBadge,
-  TodayMatches,
   type KnockoutRound,
   type StandingRow,
   type TournamentMatch,
@@ -74,11 +74,20 @@ test("TeamBadge remains named when visual text is hidden", () => {
   expect(screen.getByLabelText("Chapela FC")).toBeInTheDocument();
 });
 
-test("TodayMatches renders empty state when no matches exist", () => {
-  render(<TodayMatches matches={[]} />);
+test("DayMatches renders empty state when no matches exist", () => {
+  render(<DayMatches matches={[]} />);
 
-  expect(screen.getByText("Partidos de hoy")).toBeInTheDocument();
+  expect(screen.getByText("Partidos del día")).toBeInTheDocument();
   expect(screen.getByText("No hay partidos programados.")).toBeInTheDocument();
+});
+
+test("DayMatches can render a specific day label", () => {
+  render(<DayMatches dateLabel="Domingo 21" matches={[liveMatch]} />);
+
+  expect(screen.getByText("Partidos del día")).toBeInTheDocument();
+  expect(
+    screen.getByText("Domingo 21 · 1 partidos programados"),
+  ).toBeInTheDocument();
 });
 
 test("StandingsTable highlights qualified teams", () => {

@@ -343,21 +343,55 @@ export function MatchRow({
   match: TournamentMatch;
   className?: string;
 }) {
+  const showScore = match.status === "live" || match.status === "finished";
+  const homeScore =
+    showScore && match.home.score != null ? match.home.score : "–";
+  const awayScore =
+    showScore && match.away.score != null ? match.away.score : "–";
+
   return (
     <div
       className={cn(
-        "grid gap-3 border-b border-border py-3 last:border-b-0 sm:grid-cols-[minmax(7rem,10rem)_1fr_auto] sm:items-center",
+        "grid grid-cols-[minmax(0,1fr)_auto] gap-3 border-b border-border py-3 last:border-b-0 sm:relative sm:block sm:min-h-24 sm:py-5",
         className,
       )}
     >
-      <div className="flex items-center gap-2 text-xs text-muted-foreground sm:block">
+      <div className="min-w-0 text-xs text-muted-foreground sm:absolute sm:left-0 sm:top-1/2 sm:-translate-y-1/2">
         <div className="font-medium text-foreground">
           {match.timeLabel ?? match.dateLabel}
         </div>
-        {match.venue && <div className="truncate">{match.venue}</div>}
       </div>
-      <MatchScore match={match} />
-      <MatchStatusBadge status={match.status} minute={match.minute} />
+      <div className="justify-self-end sm:absolute sm:right-0 sm:top-1/2 sm:-translate-y-1/2">
+        <MatchStatusBadge status={match.status} minute={match.minute} />
+      </div>
+      <div className="col-span-2 sm:hidden">
+        <MatchScore match={match} />
+      </div>
+      <div className="hidden sm:mx-auto sm:grid sm:w-[min(56rem,calc(100%-22rem))] sm:grid-cols-[minmax(0,1fr)_7rem_minmax(0,1fr)] sm:items-center sm:gap-6">
+        <TeamBadge
+          team={match.home.team}
+          className={cn(
+            "min-h-10 justify-self-start",
+            isWinner(match.home, match.away, match.status) && "font-semibold",
+          )}
+        />
+        <div className="flex min-w-28 items-center justify-center gap-2 tabular-nums">
+          <span className="min-w-7 text-center text-xl font-semibold">
+            {homeScore}
+          </span>
+          <span className="text-muted-foreground">-</span>
+          <span className="min-w-7 text-center text-xl font-semibold">
+            {awayScore}
+          </span>
+        </div>
+        <TeamBadge
+          team={match.away.team}
+          className={cn(
+            "min-h-10 justify-self-end text-right sm:flex-row-reverse",
+            isWinner(match.away, match.home, match.status) && "font-semibold",
+          )}
+        />
+      </div>
     </div>
   );
 }
@@ -421,12 +455,14 @@ export function MatchCard({
   );
 }
 
-export function TodayMatches({
-  title = "Partidos de hoy",
+export function DayMatches({
+  title = "Partidos del día",
+  dateLabel,
   matches,
   className,
 }: {
   title?: string;
+  dateLabel?: string;
   matches: TournamentMatch[];
   className?: string;
 }) {
@@ -434,7 +470,11 @@ export function TodayMatches({
     <Card className={className}>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
-        <CardDescription>{matches.length} partidos programados</CardDescription>
+        <CardDescription>
+          {[dateLabel, `${matches.length} partidos programados`]
+            .filter(Boolean)
+            .join(" · ")}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {matches.length > 0 ? (
@@ -452,6 +492,8 @@ export function TodayMatches({
     </Card>
   );
 }
+
+export const TodayMatches = DayMatches;
 
 export function Schedule({
   days,
