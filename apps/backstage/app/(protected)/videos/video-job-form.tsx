@@ -39,9 +39,16 @@ export function VideoJobForm({ templates, onSuccess }: VideoJobFormProps) {
     [templateId, templates],
   );
 
+  // Reset params to the template's defaults only when the selected template
+  // actually changes. Depending on `selectedTemplate` directly would also fire
+  // on every background route refresh (which gives `templates` a fresh object
+  // reference), wiping the user's edits mid-typing.
+  const lastTemplateIdRef = useRef(templateId);
   useEffect(() => {
+    if (lastTemplateIdRef.current === templateId) return;
+    lastTemplateIdRef.current = templateId;
     setInputProps(selectedTemplate?.defaultProps ?? {});
-  }, [selectedTemplate]);
+  }, [templateId, selectedTemplate]);
 
   useEffect(() => {
     if (state.status === "idle") return;
