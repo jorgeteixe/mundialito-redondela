@@ -9,11 +9,6 @@
     "BETTER_AUTH_URL",
     "NEXT_PUBLIC_BETTER_AUTH_URL",
     "NEXT_DIST_DIR",
-    "VIDEO_OUTPUT_DIR",
-    "VIDEO_PUBLIC_PATH_PREFIX",
-    "VIDEO_WORKER_ID",
-    "VIDEO_WORKER_POLL_MS",
-    "VIDEO_WORKER_ONCE",
     "REMOTION_ENTRY_POINT",
     "REMOTION_UI_SRC",
     "S3_ENDPOINT",
@@ -24,9 +19,6 @@
     "S3_PUBLIC_BASE_URL",
     "S3_FORCE_PATH_STYLE",
     "S3_APPLY_PUBLIC_READ_POLICY",
-    "SOCIAL_WORKER_ID",
-    "SOCIAL_WORKER_POLL_MS",
-    "SOCIAL_WORKER_ONCE",
     "POSTIZ_API_URL",
     "POSTIZ_API_KEY",
     "POSTIZ_INSTAGRAM_INTEGRATION_ID",
@@ -77,10 +69,6 @@
     },
     "deploy": {
       "cache": false
-    },
-    "worker": {
-      "cache": false,
-      "persistent": true
     }
   }
 }

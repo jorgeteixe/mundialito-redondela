@@ -4,13 +4,9 @@
 
 ## Requirements
 
-Start local PostgreSQL before running E2E tests:
-
-```sh
-docker compose up -d
-```
-
-The suite reads `apps/backstage/.env.test`. It uses the `mundialito_test` database and resets the `public` schema before each run.
+The suite reads `apps/backstage/.env.test`. Set `DATABASE_URL` there to a
+dedicated test database. The setup resets the `public` schema before each run,
+so never point it at a shared development or production database.
 
 ## Commands
 

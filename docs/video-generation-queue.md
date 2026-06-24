@@ -1,23 +1,28 @@
-# Video Generation Queue
+# Media Generation Jobs
 
-Backstage video generation uses a PostgreSQL-backed queue and a dedicated worker package.
+Backstage media generation uses `video_generation_job` as app state/history and
+Trigger.dev as the executor.
 
 ## Architecture
 
 - Jobs are stored in `video_generation_job` via `@mr/db`.
-- Admin users enqueue jobs from `/videos` in `apps/backstage`.
-- `@mr/video-worker` claims one queued job at a time, validates props with the Remotion template schema, renders the video, uploads it to S3-compatible storage, and updates status.
-- Local development uses MinIO from `docker-compose.yml`; production can use Cloudflare R2 or another S3-compatible endpoint.
+- Admin users create jobs from `/videos` and `/images` in `apps/backstage`.
+- Backstage triggers `media.render` in `@mr/jobs` immediately after creating or
+  retrying a job.
+- `media.render` validates props with the Remotion template schema, renders the
+  video/image, uploads it to S3-compatible storage, deletes the local temp file,
+  and updates status.
+- `@mr/video-worker` remains as shared rendering/storage library code used by
+  Trigger tasks; it no longer has a polling worker entrypoint.
+- Local development uses remote S3-compatible storage too, so Trigger.dev dev
+  runs and Backstage use reachable media URLs.
 
 ## Local Workflow
 
-1. Start Postgres and MinIO:
+1. Copy `.env.example` to `.env` and set remote `DATABASE_URL`, Trigger, and S3
+   variables.
 
-   ```sh
-   docker compose up -d
-   ```
-
-2. Run migrations:
+2. Run migrations against the configured database:
 
    ```sh
    pnpm --filter @mr/db db:migrate
@@ -29,28 +34,30 @@ Backstage video generation uses a PostgreSQL-backed queue and a dedicated worker
    pnpm --filter @mr/backstage dev
    ```
 
-4. Start the video worker in another shell:
+4. Start the local Trigger dev worker in another shell:
 
    ```sh
-   pnpm video:worker
+   pnpm jobs:dev
    ```
 
 5. Open `http://localhost:3001/videos`, enqueue a job, and wait for the status to become `Completado`.
 
 ## Configuration
 
-- `VIDEO_OUTPUT_DIR`: temporary render directory before upload. Defaults to `apps/backstage/public/generated/videos/` relative to the worker package.
-- `VIDEO_WORKER_ID`: worker lock identifier. Defaults to host and process id.
-- `VIDEO_WORKER_POLL_MS`: idle polling delay. Defaults to `5000`.
-- `VIDEO_WORKER_ONCE=true`: process at most one job, useful for one-off checks.
-- `S3_ENDPOINT`: S3-compatible API endpoint. Local default: `http://localhost:9000`.
-- `S3_REGION`: storage region. Local default: `auto`.
-- `S3_BUCKET`: bucket for generated videos. Local default: `mundialito-videos`.
-- `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY`: storage credentials. Local defaults match the MinIO service.
-- `S3_PUBLIC_BASE_URL`: browser-facing object base URL. Local default: `http://localhost:9000`.
+- `TRIGGER_API_URL`: self-hosted Trigger.dev URL used by Backstage and jobs.
+- `TRIGGER_SECRET_KEY`: Trigger.dev environment secret key used by Backstage.
+- `S3_ENDPOINT`: S3-compatible API endpoint. Required.
+- `S3_REGION`: storage region. Required.
+- `S3_BUCKET`: bucket for generated videos. Required.
+- `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY`: storage credentials. Required.
+- `S3_PUBLIC_BASE_URL`: browser-facing object base URL. Required and must be
+  publicly reachable by Postiz.
 - `S3_FORCE_PATH_STYLE`: use path-style URLs and requests. Local default: `true`; Cloudflare R2 usually needs `true` for API calls and `false` only when `S3_PUBLIC_BASE_URL` is a custom public domain.
-- `S3_APPLY_PUBLIC_READ_POLICY`: applies public-read object policy. Defaults to true for local MinIO, false for non-local endpoints unless explicitly set.
+- `S3_APPLY_PUBLIC_READ_POLICY`: applies public-read object policy. Defaults to
+  false; use bucket/domain policy for remote storage when possible.
 
 ## Notes
 
-The worker creates the bucket if missing and applies a public-read object policy for local MinIO. For production Cloudflare R2, create the bucket and public/custom domain in Cloudflare, then set the S3 env vars in the worker runtime.
+The render helper creates the bucket if missing. For Cloudflare R2, create the
+bucket and public/custom domain in Cloudflare, then set the same S3 env vars in
+Backstage, local Trigger dev, and deployed Trigger runtime.

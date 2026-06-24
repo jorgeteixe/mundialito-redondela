@@ -3,15 +3,22 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "./contracts": "./src/contracts.ts"
+  },
   "scripts": {
     "dev": "tsx src/trigger-cli.ts dev",
     "deploy": "tsx src/trigger-cli.ts deploy",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "trigger:media": "tsx src/trigger-media.ts"
+    "trigger:media": "tsx src/trigger-media.ts",
+    "trigger:publication": "tsx src/trigger-publication.ts",
+    "trigger:social": "tsx src/trigger-social.ts"
   },
   "dependencies": {
+    "@mr/db": "workspace:*",
     "@mr/remotion": "workspace:*",
+    "@mr/social-worker": "workspace:*",
     "@mr/video-worker": "workspace:*",
     "@trigger.dev/sdk": "4.4.6",
     "dotenv": "^17.4.2"

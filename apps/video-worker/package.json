@@ -5,12 +5,9 @@
   "type": "module",
   "exports": {
     "./config": "./src/config.ts",
-    "./render": "./src/render.ts",
-    "./worker": "./src/worker.ts"
+    "./render": "./src/render.ts"
   },
   "scripts": {
-    "dev": "nodemon --quiet --signal SIGTERM --ext ts,tsx --watch src --watch ../../packages/db/src --watch ../../packages/remotion/src --exec \"tsx src/index.ts\"",
-    "worker": "tsx src/index.ts",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"
@@ -30,7 +27,6 @@
     "@mr/typescript-config": "workspace:*",
     "@types/node": "^22.15.3",
     "eslint": "^9.39.1",
-    "nodemon": "^3.1.14",
     "typescript": "5.9.2",
     "vitest": "^4.1.8"
   }

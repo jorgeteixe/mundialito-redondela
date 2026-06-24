@@ -101,6 +101,16 @@ export async function getSocialPost(id: string) {
   );
 }
 
+export async function setSocialPostMediaUrl(id: string, mediaUrl: string) {
+  const [post] = await db
+    .update(socialPost)
+    .set({ mediaUrl })
+    .where(eq(socialPost.id, id))
+    .returning();
+
+  return post ?? null;
+}
+
 // Resolved media context the worker needs to publish a claimed target.
 export type SocialPostMediaContext = {
   post: SocialPost;
@@ -185,6 +195,45 @@ export async function claimNextSocialPostTarget(workerId: string) {
       for update of ${socialPostTarget} skip locked
       limit 1
     )
+    returning ${targetReturningColumns}
+  `);
+
+  return rows[0] ?? null;
+}
+
+export async function getSocialPostTarget(id: string) {
+  const [target] = await db
+    .select()
+    .from(socialPostTarget)
+    .where(eq(socialPostTarget.id, id))
+    .limit(1);
+
+  return target ?? null;
+}
+
+export async function listSocialPostTargetsForPost(postId: string) {
+  return db
+    .select()
+    .from(socialPostTarget)
+    .where(eq(socialPostTarget.postId, postId))
+    .orderBy(socialPostTarget.createdAt);
+}
+
+export async function startSocialPostTargetPublishing(id: string) {
+  const rows = await db.execute<SocialPostTarget>(sql`
+    update ${socialPostTarget}
+    set
+      status = 'publishing',
+      attempts = ${socialPostTarget.attempts} + 1,
+      locked_at = now(),
+      locked_by = 'trigger.dev',
+      started_at = coalesce(${socialPostTarget.startedAt}, now()),
+      failed_at = null,
+      error_message = null,
+      updated_at = now()
+    where ${socialPostTarget.id} = ${id}
+      and ${socialPostTarget.status} in ('scheduled', 'failed')
+      and ${socialPostTarget.attempts} < ${socialPostTarget.maxAttempts}
     returning ${targetReturningColumns}
   `);
 

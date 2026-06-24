@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import {
   createSocialPost,
-  enqueueVideoGenerationJob,
   retrySocialPostTarget,
   type SocialMediaKind,
   type SocialPlatform,
@@ -11,6 +10,7 @@ import {
 } from "@mr/db";
 import { TEMPLATE_DEFINITIONS } from "@mr/remotion/templates";
 import { requireAdminWrite } from "@/lib/authz";
+import { triggerPublicationPublish, triggerSocialPublish } from "@/lib/trigger";
 
 export type PublicationFormState = {
   status: "idle" | "success" | "error";
@@ -95,6 +95,12 @@ export async function createPublication(
   let mediaKind: SocialMediaKind;
   let videoJobId: string | null = null;
   let mediaUrl: string | null = null;
+  let render:
+    | {
+        templateId: string;
+        inputProps: Record<string, unknown>;
+      }
+    | undefined;
 
   if (mediaSource === "generate") {
     const templateId = readString(formData, "templateId");
@@ -119,17 +125,11 @@ export async function createPublication(
       });
     }
 
-    const job = await enqueueVideoGenerationJob({
-      templateId: template.id,
-      kind: template.kind,
-      inputProps: parsed.data,
-      createdByUserId: session.user.id,
-    });
-    if (!job) {
-      return invalid({ media: "No se pudo encolar la generación." });
-    }
-    videoJobId = job.id;
     mediaKind = template.kind;
+    render = {
+      templateId: template.id,
+      inputProps: parsed.data,
+    };
   } else if (mediaSource === "existing") {
     videoJobId = readString(formData, "mediaJobId") || null;
     const kind = readString(formData, "mediaKind") as SocialMediaKind;
@@ -152,7 +152,7 @@ export async function createPublication(
     return invalid({ media: "Los reels requieren un vídeo." });
   }
 
-  await createSocialPost({
+  const { post } = await createSocialPost({
     postType,
     mediaKind,
     caption,
@@ -163,11 +163,18 @@ export async function createPublication(
     createdByUserId: session.user.id,
   });
 
+  await triggerPublicationPublish({
+    postId: post.id,
+    render,
+  });
+
   revalidatePath("/publicaciones");
   return {
     status: "success",
     message:
-      mode === "schedule" ? "Publicación programada." : "Publicación en cola.",
+      mode === "schedule"
+        ? "Publicación programada en Trigger."
+        : "Publicación enviada a Trigger.",
   };
 }
 
@@ -176,6 +183,9 @@ export async function retryPublicationTarget(formData: FormData) {
   const id = readString(formData, "id");
   if (!id) return;
 
-  await retrySocialPostTarget(id);
+  const target = await retrySocialPostTarget(id);
+  if (target) {
+    await triggerSocialPublish({ targetId: target.id });
+  }
   revalidatePath("/publicaciones");
 }

@@ -14,11 +14,11 @@
     "build-storybook": "turbo run build-storybook",
     "reset-db": "pnpm --filter @mr/tools reset-db",
     "seed": "pnpm --filter @mr/tools seed",
-    "video:worker": "turbo run worker --filter @mr/video-worker",
-    "social:worker": "turbo run worker --filter @mr/social-worker",
     "jobs:dev": "turbo run dev --filter @mr/jobs",
     "jobs:deploy": "turbo run deploy --filter @mr/jobs",
     "jobs:media": "pnpm --filter @mr/jobs trigger:media",
+    "jobs:publication": "pnpm --filter @mr/jobs trigger:publication",
+    "jobs:social": "pnpm --filter @mr/jobs trigger:social",
     "prepare": "husky",
     "screenshot:storybook": "turbo run screenshot:storybook"
   },

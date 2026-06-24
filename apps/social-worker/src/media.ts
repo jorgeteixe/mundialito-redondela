@@ -7,8 +7,7 @@ export type ResolvedMedia = {
 
 const PRIVATE_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1"]);
 
-// The provider fetches media by URL, so it must be publicly reachable. Guard
-// against the common local-dev mistake of pointing at MinIO on localhost.
+// The provider fetches media by URL, so it must be publicly reachable.
 export function assertPublicUrl(url: string) {
   let host: string;
   try {
@@ -20,7 +19,7 @@ export function assertPublicUrl(url: string) {
   if (PRIVATE_HOSTS.has(host)) {
     throw new Error(
       `Media URL host "${host}" is not publicly reachable. Use a public ` +
-        `domain or expose storage via a tunnel and set S3_PUBLIC_BASE_URL.`,
+        `domain for S3_PUBLIC_BASE_URL.`,
     );
   }
 }

@@ -21,13 +21,14 @@ Existing users are backfilled to `super-admin` by the roles migration to prevent
 ## Environment variables
 
 ```
-DATABASE_URL=postgresql://mundialito:mundialito@localhost:5432/mundialito
-BETTER_AUTH_SECRET=change-me-to-a-random-32-char-string
+DATABASE_URL=
+BETTER_AUTH_SECRET=
 BETTER_AUTH_URL=http://localhost:3001
 NEXT_PUBLIC_BETTER_AUTH_URL=http://localhost:3001
 ```
 
-Copy `.env.example` to root `.env` and fill `BETTER_AUTH_SECRET` with a random 32+ char string.
+Copy `.env.example` to root `.env`, set `DATABASE_URL`, and fill
+`BETTER_AUTH_SECRET` with a random 32+ char string.
 
 ## Creating users
 
@@ -50,7 +51,9 @@ After a super admin can log in, use `/users` in backstage to:
 
 ## E2E tests
 
-Backstage E2E tests use the separate `mundialito_test` database from `apps/backstage/.env.test`. The Playwright global setup resets the schema and seeds a deterministic test admin before each run.
+Backstage E2E tests use the separate database from `apps/backstage/.env.test`.
+The Playwright global setup resets the schema and seeds a deterministic test
+admin before each run.
 
 See [Backstage E2E Testing](./backstage-e2e-testing.md).
 

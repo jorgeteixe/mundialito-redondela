@@ -8,8 +8,9 @@
 - Admin app: `apps/backstage`, Next.js App Router, package name `@mr/backstage` (port 3001).
 - Shared UI: `packages/ui`, React components exported as `@mr/ui`.
 - Shared DB: `packages/db`, Drizzle + PostgreSQL exported as `@mr/db`.
-- Video worker: `apps/video-worker`, `@mr/video-worker`, renders Remotion jobs from the DB queue.
-- Social worker: `apps/social-worker`, `@mr/social-worker`, publishes queued posts to Instagram/Facebook via Postiz (see `docs/social-publishing-queue.md`).
+- Trigger jobs: `apps/jobs`, `@mr/jobs`, renders media and publishes to Instagram/Facebook through self-hosted Trigger.dev.
+- Media rendering helpers: `apps/video-worker`, `@mr/video-worker`, shared by Trigger jobs.
+- Social publishing helpers: `apps/social-worker`, `@mr/social-worker`, shared by Trigger jobs (see `docs/social-publishing-queue.md`).
 - Shared tooling: `packages/tools`, CLI utilities exported as `@mr/tools`.
 - Shared config: `@mr/eslint-config` and `@mr/typescript-config`.
 
@@ -28,12 +29,11 @@
 - Visual tests: `pnpm test:visual`
 - Format: `pnpm format`
 - Storybook screenshots: `pnpm screenshot:storybook` (saves screenshots in `packages/ui/artifacts/storybook/`)
-- Start local DB: `docker compose up -d`
 - DB generate migrations: `pnpm --filter @mr/db db:generate`
 - DB run migrations: `pnpm --filter @mr/db db:migrate`
 - Seed admin user: `pnpm --filter @mr/tools seed-admin`
-- Run video worker: `pnpm video:worker`
-- Run social worker: `pnpm social:worker`
+- Run Trigger dev worker: `pnpm jobs:dev`
+- Deploy Trigger jobs: `pnpm jobs:deploy`
 
 ## UI Component Structure
 

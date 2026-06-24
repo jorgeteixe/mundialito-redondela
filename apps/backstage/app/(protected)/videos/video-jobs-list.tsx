@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Download, Eye, RotateCcw, X } from "lucide-react";
+import { Download, Eye, RotateCcw } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -23,10 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@mr/ui";
-import {
-  cancelVideoGenerationJob,
-  retryFailedVideoGenerationJob,
-} from "./actions";
+import { retryFailedVideoGenerationJob } from "./actions";
 import type { VideoJobSummary } from "./data";
 
 const statusLabels = {
@@ -79,21 +76,13 @@ function JobActions({
           </Button>
         </form>
       ) : null}
-      {canWrite && job.status === "queued" ? (
-        <form action={cancelVideoGenerationJob}>
-          <input type="hidden" name="id" value={job.id} />
-          <Button variant="outline" size="icon-sm" aria-label="Cancelar">
-            <X />
-          </Button>
-        </form>
-      ) : null}
     </div>
   );
 }
 
 function JobResult({ job }: { job: VideoJobSummary }) {
   if (job.status === "succeeded") return <span>Listo para ver</span>;
-  if (job.status === "queued") return <span>Pendiente de worker</span>;
+  if (job.status === "queued") return <span>Pendiente de Trigger</span>;
   if (job.status === "running") return <span>Renderizando</span>;
   if (job.status === "cancelled") return <span>Cancelado</span>;
 

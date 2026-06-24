@@ -1,14 +1,18 @@
-# Trigger.dev Pilot
+# Trigger.dev Jobs
 
-This pilot adds Trigger.dev tasks without changing the existing
-PostgreSQL-backed workers.
+Trigger.dev is now the runtime for media rendering and social publishing.
+Postgres still stores app state, history, retries, and Backstage list data.
 
 ## Scope
 
-- Existing `@mr/video-worker` and `@mr/social-worker` keep running as before.
-- No database schema changes.
-- No Backstage UI changes.
-- Trigger.dev is used by `@mr/jobs` for `media.render`.
+- Backstage creates DB rows, then triggers `@mr/jobs`.
+- `media.render` renders video or image media and updates `video_generation_job`
+  when a `jobId` is provided.
+- `publication.publish` optionally renders media first, then fans out to
+  `social.publish` per target.
+- `social.reconcile-permalinks` runs on a Trigger schedule every 5 minutes.
+- Old polling worker entrypoints have been removed; shared render/provider
+  modules remain as libraries used by Trigger tasks.
 
 ## Homelab Setup
 
@@ -43,10 +47,10 @@ Required GitHub settings:
 The `media.render` task receives a template id and input props, derives the media
 kind from the template registry, renders with the existing Remotion pipeline,
 uploads the result to S3/R2, deletes the temporary local file, and returns the
-public URL. It does not create or update database rows.
+public URL. When called with `jobId`, it moves the DB job through
+`running`/`succeeded`/`failed` so Backstage reflects Trigger progress.
 
-Trigger.dev infrastructure must have the same storage variables as the video
-worker:
+Trigger.dev infrastructure must have the same storage variables:
 
 ```sh
 S3_ENDPOINT=
@@ -81,9 +85,38 @@ pnpm jobs:media countdown-post '{"daysLeft":7}'
 - Run status is successful.
 - Media output contains `kind` and `publicPath` pointing at the uploaded S3/R2
   object.
-- Existing worker commands remain valid:
 
-  ```sh
-  pnpm video:worker
-  pnpm social:worker
-  ```
+## Run Social Publishing Tasks
+
+`social.publish` publishes one `social_post_target` through Postiz. It loads the
+target, resolves media from the publication, hands scheduling to Postiz, and
+updates the target status/provider fields in the database.
+
+```sh
+pnpm jobs:social <targetId>
+```
+
+`publication.publish` is the orchestrator. It optionally renders media first,
+stores the rendered public URL on the publication, then triggers `social.publish`
+for each target of the post.
+
+```sh
+pnpm jobs:publication <postId>
+pnpm jobs:publication <postId> '{"templateId":"countdown-post","inputProps":{"daysLeft":7}}'
+```
+
+`social.reconcile-permalinks` runs every 5 minutes and backfills Postiz
+permalinks for already-published targets.
+
+Trigger.dev infrastructure must also have:
+
+```sh
+DATABASE_URL=
+POSTIZ_API_KEY=
+POSTIZ_API_URL=
+POSTIZ_INSTAGRAM_INTEGRATION_ID=
+POSTIZ_FACEBOOK_INTEGRATION_ID=
+```
+
+Backstage server actions also need `TRIGGER_API_URL` and `TRIGGER_SECRET_KEY` so
+they can trigger tasks from form submissions.

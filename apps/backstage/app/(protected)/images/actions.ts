@@ -1,13 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import {
-  cancelQueuedVideoGenerationJob,
-  enqueueVideoGenerationJob,
-  retryVideoGenerationJob,
-} from "@mr/db";
+import { enqueueVideoGenerationJob, retryVideoGenerationJob } from "@mr/db";
 import { TEMPLATE_DEFINITIONS } from "@mr/remotion/templates";
 import { requireAdminWrite } from "@/lib/authz";
+import { triggerMediaRender } from "@/lib/trigger";
 
 export type ImageJobFormState = {
   status: "idle" | "success" | "error";
@@ -66,24 +63,28 @@ export async function createImageGenerationJob(
     };
   }
 
-  await enqueueVideoGenerationJob({
+  const job = await enqueueVideoGenerationJob({
     templateId: template.id,
     kind: template.kind,
     inputProps: parsedProps.data,
     createdByUserId: session.user.id,
   });
+  if (!job) {
+    return {
+      status: "error",
+      message: "No se pudo crear el trabajo de imagen.",
+    };
+  }
+
+  await triggerMediaRender({
+    id: job.id,
+    jobId: job.id,
+    templateId: job.templateId,
+    inputProps: job.inputProps,
+  });
 
   revalidatePath("/images");
-  return { status: "success", message: "Imagen añadida a la cola." };
-}
-
-export async function cancelImageGenerationJob(formData: FormData) {
-  await requireAdminWrite();
-  const id = readString(formData, "id");
-  if (!id) return;
-
-  await cancelQueuedVideoGenerationJob(id);
-  revalidatePath("/images");
+  return { status: "success", message: "Imagen enviada a Trigger." };
 }
 
 export async function retryFailedImageGenerationJob(formData: FormData) {
@@ -91,6 +92,14 @@ export async function retryFailedImageGenerationJob(formData: FormData) {
   const id = readString(formData, "id");
   if (!id) return;
 
-  await retryVideoGenerationJob(id);
+  const job = await retryVideoGenerationJob(id);
+  if (job) {
+    await triggerMediaRender({
+      id: job.id,
+      jobId: job.id,
+      templateId: job.templateId,
+      inputProps: job.inputProps,
+    });
+  }
   revalidatePath("/images");
 }

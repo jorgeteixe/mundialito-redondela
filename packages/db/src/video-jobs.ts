@@ -108,6 +108,45 @@ export async function claimNextVideoGenerationJob(workerId: string) {
   return rows[0] ?? null;
 }
 
+export async function startVideoGenerationJob(id: string) {
+  const rows = await db.execute<VideoGenerationJob>(sql`
+    update ${videoGenerationJob}
+    set
+      status = 'running',
+      attempts = ${videoGenerationJob.attempts} + 1,
+      locked_at = now(),
+      locked_by = 'trigger.dev',
+      started_at = coalesce(${videoGenerationJob.startedAt}, now()),
+      failed_at = null,
+      error_message = null,
+      updated_at = now()
+    where ${videoGenerationJob.id} = ${id}
+      and ${videoGenerationJob.status} in ('queued', 'failed')
+      and ${videoGenerationJob.attempts} < ${videoGenerationJob.maxAttempts}
+    returning
+      id,
+      template_id as "templateId",
+      kind,
+      input_props as "inputProps",
+      status,
+      priority,
+      attempts,
+      max_attempts as "maxAttempts",
+      locked_at as "lockedAt",
+      locked_by as "lockedBy",
+      started_at as "startedAt",
+      finished_at as "finishedAt",
+      failed_at as "failedAt",
+      error_message as "errorMessage",
+      output_path as "outputPath",
+      created_by_user_id as "createdByUserId",
+      created_at as "createdAt",
+      updated_at as "updatedAt"
+  `);
+
+  return rows[0] ?? null;
+}
+
 export async function markVideoGenerationJobSucceeded(
   id: string,
   outputPath: string,

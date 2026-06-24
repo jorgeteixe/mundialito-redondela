@@ -2,6 +2,12 @@ import { randomUUID } from "node:crypto";
 import { rm } from "node:fs/promises";
 import { logger, task } from "@trigger.dev/sdk";
 import { TEMPLATE_DEFINITIONS } from "@mr/remotion/templates";
+import {
+  getVideoGenerationJob,
+  markVideoGenerationJobFailed,
+  markVideoGenerationJobSucceeded,
+  startVideoGenerationJob,
+} from "@mr/db";
 import { getVideoWorkerConfig } from "@mr/video-worker/config";
 import { renderGenerationJob } from "@mr/video-worker/render";
 import {
@@ -15,48 +21,87 @@ const DEFAULT_OUTPUT_DIR = "/tmp/mr-trigger-media-renders";
 export const renderMedia = task({
   id: RENDER_MEDIA_TASK_ID,
   run: async (payload: RenderMediaPayload): Promise<RenderMediaOutput> => {
-    const renderId = payload.id ?? randomUUID();
+    const renderId = payload.id ?? payload.jobId ?? randomUUID();
     const outputDir = DEFAULT_OUTPUT_DIR;
     const config = getVideoWorkerConfig();
+    const dbJob = payload.jobId
+      ? await startVideoGenerationJob(payload.jobId)
+      : null;
+    const existingJob =
+      payload.jobId && !dbJob
+        ? await getVideoGenerationJob(payload.jobId)
+        : null;
+    const source = dbJob ?? existingJob ?? payload;
     const template = TEMPLATE_DEFINITIONS.find(
-      (candidate) => candidate.id === payload.templateId,
+      (candidate) => candidate.id === source.templateId,
     );
 
     if (!template) {
-      throw new Error(`Unknown template: ${payload.templateId}`);
+      throw new Error(`Unknown template: ${source.templateId}`);
+    }
+
+    if (existingJob?.status === "succeeded" && existingJob.outputPath) {
+      return {
+        id: renderId,
+        jobId: existingJob.id,
+        templateId: existingJob.templateId,
+        kind: existingJob.kind,
+        publicPath: existingJob.outputPath,
+      };
+    }
+
+    if (payload.jobId && !dbJob) {
+      throw new Error(`Media job ${payload.jobId} is not renderable.`);
     }
 
     logger.info("Trigger.dev media render started", {
       renderId,
-      templateId: payload.templateId,
+      jobId: payload.jobId ?? null,
+      templateId: source.templateId,
       kind: template.kind,
       outputDir,
     });
 
-    const result = await renderGenerationJob({
-      job: {
-        id: renderId,
-        templateId: payload.templateId,
+    try {
+      const result = await renderGenerationJob({
+        job: {
+          id: renderId,
+          templateId: source.templateId,
+          kind: template.kind,
+          inputProps: source.inputProps,
+        },
+        outputDir,
+        storage: config.storage,
+      });
+
+      await rm(result.outputLocation, { force: true });
+
+      if (payload.jobId) {
+        await markVideoGenerationJobSucceeded(payload.jobId, result.publicPath);
+      }
+
+      logger.info("Trigger.dev media render uploaded", {
+        renderId,
+        jobId: payload.jobId ?? null,
         kind: template.kind,
-        inputProps: payload.inputProps,
-      },
-      outputDir,
-      storage: config.storage,
-    });
+        publicPath: result.publicPath,
+      });
 
-    await rm(result.outputLocation, { force: true });
-
-    logger.info("Trigger.dev media render uploaded", {
-      renderId,
-      kind: template.kind,
-      publicPath: result.publicPath,
-    });
-
-    return {
-      id: renderId,
-      templateId: payload.templateId,
-      kind: template.kind,
-      publicPath: result.publicPath,
-    };
+      return {
+        id: renderId,
+        jobId: payload.jobId ?? null,
+        templateId: source.templateId,
+        kind: template.kind,
+        publicPath: result.publicPath,
+      };
+    } catch (error) {
+      if (payload.jobId) {
+        await markVideoGenerationJobFailed(
+          payload.jobId,
+          error instanceof Error ? error.message : String(error),
+        );
+      }
+      throw error;
+    }
   },
 });

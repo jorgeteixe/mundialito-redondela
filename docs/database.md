@@ -12,17 +12,16 @@ Shared Drizzle + PostgreSQL package (`@mr/db`) consumed by all apps.
 ## Local development
 
 ```sh
-# Start PostgreSQL
-docker compose up -d
-
 # Copy and fill root env
 cp .env.example .env
 ```
 
-Default connection string (matches docker-compose defaults):
+Set `DATABASE_URL` to a reachable PostgreSQL database. Local development uses
+the same remote database style as Trigger.dev development, so the Trigger dev
+worker and Backstage can see the same data.
 
 ```
-DATABASE_URL=postgresql://mundialito:mundialito@localhost:5432/mundialito
+DATABASE_URL=
 ```
 
 ## Migrations
@@ -35,7 +34,7 @@ pnpm --filter @mr/db db:generate
 pnpm --filter @mr/db db:migrate
 ```
 
-Migrations run against `DATABASE_URL` from the shell or root `.env`. For production, set the env var to the prod connection string before running.
+Migrations run against `DATABASE_URL` from the shell or root `.env`.
 
 ## Adding new tables
 
@@ -46,4 +45,6 @@ Migrations run against `DATABASE_URL` from the shell or root `.env`. For product
 
 ## Test database
 
-E2E tests in `apps/backstage` use a separate `mundialito_test` database. Playwright global setup resets the schema, applies committed migrations, and seeds a test admin before the suite. See [Backstage E2E Testing](./backstage-e2e-testing.md).
+E2E tests in `apps/backstage` should use a separate remote/test database.
+Playwright global setup resets the schema, applies committed migrations, and
+seeds a test admin before the suite. See [Backstage E2E Testing](./backstage-e2e-testing.md).

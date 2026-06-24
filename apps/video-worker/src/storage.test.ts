@@ -3,20 +3,20 @@ import type { S3StorageConfig } from "./config";
 import { contentTypeForPath, getObjectUrl } from "./storage";
 
 const config: S3StorageConfig = {
-  endpoint: "http://localhost:9000",
+  endpoint: "https://s3.example.com",
   region: "auto",
   bucket: "mundialito-videos",
-  accessKeyId: "mundialito",
-  secretAccessKey: "mundialito",
-  publicBaseUrl: "http://localhost:9000",
+  accessKeyId: "access-key",
+  secretAccessKey: "secret-key",
+  publicBaseUrl: "https://media.example.com",
   forcePathStyle: true,
   applyPublicReadPolicy: true,
 };
 
 describe("getObjectUrl", () => {
-  it("builds local MinIO path-style URLs", () => {
+  it("builds path-style public URLs", () => {
     expect(getObjectUrl(config, "videos/job.mp4")).toBe(
-      "http://localhost:9000/mundialito-videos/videos/job.mp4",
+      "https://media.example.com/mundialito-videos/videos/job.mp4",
     );
   });
 

@@ -1,2 +1,6 @@
-export { createPostizProvider, PostizApiError } from "./postiz";
+export {
+  createPostizProvider,
+  fetchPostizPermalinks,
+  PostizApiError,
+} from "./postiz";
 export * from "./types";
