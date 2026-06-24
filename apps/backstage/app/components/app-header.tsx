@@ -15,8 +15,11 @@ import {
   SidebarTrigger,
   Skeleton,
 } from "@mr/ui";
+import { isCategory } from "@/lib/category";
 
 const segmentLabels: Record<string, string> = {
+  senior: "Senior",
+  cadet: "Cadete",
   teams: "Equipos",
   groups: "Grupos",
   videos: "Vídeos",
@@ -108,6 +111,12 @@ export function AppHeader() {
                         label(segment)
                       )}
                     </BreadcrumbPage>
+                  ) : index === 0 && isCategory(segment) ? (
+                    // The category segment has no landing page of its own, so
+                    // it's shown as plain (non-clickable) context.
+                    <span className="text-muted-foreground">
+                      {label(segment)}
+                    </span>
                   ) : (
                     <BreadcrumbLink asChild>
                       <Link href={`/${segments.slice(0, index + 1).join("/")}`}>
