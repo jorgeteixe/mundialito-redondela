@@ -17,7 +17,7 @@
 ## Commands
 
 - Install: `pnpm install`
-- Develop all packages: `pnpm dev`
+- Develop app + backstage + local Trigger worker: `pnpm dev`
 - Develop web only: `pnpm --filter @mr/web dev`
 - Develop backstage only: `pnpm --filter @mr/backstage dev`
 - Storybook: `pnpm --filter @mr/ui storybook`

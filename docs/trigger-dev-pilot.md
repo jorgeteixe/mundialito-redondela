@@ -66,6 +66,8 @@ S3_APPLY_PUBLIC_READ_POLICY=
 Run locally through `jobs:dev`:
 
 ```sh
+pnpm dev
+# or only Trigger:
 pnpm jobs:dev
 pnpm jobs:media countdown '{"daysLeft":7}'
 pnpm jobs:media countdown-post '{"daysLeft":7}'
