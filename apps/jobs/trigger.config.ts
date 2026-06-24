@@ -1,14 +1,8 @@
 import { additionalFiles } from "@trigger.dev/build/extensions/core";
 import { defineConfig } from "@trigger.dev/sdk";
 
-function required(name: string) {
-  const value = process.env[name];
-  if (!value) throw new Error(`${name} is required.`);
-  return value;
-}
-
 export default defineConfig({
-  project: required("TRIGGER_PROJECT_REF"),
+  project: "proj_glhthldaniregplmysfd",
   dirs: ["./src/tasks"],
   maxDuration: 60,
   retries: {
