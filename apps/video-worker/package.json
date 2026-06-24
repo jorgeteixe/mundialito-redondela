@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     "./config": "./src/config.ts",
+    "./render": "./src/render.ts",
     "./worker": "./src/worker.ts"
   },
   "scripts": {

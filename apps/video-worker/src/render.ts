@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { bundle } from "@remotion/bundler";
@@ -13,13 +14,10 @@ import type { VideoGenerationJob } from "@mr/db";
 import type { S3StorageConfig } from "./config";
 import { createS3Client, uploadRenderedFile } from "./storage";
 
-const remotionEntryPoint = fileURLToPath(
-  new URL("../../../packages/remotion/src/remotion-entry.ts", import.meta.url),
-);
-
-const uiSrc = fileURLToPath(
-  new URL("../../../packages/ui/src", import.meta.url),
-);
+export type RenderableGenerationJob = Pick<
+  VideoGenerationJob,
+  "id" | "templateId" | "kind" | "inputProps"
+>;
 
 let serveUrlPromise: Promise<string> | null = null;
 
@@ -27,11 +25,14 @@ export function getVideoOutputFilename(job: Pick<VideoGenerationJob, "id">) {
   return `${job.id}.mp4`;
 }
 
-export function getVideoObjectKey(job: VideoGenerationJob) {
+export function getVideoObjectKey(job: RenderableGenerationJob) {
   return `videos/${job.templateId}/${getVideoOutputFilename(job)}`;
 }
 
-export function getVideoOutputPath(outputDir: string, job: VideoGenerationJob) {
+export function getVideoOutputPath(
+  outputDir: string,
+  job: RenderableGenerationJob,
+) {
   return path.join(outputDir, getVideoOutputFilename(job));
 }
 
@@ -39,17 +40,60 @@ export function getImageOutputFilename(job: Pick<VideoGenerationJob, "id">) {
   return `${job.id}.png`;
 }
 
-export function getImageObjectKey(job: VideoGenerationJob) {
+export function getImageObjectKey(job: RenderableGenerationJob) {
   return `images/${job.templateId}/${getImageOutputFilename(job)}`;
 }
 
-export function getImageOutputPath(outputDir: string, job: VideoGenerationJob) {
+export function getImageOutputPath(
+  outputDir: string,
+  job: RenderableGenerationJob,
+) {
   return path.join(outputDir, getImageOutputFilename(job));
+}
+
+function firstExistingPath(candidates: string[]) {
+  const found = candidates.find((candidate) => existsSync(candidate));
+  if (!found) {
+    throw new Error(
+      `Unable to locate Remotion source files. Tried: ${candidates.join(", ")}`,
+    );
+  }
+  return found;
+}
+
+function getRemotionPaths() {
+  const cwd = process.cwd();
+  const fallbackEntryPoint = fileURLToPath(
+    new URL(
+      "../../../packages/remotion/src/remotion-entry.ts",
+      import.meta.url,
+    ),
+  );
+  const fallbackUiSrc = fileURLToPath(
+    new URL("../../../packages/ui/src", import.meta.url),
+  );
+
+  return {
+    entryPoint:
+      process.env.REMOTION_ENTRY_POINT ??
+      firstExistingPath([
+        path.resolve(cwd, "../../packages/remotion/src/remotion-entry.ts"),
+        path.resolve(cwd, "packages/remotion/src/remotion-entry.ts"),
+        fallbackEntryPoint,
+      ]),
+    uiSrc:
+      process.env.REMOTION_UI_SRC ??
+      firstExistingPath([
+        path.resolve(cwd, "../../packages/ui/src"),
+        path.resolve(cwd, "packages/ui/src"),
+        fallbackUiSrc,
+      ]),
+  };
 }
 
 async function getServeUrl() {
   serveUrlPromise ??= bundle({
-    entryPoint: remotionEntryPoint,
+    entryPoint: getRemotionPaths().entryPoint,
     webpackOverride: (currentConfig) => {
       const config = enableTailwind(currentConfig);
       return {
@@ -58,7 +102,7 @@ async function getServeUrl() {
           ...config.resolve,
           alias: {
             ...config.resolve?.alias,
-            "@": uiSrc,
+            "@": getRemotionPaths().uiSrc,
           },
         },
       };
@@ -73,7 +117,7 @@ export async function renderVideoGenerationJob({
   outputDir,
   storage,
 }: {
-  job: VideoGenerationJob;
+  job: RenderableGenerationJob;
   outputDir: string;
   storage: S3StorageConfig;
 }) {
@@ -131,7 +175,7 @@ export async function renderImageGenerationJob({
   outputDir,
   storage,
 }: {
-  job: VideoGenerationJob;
+  job: RenderableGenerationJob;
   outputDir: string;
   storage: S3StorageConfig;
 }) {
@@ -190,7 +234,7 @@ export async function renderImageGenerationJob({
  * kind-agnostic.
  */
 export function renderGenerationJob(args: {
-  job: VideoGenerationJob;
+  job: RenderableGenerationJob;
   outputDir: string;
   storage: S3StorageConfig;
 }) {

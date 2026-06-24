@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { config as loadEnv } from "dotenv";
 
@@ -15,8 +16,14 @@ loadEnv({
   path: [appEnvLocalPath, appEnvPath, rootEnvLocalPath, rootEnvPath],
 });
 
-const args = process.argv.slice(2);
-const child = spawn("trigger", args, {
+const args = process.argv.slice(2).filter((arg) => arg !== "--");
+const apiUrlArgs = process.env.TRIGGER_API_URL
+  ? ["--api-url", process.env.TRIGGER_API_URL]
+  : [];
+
+mkdirSync(".trigger/tmp/store", { recursive: true });
+
+const child = spawn("trigger", [...args, ...apiUrlArgs], {
   stdio: "inherit",
   env: process.env,
 });

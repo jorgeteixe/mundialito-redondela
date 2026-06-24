@@ -1,3 +1,4 @@
+import { additionalFiles } from "@trigger.dev/build/extensions/core";
 import { defineConfig } from "@trigger.dev/sdk";
 
 export default defineConfig({
@@ -9,6 +10,20 @@ export default defineConfig({
     default: {
       maxAttempts: 1,
     },
+  },
+  build: {
+    extensions: [
+      additionalFiles({
+        files: ["../../packages/remotion/src/**", "../../packages/ui/src/**"],
+      }),
+    ],
+    external: [
+      "@remotion/bundler",
+      "@remotion/renderer",
+      "@remotion/tailwind-v4",
+      "@rspack/binding",
+      "@rspack/core",
+    ],
   },
   logLevel: "log",
 });

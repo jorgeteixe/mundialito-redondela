@@ -19,6 +19,7 @@
     "jobs:dev": "turbo run dev --filter @mr/jobs",
     "jobs:deploy": "turbo run deploy --filter @mr/jobs",
     "jobs:dummy": "pnpm --filter @mr/jobs trigger:dummy",
+    "jobs:video": "pnpm --filter @mr/jobs trigger:video",
     "prepare": "husky",
     "screenshot:storybook": "turbo run screenshot:storybook"
   },

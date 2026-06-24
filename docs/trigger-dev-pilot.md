@@ -1,6 +1,6 @@
 # Trigger.dev Pilot
 
-This pilot adds one dummy Trigger.dev task without changing the existing
+This pilot adds Trigger.dev tasks without changing the existing
 PostgreSQL-backed workers.
 
 ## Scope
@@ -8,7 +8,7 @@ PostgreSQL-backed workers.
 - Existing `@mr/video-worker` and `@mr/social-worker` keep running as before.
 - No database schema changes.
 - No Backstage UI changes.
-- Trigger.dev is only used by `@mr/jobs` for `dummy.health-check`.
+- Trigger.dev is used by `@mr/jobs` for `dummy.health-check` and `video.render`.
 
 ## Homelab Setup
 
@@ -49,12 +49,48 @@ pnpm jobs:deploy
 pnpm jobs:dummy "hello from deployed trigger"
 ```
 
+## Run Video Render Task
+
+The `video.render` task receives a template id and input props, renders with the
+existing Remotion pipeline, uploads the result to S3/R2, and returns the public
+URL. It does not create or update database rows.
+
+Trigger.dev infrastructure must have the same storage variables as the video
+worker:
+
+```sh
+S3_ENDPOINT=
+S3_REGION=
+S3_BUCKET=
+S3_ACCESS_KEY_ID=
+S3_SECRET_ACCESS_KEY=
+S3_PUBLIC_BASE_URL=
+S3_FORCE_PATH_STYLE=
+S3_APPLY_PUBLIC_READ_POLICY=
+```
+
+Run locally through `jobs:dev`:
+
+```sh
+pnpm jobs:dev
+pnpm jobs:video countdown '{}'
+```
+
+For deployed tasks:
+
+```sh
+pnpm jobs:deploy
+pnpm jobs:video countdown '{}'
+```
+
 ## Verification
 
 - Trigger.dev dashboard shows a `dummy.health-check` run.
+- Trigger.dev dashboard shows a `video.render` run when using `jobs:video`.
 - Run status is successful.
 - Logs include `Dummy Trigger.dev health check ran`.
-- Output contains `ok: true`, the received message, and an ISO timestamp.
+- Dummy output contains `ok: true`, the received message, and an ISO timestamp.
+- Video output contains `publicPath` pointing at the uploaded S3/R2 object.
 - Existing worker commands remain valid:
 
   ```sh
