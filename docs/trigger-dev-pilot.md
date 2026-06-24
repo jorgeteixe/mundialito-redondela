@@ -52,8 +52,9 @@ pnpm jobs:dummy "hello from deployed trigger"
 ## Run Video Render Task
 
 The `video.render` task receives a template id and input props, renders with the
-existing Remotion pipeline, uploads the result to S3/R2, and returns the public
-URL. It does not create or update database rows.
+existing Remotion pipeline, uploads the result to S3/R2, deletes the temporary
+local file, and returns the public URL. It does not create or update database
+rows.
 
 Trigger.dev infrastructure must have the same storage variables as the video
 worker:

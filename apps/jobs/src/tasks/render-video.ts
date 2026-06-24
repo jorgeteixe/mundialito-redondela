@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { rm } from "node:fs/promises";
 import { logger, task } from "@trigger.dev/sdk";
 import { getVideoWorkerConfig } from "@mr/video-worker/config";
 import { renderVideoGenerationJob } from "@mr/video-worker/render";
@@ -34,6 +35,8 @@ export const renderVideo = task({
       storage: config.storage,
     });
 
+    await rm(result.outputLocation, { force: true });
+
     logger.info("Trigger.dev video render uploaded", {
       renderId,
       publicPath: result.publicPath,
@@ -43,7 +46,6 @@ export const renderVideo = task({
       id: renderId,
       templateId: payload.templateId,
       publicPath: result.publicPath,
-      outputLocation: result.outputLocation,
     };
   },
 });

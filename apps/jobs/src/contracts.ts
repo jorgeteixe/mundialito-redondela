@@ -21,5 +21,4 @@ export type RenderVideoOutput = {
   id: string;
   templateId: string;
   publicPath: string;
-  outputLocation: string;
 };
