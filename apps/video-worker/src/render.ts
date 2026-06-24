@@ -96,13 +96,19 @@ async function getServeUrl() {
     entryPoint: getRemotionPaths().entryPoint,
     webpackOverride: (currentConfig) => {
       const config = enableTailwind(currentConfig);
+      const uiSrc = getRemotionPaths().uiSrc;
       return {
         ...config,
         resolve: {
           ...config.resolve,
           alias: {
             ...config.resolve?.alias,
-            "@": getRemotionPaths().uiSrc,
+            // Resolve the bare "@mr/ui" specifier to the shipped source. Locally
+            // this is satisfied by the workspace node_modules symlink, but the
+            // deployed image has no such symlink, so alias it explicitly.
+            "@mr/ui$": path.resolve(uiSrc, "index.ts"),
+            // The UI package's internal "@/..." imports.
+            "@": uiSrc,
           },
         },
       };
