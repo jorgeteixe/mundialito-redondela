@@ -402,15 +402,22 @@ export function PublicationForm({
 
         {/* Publication: the text and when it goes out. */}
         <Section title="Publicación" description="Texto y programación.">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="caption">Texto</Label>
-            <Textarea
-              id="caption"
-              name="caption"
-              rows={4}
-              placeholder="Escribe el pie de la publicación..."
-            />
-          </div>
+          {/* Stories don't carry a caption, so the text field is feed-only. */}
+          {postType === "story" ? (
+            <p className="text-xs text-muted-foreground">
+              Las stories no admiten texto.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="caption">Texto</Label>
+              <Textarea
+                id="caption"
+                name="caption"
+                rows={4}
+                placeholder="Escribe el pie de la publicación..."
+              />
+            </div>
+          )}
 
           <div className="flex flex-col gap-2">
             <Label>Cuándo</Label>
