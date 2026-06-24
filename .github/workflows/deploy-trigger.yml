@@ -21,6 +21,10 @@ jobs:
     env:
       TRIGGER_API_URL: ${{ vars.TRIGGER_API_URL }}
       TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
+      # Push the deploy image to ghcr using the built-in token (no PAT needed).
+      # The Trigger CLI uses these directly and skips webapp-generated registry creds.
+      TRIGGER_DOCKER_USERNAME: ${{ github.actor }}
+      TRIGGER_DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout
@@ -39,13 +43,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy Trigger.dev jobs
         run: pnpm --filter @mr/jobs run deploy -- --local-build --skip-update-check
