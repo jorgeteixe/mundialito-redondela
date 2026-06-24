@@ -8,6 +8,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "seed-admin": "tsx src/seed-admin.ts",
+    "seed": "tsx src/seed.ts",
+    "reset-db": "tsx src/reset-db.ts",
     "verify-social-publish": "tsx src/verify-social-publish.ts"
   },
   "dependencies": {
@@ -17,7 +19,8 @@
     "@mr/video-worker": "workspace:*",
     "better-auth": "^1.2.12",
     "dotenv": "^17.4.2",
-    "drizzle-orm": "^0.45.2"
+    "drizzle-orm": "^0.45.2",
+    "postgres": "^3.4.5"
   },
   "devDependencies": {
     "@mr/eslint-config": "workspace:*",

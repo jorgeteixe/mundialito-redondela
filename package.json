@@ -12,6 +12,8 @@
     "test:visual": "turbo run test:visual",
     "storybook": "turbo run storybook",
     "build-storybook": "turbo run build-storybook",
+    "reset-db": "pnpm --filter @mr/tools reset-db",
+    "seed": "pnpm --filter @mr/tools seed",
     "video:worker": "turbo run worker --filter @mr/video-worker",
     "social:worker": "turbo run worker --filter @mr/social-worker",
     "prepare": "husky",
