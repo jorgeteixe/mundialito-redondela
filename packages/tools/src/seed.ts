@@ -128,11 +128,15 @@ function slotDate(dayIndex: number, slotIndex: number): Date {
   return date;
 }
 
-export async function seed(db: typeof DbType) {
-  const schema = await import("@mr/db/schema");
+type Category = "senior" | "cadet";
 
-  console.log("Seeding tournament data…");
+const CATEGORIES: Category[] = ["senior", "cadet"];
 
+async function seedCategory(
+  db: typeof DbType,
+  schema: typeof import("@mr/db/schema"),
+  category: Category,
+) {
   const groupCount = Math.ceil(TEAM_COUNT / TEAMS_PER_GROUP);
 
   // Groups
@@ -142,7 +146,7 @@ export async function seed(db: typeof DbType) {
       Array.from({ length: groupCount }, (_, i) => ({
         name: `Grupo ${groupLabel(i)}`,
         avatarLabel: groupLabel(i),
-        category: "senior" as const,
+        category,
       })),
     )
     .returning();
@@ -153,7 +157,7 @@ export async function seed(db: typeof DbType) {
     .values(
       Array.from({ length: TEAM_COUNT }, (_, i) => ({
         name: TEAM_NAMES[i] ?? `Equipo ${i + 1}`,
-        category: "senior" as const,
+        category,
         groupId: groupRows[i % groupCount]!.id,
       })),
     )
@@ -229,9 +233,19 @@ export async function seed(db: typeof DbType) {
   await db.insert(schema.match).values(matchValues);
 
   console.log(
-    `Seeded ${groupRows.length} groups, ${teamRows.length} teams, ` +
+    `  ${category}: ${groupRows.length} groups, ${teamRows.length} teams, ` +
       `${teamRows.length * PLAYERS_PER_TEAM} players, ${matchValues.length} matches.`,
   );
+}
+
+export async function seed(db: typeof DbType) {
+  const schema = await import("@mr/db/schema");
+
+  console.log("Seeding tournament data…");
+
+  for (const category of CATEGORIES) {
+    await seedCategory(db, schema, category);
+  }
 }
 
 // Run standalone: `tsx src/seed.ts`
