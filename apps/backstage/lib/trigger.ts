@@ -51,10 +51,7 @@ async function triggerTask(taskId: string, payload: unknown) {
         "x-trigger-source": "backstage",
       },
       body: JSON.stringify({
-        payload: JSON.stringify(payload),
-        options: {
-          payloadType: "application/json",
-        },
+        payload,
       }),
     },
   );
