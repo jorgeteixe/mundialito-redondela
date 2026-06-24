@@ -18,7 +18,7 @@
     "social:worker": "turbo run worker --filter @mr/social-worker",
     "jobs:dev": "turbo run dev --filter @mr/jobs",
     "jobs:deploy": "turbo run deploy --filter @mr/jobs",
-    "jobs:video": "pnpm --filter @mr/jobs trigger:video",
+    "jobs:media": "pnpm --filter @mr/jobs trigger:media",
     "prepare": "husky",
     "screenshot:storybook": "turbo run screenshot:storybook"
   },

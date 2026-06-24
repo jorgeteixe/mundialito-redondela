@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { configure } from "@trigger.dev/sdk";
 import { config as loadEnv } from "dotenv";
-import { renderVideo } from "./tasks/render-video";
+import { renderMedia } from "./tasks/render-media";
 
 loadEnv({ path: ["../../.env.local", "../../.env"] });
 
@@ -26,7 +26,7 @@ const [templateId, rawInputProps] = process.argv.slice(2);
 
 if (!templateId) {
   throw new Error(
-    'Usage: pnpm jobs:video <templateId> \'{"title":"Example"}\'',
+    'Usage: pnpm jobs:media <templateId> \'{"title":"Example"}\'',
   );
 }
 
@@ -34,7 +34,7 @@ const inputProps = rawInputProps
   ? (JSON.parse(rawInputProps) as Record<string, unknown>)
   : {};
 
-const handle = await renderVideo.trigger({
+const handle = await renderMedia.trigger({
   id: randomUUID(),
   templateId,
   inputProps,

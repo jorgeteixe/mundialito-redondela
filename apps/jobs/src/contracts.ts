@@ -1,13 +1,14 @@
-export const RENDER_VIDEO_TASK_ID = "video.render";
+export const RENDER_MEDIA_TASK_ID = "media.render";
 
-export type RenderVideoPayload = {
+export type RenderMediaPayload = {
   id?: string;
   templateId: string;
   inputProps: Record<string, unknown>;
 };
 
-export type RenderVideoOutput = {
+export type RenderMediaOutput = {
   id: string;
   templateId: string;
+  kind: "video" | "image";
   publicPath: string;
 };

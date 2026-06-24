@@ -8,7 +8,7 @@ PostgreSQL-backed workers.
 - Existing `@mr/video-worker` and `@mr/social-worker` keep running as before.
 - No database schema changes.
 - No Backstage UI changes.
-- Trigger.dev is used by `@mr/jobs` for `video.render`.
+- Trigger.dev is used by `@mr/jobs` for `media.render`.
 
 ## Homelab Setup
 
@@ -38,12 +38,12 @@ Required GitHub settings:
 - Repository secret: `TRIGGER_ACCESS_TOKEN`
 - Repository variable: `TRIGGER_API_URL`
 
-## Run Video Render Task
+## Run Media Render Task
 
-The `video.render` task receives a template id and input props, renders with the
-existing Remotion pipeline, uploads the result to S3/R2, deletes the temporary
-local file, and returns the public URL. It does not create or update database
-rows.
+The `media.render` task receives a template id and input props, derives the media
+kind from the template registry, renders with the existing Remotion pipeline,
+uploads the result to S3/R2, deletes the temporary local file, and returns the
+public URL. It does not create or update database rows.
 
 Trigger.dev infrastructure must have the same storage variables as the video
 worker:
@@ -63,21 +63,24 @@ Run locally through `jobs:dev`:
 
 ```sh
 pnpm jobs:dev
-pnpm jobs:video countdown '{}'
+pnpm jobs:media countdown '{"daysLeft":7}'
+pnpm jobs:media countdown-post '{"daysLeft":7}'
 ```
 
 For deployed tasks:
 
 ```sh
 pnpm jobs:deploy
-pnpm jobs:video countdown '{}'
+pnpm jobs:media countdown '{"daysLeft":7}'
+pnpm jobs:media countdown-post '{"daysLeft":7}'
 ```
 
 ## Verification
 
-- Trigger.dev dashboard shows a `video.render` run when using `jobs:video`.
+- Trigger.dev dashboard shows a `media.render` run when using `jobs:media`.
 - Run status is successful.
-- Video output contains `publicPath` pointing at the uploaded S3/R2 object.
+- Media output contains `kind` and `publicPath` pointing at the uploaded S3/R2
+  object.
 - Existing worker commands remain valid:
 
   ```sh

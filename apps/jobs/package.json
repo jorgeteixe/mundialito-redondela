@@ -8,9 +8,10 @@
     "deploy": "tsx src/trigger-cli.ts deploy",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "trigger:video": "tsx src/trigger-video.ts"
+    "trigger:media": "tsx src/trigger-media.ts"
   },
   "dependencies": {
+    "@mr/remotion": "workspace:*",
     "@mr/video-worker": "workspace:*",
     "@trigger.dev/sdk": "4.4.6",
     "dotenv": "^17.4.2"

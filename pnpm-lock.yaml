@@ -114,6 +114,9 @@ importers:
 
   apps/jobs:
     dependencies:
+      '@mr/remotion':
+        specifier: workspace:*
+        version: link:../../packages/remotion
       '@mr/video-worker':
         specifier: workspace:*
         version: link:../video-worker
