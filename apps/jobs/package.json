@@ -8,7 +8,6 @@
     "deploy": "tsx src/trigger-cli.ts deploy",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "trigger:dummy": "tsx src/trigger-dummy.ts",
     "trigger:video": "tsx src/trigger-video.ts"
   },
   "dependencies": {

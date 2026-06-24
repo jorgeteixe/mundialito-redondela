@@ -8,7 +8,7 @@ PostgreSQL-backed workers.
 - Existing `@mr/video-worker` and `@mr/social-worker` keep running as before.
 - No database schema changes.
 - No Backstage UI changes.
-- Trigger.dev is used by `@mr/jobs` for `dummy.health-check` and `video.render`.
+- Trigger.dev is used by `@mr/jobs` for `video.render`.
 
 ## Homelab Setup
 
@@ -28,26 +28,15 @@ PostgreSQL-backed workers.
    npx trigger.dev@latest init -p proj_glhthldaniregplmysfd -a https://trigger.teixe.es
    ```
 
-## Run Dummy Task
+## GitHub Deployment
 
-During local development:
+`.github/workflows/deploy-trigger.yml` deploys `@mr/jobs` on pushes to `main`
+and from manual `workflow_dispatch`.
 
-```sh
-pnpm jobs:dev
-```
+Required GitHub settings:
 
-From another shell:
-
-```sh
-pnpm jobs:dummy "hello from mundialito"
-```
-
-For deployed tasks:
-
-```sh
-pnpm jobs:deploy
-pnpm jobs:dummy "hello from deployed trigger"
-```
+- Repository secret: `TRIGGER_ACCESS_TOKEN`
+- Repository variable: `TRIGGER_API_URL`
 
 ## Run Video Render Task
 
@@ -86,11 +75,8 @@ pnpm jobs:video countdown '{}'
 
 ## Verification
 
-- Trigger.dev dashboard shows a `dummy.health-check` run.
 - Trigger.dev dashboard shows a `video.render` run when using `jobs:video`.
 - Run status is successful.
-- Logs include `Dummy Trigger.dev health check ran`.
-- Dummy output contains `ok: true`, the received message, and an ISO timestamp.
 - Video output contains `publicPath` pointing at the uploaded S3/R2 object.
 - Existing worker commands remain valid:
 
