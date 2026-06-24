@@ -2,10 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, gt, inArray, isNull, lt, ne } from "drizzle-orm";
 import { db, schema } from "@mr/db";
 import { requireAdminWrite } from "@/lib/authz";
 import { isCategory } from "@/lib/category";
+import { conflictWindow } from "@/lib/match-schedule";
 
 const { match, team, tournamentGroup } = schema;
 const tournamentTimeZone = "Europe/Madrid";
@@ -355,6 +356,33 @@ export async function removeTeamFromGroup(formData: FormData) {
   revalidatePath(TEAMS_PATH, "page");
 }
 
+// The tournament runs on a single shared field, so a new match conflicts with
+// any existing match (either category) whose 30-minute slot overlaps.
+async function hasScheduleConflict(scheduledAt: Date, excludeMatchId?: string) {
+  const { start, end } = conflictWindow(scheduledAt);
+  const conflicts = await db
+    .select({ id: match.id })
+    .from(match)
+    .where(
+      and(
+        gt(match.scheduledAt, start),
+        lt(match.scheduledAt, end),
+        excludeMatchId ? ne(match.id, excludeMatchId) : undefined,
+      ),
+    )
+    .limit(1);
+
+  return conflicts.length > 0;
+}
+
+const SCHEDULE_CONFLICT_STATE: FormState = {
+  status: "error",
+  message: "Ya hay un partido programado en ese horario.",
+  fieldErrors: {
+    scheduledAt: "El campo está ocupado a esa hora.",
+  },
+};
+
 export async function createGroupMatch(
   _state: FormState,
   formData: FormData,
@@ -418,6 +446,10 @@ export async function createGroupMatch(
         awayTeamId: "El equipo debe pertenecer al grupo.",
       },
     };
+  }
+
+  if (await hasScheduleConflict(scheduledAt)) {
+    return SCHEDULE_CONFLICT_STATE;
   }
 
   await db.insert(match).values({
@@ -496,6 +528,10 @@ export async function updateGroupMatch(
         awayTeamId: "El equipo debe pertenecer al grupo.",
       },
     };
+  }
+
+  if (await hasScheduleConflict(scheduledAt, id)) {
+    return SCHEDULE_CONFLICT_STATE;
   }
 
   const [updatedMatch] = await db

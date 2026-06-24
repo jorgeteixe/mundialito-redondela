@@ -21,9 +21,15 @@ const TEAM_COUNT = 25;
 const TEAMS_PER_GROUP = 5;
 const PLAYERS_PER_TEAM = 8;
 const DAYS_FROM_NOW = 2; // first match day = today + this
-const FIRST_SLOT_HOUR = 20; // 20:00
-const LAST_SLOT_HOUR = 23; // last match of the day starts at 23:00
-const SLOT_MINUTES = 30; // a match every 30 minutes
+const SLOT_MINUTES = 30; // every match lasts 30 minutes
+
+// The two categories share one field across the evening: cadet plays the early
+// window, senior the late one. Windows are disjoint so matches never collide.
+type CategoryWindow = { startHour: number; startMinute: number; slots: number };
+const CATEGORY_WINDOWS: Record<Category, CategoryWindow> = {
+  cadet: { startHour: 18, startMinute: 30, slots: 4 }, // 18:30 → 20:30
+  senior: { startHour: 20, startMinute: 30, slots: 7 }, // 20:30 → 24:00
+};
 
 const TEAM_NAMES = [
   "Atlético Redondela",
@@ -91,8 +97,15 @@ function groupLabel(index: number): string {
   return String.fromCharCode(65 + index); // A, B, C, ...
 }
 
-const SLOTS_PER_DAY =
-  Math.floor(((LAST_SLOT_HOUR - FIRST_SLOT_HOUR) * 60) / SLOT_MINUTES) + 1;
+/** Fisher-Yates shuffle (in place on a copy) for non-deterministic seed order. */
+function shuffle<T>(items: T[]): T[] {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j]!, result[i]!];
+  }
+  return result;
+}
 
 /**
  * Round-robin via the circle method: returns rounds, each round a list of
@@ -120,11 +133,20 @@ function roundRobinRounds<T>(teams: T[]): Array<Array<[T, T]>> {
   return rounds;
 }
 
-/** scheduledAt for a given day index and slot index within that day. */
-function slotDate(dayIndex: number, slotIndex: number): Date {
+/** scheduledAt for a given day index and slot within a category's window. */
+function slotDate(
+  dayIndex: number,
+  slotIndex: number,
+  window: CategoryWindow,
+): Date {
   const date = new Date();
   date.setDate(date.getDate() + DAYS_FROM_NOW + dayIndex);
-  date.setHours(FIRST_SLOT_HOUR, slotIndex * SLOT_MINUTES, 0, 0);
+  date.setHours(
+    window.startHour,
+    window.startMinute + slotIndex * SLOT_MINUTES,
+    0,
+    0,
+  );
   return date;
 }
 
@@ -195,8 +217,10 @@ async function seedCategory(
     }
   }
 
-  // Greedily pack matches into days: each day holds up to SLOTS_PER_DAY
-  // matches and no team plays twice on the same day.
+  // Greedily pack matches into days within this category's field window: each
+  // day holds up to `window.slots` matches and no team plays twice on the same
+  // day. Shuffle first so slot order is randomized (group A isn't always first).
+  const window = CATEGORY_WINDOWS[category];
   const matchValues: Array<{
     groupId: string;
     homeTeamId: string;
@@ -204,7 +228,7 @@ async function seedCategory(
     scheduledAt: Date;
   }> = [];
 
-  let remaining = pending;
+  let remaining = shuffle(pending);
   let dayIndex = 0;
   while (remaining.length > 0) {
     const playedToday = new Set<string>();
@@ -213,11 +237,14 @@ async function seedCategory(
 
     for (const m of remaining) {
       if (
-        slot < SLOTS_PER_DAY &&
+        slot < window.slots &&
         !playedToday.has(m.homeTeamId) &&
         !playedToday.has(m.awayTeamId)
       ) {
-        matchValues.push({ ...m, scheduledAt: slotDate(dayIndex, slot) });
+        matchValues.push({
+          ...m,
+          scheduledAt: slotDate(dayIndex, slot, window),
+        });
         playedToday.add(m.homeTeamId);
         playedToday.add(m.awayTeamId);
         slot++;

@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  CalendarDays,
+  CalendarRange,
   Clapperboard,
   Image as ImageIcon,
   LogOut,
@@ -38,10 +40,12 @@ const scopedSections: { label: string; category: Category }[] = [
 const scopedItems = [
   { title: "Equipos", path: "teams", icon: Users },
   { title: "Grupos", path: "groups", icon: Trophy },
+  { title: "Calendario", path: "calendario", icon: CalendarDays },
 ];
 
 // Items that apply across all categories.
 const generalNavItems = [
+  { title: "Calendario", url: "/calendario", icon: CalendarRange },
   { title: "Vídeos", url: "/videos", icon: Clapperboard },
   { title: "Imágenes", url: "/images", icon: ImageIcon },
   { title: "Publicaciones", url: "/publicaciones", icon: Send },

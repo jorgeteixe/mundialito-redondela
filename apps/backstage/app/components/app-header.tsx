@@ -22,6 +22,7 @@ const segmentLabels: Record<string, string> = {
   cadet: "Cadete",
   teams: "Equipos",
   groups: "Grupos",
+  calendario: "Calendario",
   videos: "Vídeos",
   images: "Imágenes",
   publicaciones: "Publicaciones",

@@ -109,6 +109,7 @@ Any file printed that genuinely uses those client APIs needs `"use client"` adde
 - Keep Storybook screenshots updated by running `pnpm test:visual` when shared UI components or stories are modified.
 - Every new feature must include appropriate tests and be verified with the matching test command before handoff.
 - For backstage UI/auth workflows, add or update Playwright E2E coverage when behavior crosses route, auth, API, or DB boundaries.
+- When adding a backstage route segment, add its label to `segmentLabels` (and `entityEndpoints` if it has UUID detail pages) in `apps/backstage/app/components/app-header.tsx` — otherwise the breadcrumb shows the raw slug.
 - Follow `docs/testing-strategy.md` for test type, location, and verification command selection.
 
 ## Communication Style

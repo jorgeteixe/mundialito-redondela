@@ -30,6 +30,15 @@ export {
   type TournamentMatch,
   type TournamentTeam,
 } from "./components/tournament";
+export {
+  ScheduleTable,
+  ScheduleTableSkeleton,
+  type ScheduleDay,
+  type ScheduleGroup,
+  type ScheduleMatch,
+  type ScheduleTableProps,
+  type ScheduleTableSkeletonProps,
+} from "./components/schedule-table";
 
 // shadcn primitives — src/ui/* — never edit manually
 export { Button, buttonVariants } from "./ui/button";
