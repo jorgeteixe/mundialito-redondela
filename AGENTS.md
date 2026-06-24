@@ -29,9 +29,13 @@
 - Visual tests: `pnpm test:visual`
 - Format: `pnpm format`
 - Storybook screenshots: `pnpm screenshot:storybook` (saves screenshots in `packages/ui/artifacts/storybook/`)
-- DB generate migrations: `pnpm --filter @mr/db db:generate`
-- DB run migrations: `pnpm --filter @mr/db db:migrate`
-- Seed admin user: `pnpm --filter @mr/tools seed-admin`
+- DB generate migrations: `pnpm db:generate`
+- DB run migrations: `pnpm db:migrate`
+- DB push schema (no migration file): `pnpm db:push`
+- DB studio: `pnpm db:studio`
+- DB reset (drop + migrate + seed): `pnpm db:reset`
+- Seed sample data: `pnpm db:seed`
+- Seed admin user: `pnpm db:seed-admin`
 - Run Trigger dev worker: `pnpm jobs:dev`
 - Deploy Trigger jobs: `pnpm jobs:deploy`
 

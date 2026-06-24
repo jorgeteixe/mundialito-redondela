@@ -87,21 +87,11 @@ Postiz post id; the channel goes out shortly after. `post_type` per platform:
 | Story image     | ✅ `story`              | ✅ `story`             |
 | Story video     | ✅ `story`              | ✅ `story`             |
 
-## Verification command (publishes real posts)
-
-`pnpm --filter @mr/tools verify-social-publish` runs the full chain end to end —
-renders a real image + video, uploads to R2, creates one publication per post
-type, and publishes through Postiz. It
-**publishes real posts** and is intentionally excluded from `pnpm test`.
-
-It prompts for confirmation; in non-interactive shells set `CONFIRM_PUBLISH=PUBLISH`.
-Requires the DB, R2, and `POSTIZ_API_KEY` set in root `.env`.
-
 ## Local workflow
 
 1. Copy `.env.example` to `.env` and set remote `DATABASE_URL`, Trigger, Postiz,
    and S3 variables.
-2. `pnpm --filter @mr/db db:migrate`.
+2. `pnpm db:migrate`.
 3. Set the same variables in your Trigger.dev environment.
 4. `pnpm --filter @mr/backstage dev`.
 5. `pnpm jobs:dev`.

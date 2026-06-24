@@ -25,7 +25,7 @@ Trigger.dev as the executor.
 2. Run migrations against the configured database:
 
    ```sh
-   pnpm --filter @mr/db db:migrate
+   pnpm db:migrate
    ```
 
 3. Start Backstage:

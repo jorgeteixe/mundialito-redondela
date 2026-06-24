@@ -28,10 +28,16 @@ DATABASE_URL=
 
 ```sh
 # After editing a schema file, generate a new migration
-pnpm --filter @mr/db db:generate
+pnpm db:generate
 
 # Apply pending migrations
-pnpm --filter @mr/db db:migrate
+pnpm db:migrate
+
+# Push schema directly without a migration file (prototyping only)
+pnpm db:push
+
+# Open Drizzle Studio
+pnpm db:studio
 ```
 
 Migrations run against `DATABASE_URL` from the shell or root `.env`.
@@ -40,8 +46,8 @@ Migrations run against `DATABASE_URL` from the shell or root `.env`.
 
 1. Create `packages/db/src/schema/<domain>.ts` with Drizzle table definitions.
 2. Export from `packages/db/src/schema/index.ts`.
-3. Run `pnpm --filter @mr/db db:generate` to generate the migration.
-4. Run `pnpm --filter @mr/db db:migrate` to apply.
+3. Run `pnpm db:generate` to generate the migration.
+4. Run `pnpm db:migrate` to apply.
 
 ## Test database
 
