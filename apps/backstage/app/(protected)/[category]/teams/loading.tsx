@@ -27,10 +27,7 @@ export default function TeamsLoading() {
                 <Skeleton className="size-8 rounded-full" />
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
                   <Skeleton className="h-4 w-36" />
-                  <div className="flex items-center gap-2">
-                    <Skeleton className="h-5 w-16" />
-                    <Skeleton className="h-4 w-20" />
-                  </div>
+                  <Skeleton className="h-4 w-20" />
                 </div>
                 <Skeleton className="size-7" />
               </div>
@@ -47,7 +44,6 @@ export default function TeamsLoading() {
           <TableHeader>
             <TableRow>
               <TableHead>Equipo</TableHead>
-              <TableHead>Categoría</TableHead>
               <TableHead>Jugadores</TableHead>
               <TableHead className="w-12">
                 <span className="sr-only">Acciones</span>
@@ -62,9 +58,6 @@ export default function TeamsLoading() {
                     <Skeleton className="size-8 rounded-full" />
                     <Skeleton className="h-4 w-40" />
                   </div>
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-5 w-16" />
                 </TableCell>
                 <TableCell>
                   <Skeleton className="h-4 w-8" />

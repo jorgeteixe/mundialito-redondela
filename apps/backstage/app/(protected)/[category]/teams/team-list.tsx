@@ -16,7 +16,6 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-  Badge,
   Button,
   Card,
   CardAction,
@@ -44,16 +43,18 @@ import {
   TableRow,
 } from "@mr/ui";
 import { deleteTeam } from "./actions";
-import { categoryLabel, initials, teamAvatarUrl } from "./avatar-utils";
+import { initials, teamAvatarUrl } from "./avatar-utils";
 import type { TeamSummary } from "./data";
 import { TeamForm } from "./team-form";
+import type { Category } from "@/lib/category";
 
 type TeamsListProps = {
   teams: TeamSummary[];
+  category: Category;
   canWrite: boolean;
 };
 
-export function TeamsList({ teams, canWrite }: TeamsListProps) {
+export function TeamsList({ teams, category, canWrite }: TeamsListProps) {
   const [search, setSearch] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -61,12 +62,7 @@ export function TeamsList({ teams, canWrite }: TeamsListProps) {
     const query = search.trim().toLowerCase();
     if (!query) return teams;
 
-    return teams.filter((team) => {
-      return (
-        team.name.toLowerCase().includes(query) ||
-        categoryLabel(team.category).toLowerCase().includes(query)
-      );
-    });
+    return teams.filter((team) => team.name.toLowerCase().includes(query));
   }, [search, teams]);
 
   const isSearching = search.trim().length > 0;
@@ -95,6 +91,7 @@ export function TeamsList({ teams, canWrite }: TeamsListProps) {
               <div className="px-4">
                 <TeamForm
                   mode="create"
+                  category={category}
                   onSuccess={() => setCreateOpen(false)}
                 />
               </div>
@@ -129,7 +126,12 @@ export function TeamsList({ teams, canWrite }: TeamsListProps) {
     >
       <div className="flex flex-col gap-3 md:hidden">
         {filteredTeams.map((team) => (
-          <TeamCard key={team.id} team={team} canWrite={canWrite} />
+          <TeamCard
+            key={team.id}
+            team={team}
+            category={category}
+            canWrite={canWrite}
+          />
         ))}
       </div>
       <div className="hidden rounded-none border md:block">
@@ -137,7 +139,6 @@ export function TeamsList({ teams, canWrite }: TeamsListProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Equipo</TableHead>
-              <TableHead>Categoría</TableHead>
               <TableHead>Jugadores</TableHead>
               {canWrite ? (
                 <TableHead className="w-12">
@@ -151,22 +152,17 @@ export function TeamsList({ teams, canWrite }: TeamsListProps) {
               <TableRow key={team.id}>
                 <TableCell>
                   <Link
-                    href={`/teams/${team.id}`}
+                    href={`/${category}/teams/${team.id}`}
                     className="inline-flex max-w-full min-w-0 items-center gap-3 font-medium hover:underline"
                   >
                     <TeamAvatar team={team} />
                     <span className="truncate">{team.name}</span>
                   </Link>
                 </TableCell>
-                <TableCell>
-                  <Badge variant="secondary">
-                    {categoryLabel(team.category)}
-                  </Badge>
-                </TableCell>
                 <TableCell>{team.playerCount}</TableCell>
                 {canWrite ? (
                   <TableCell>
-                    <TeamActions team={team} />
+                    <TeamActions team={team} category={category} />
                   </TableCell>
                 ) : null}
               </TableRow>
@@ -180,9 +176,11 @@ export function TeamsList({ teams, canWrite }: TeamsListProps) {
 
 function TeamCard({
   team,
+  category,
   canWrite,
 }: {
   team: TeamSummary;
+  category: Category;
   canWrite: boolean;
 }) {
   return (
@@ -190,26 +188,27 @@ function TeamCard({
       <CardHeader>
         <CardTitle>
           <Link
-            href={`/teams/${team.id}`}
+            href={`/${category}/teams/${team.id}`}
             className="flex min-w-0 items-center gap-3 hover:underline"
           >
             <TeamAvatar team={team} />
             <span className="truncate">{team.name}</span>
           </Link>
         </CardTitle>
-        <CardDescription className="flex items-center gap-2">
-          <Badge variant="secondary">{categoryLabel(team.category)}</Badge>
+        <CardDescription>
           <span>{team.playerCount} jugadores</span>
         </CardDescription>
         {canWrite ? (
           <CardAction>
-            <TeamActions team={team} />
+            <TeamActions team={team} category={category} />
           </CardAction>
         ) : null}
       </CardHeader>
       <CardContent>
         <Button asChild variant="outline" size="sm" className="w-full">
-          <Link href={`/teams/${team.id}`}>Gestionar plantilla</Link>
+          <Link href={`/${category}/teams/${team.id}`}>
+            Gestionar plantilla
+          </Link>
         </Button>
       </CardContent>
     </Card>
@@ -228,7 +227,13 @@ function TeamAvatar({ team }: { team: TeamSummary }) {
   );
 }
 
-function TeamActions({ team }: { team: TeamSummary }) {
+function TeamActions({
+  team,
+  category,
+}: {
+  team: TeamSummary;
+  category: Category;
+}) {
   const [editOpen, setEditOpen] = useState(false);
 
   return (
@@ -265,6 +270,7 @@ function TeamActions({ team }: { team: TeamSummary }) {
             <TeamForm
               mode="edit"
               team={team}
+              category={category}
               onSuccess={() => setEditOpen(false)}
             />
           </div>

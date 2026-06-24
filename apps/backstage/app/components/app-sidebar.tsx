@@ -18,6 +18,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -26,10 +27,21 @@ import {
   useSidebar,
 } from "@mr/ui";
 import { authClient } from "@/lib/auth-client";
+import type { Category } from "@/lib/category";
 
-const navItems = [
-  { title: "Equipos", url: "/teams", icon: Users },
-  { title: "Grupos", url: "/groups", icon: Trophy },
+// One section per category, each repeating the category-scoped items.
+const scopedSections: { label: string; category: Category }[] = [
+  { label: "Senior", category: "senior" },
+  { label: "Cadete", category: "cadet" },
+];
+
+const scopedItems = [
+  { title: "Equipos", path: "teams", icon: Users },
+  { title: "Grupos", path: "groups", icon: Trophy },
+];
+
+// Items that apply across all categories.
+const generalNavItems = [
   { title: "Vídeos", url: "/videos", icon: Clapperboard },
   { title: "Imágenes", url: "/images", icon: ImageIcon },
   { title: "Publicaciones", url: "/publicaciones", icon: Send },
@@ -43,6 +55,28 @@ export function AppSidebar({ canManageUsers }: { canManageUsers: boolean }) {
   async function handleSignOut() {
     await authClient.signOut();
     router.push("/login");
+  }
+
+  function renderItem(item: {
+    title: string;
+    url: string;
+    icon: typeof Users;
+  }) {
+    return (
+      <SidebarMenuItem key={item.url}>
+        <SidebarMenuButton
+          asChild
+          isActive={
+            pathname === item.url || pathname.startsWith(`${item.url}/`)
+          }
+        >
+          <Link href={item.url}>
+            <item.icon />
+            <span>{item.title}</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
   }
 
   return (
@@ -64,30 +98,32 @@ export function AppSidebar({ canManageUsers }: { canManageUsers: boolean }) {
         <span className="font-semibold text-sm">Backstage</span>
       </SidebarHeader>
       <SidebarContent>
+        {scopedSections.map((section) => (
+          <SidebarGroup key={section.category}>
+            <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {scopedItems
+                  .map((item) => ({
+                    title: item.title,
+                    url: `/${section.category}/${item.path}`,
+                    icon: item.icon,
+                  }))
+                  .map(renderItem)}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
         <SidebarGroup>
+          <SidebarGroupLabel>General</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {[
-                ...navItems,
+                ...generalNavItems,
                 ...(canManageUsers
                   ? [{ title: "Usuarios", url: "/users", icon: UserCog }]
                   : []),
-              ].map((item) => (
-                <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={
-                      pathname === item.url ||
-                      pathname.startsWith(`${item.url}/`)
-                    }
-                  >
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              ].map(renderItem)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

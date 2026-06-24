@@ -2,18 +2,9 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import {
-  Button,
-  Input,
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@mr/ui";
+import { Button, Input, Label } from "@mr/ui";
 import { createGroup, updateGroup, type FormState } from "./actions";
-import type { TeamCategory } from "../teams/data";
+import type { Category } from "@/lib/category";
 
 const initialFormState: FormState = { status: "idle" };
 
@@ -24,16 +15,21 @@ type GroupFormAction = (
 
 type GroupFormProps = {
   mode: "create" | "edit";
+  category: Category;
   group?: {
     id: string;
     name: string;
     avatarLabel: string;
-    category: TeamCategory;
   };
   onSuccess?: () => void;
 };
 
-export function GroupForm({ mode, group, onSuccess }: GroupFormProps) {
+export function GroupForm({
+  mode,
+  category,
+  group,
+  onSuccess,
+}: GroupFormProps) {
   const action: GroupFormAction = mode === "create" ? createGroup : updateGroup;
   const [state, formAction, pending] = useActionState(action, initialFormState);
   const handledStateRef = useRef<string | null>(null);
@@ -58,6 +54,7 @@ export function GroupForm({ mode, group, onSuccess }: GroupFormProps) {
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
+      <input type="hidden" name="category" value={category} />
       {group && <input type="hidden" name="id" value={group.id} />}
       <div className="flex flex-col gap-2">
         <Label htmlFor={`${mode}-group-name`}>Nombre del grupo</Label>
@@ -87,31 +84,6 @@ export function GroupForm({ mode, group, onSuccess }: GroupFormProps) {
         {state.fieldErrors?.avatarLabel && (
           <p className="text-xs text-destructive">
             {state.fieldErrors.avatarLabel}
-          </p>
-        )}
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor={`${mode}-group-category`}>Categoría</Label>
-        <Select
-          name="category"
-          defaultValue={group?.category ?? "senior"}
-          required
-        >
-          <SelectTrigger
-            id={`${mode}-group-category`}
-            className="w-full"
-            aria-invalid={Boolean(state.fieldErrors?.category)}
-          >
-            <SelectValue placeholder="Selecciona una categoría" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="senior">Senior</SelectItem>
-            <SelectItem value="cadet">Cadete</SelectItem>
-          </SelectContent>
-        </Select>
-        {state.fieldErrors?.category && (
-          <p className="text-xs text-destructive">
-            {state.fieldErrors.category}
           </p>
         )}
       </div>

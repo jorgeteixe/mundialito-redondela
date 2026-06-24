@@ -54,13 +54,19 @@ import {
 import { PlayerForm } from "../player-form";
 import { TeamForm } from "../team-form";
 import type { PlayerSummary, TeamDetail } from "../data";
+import type { Category } from "@/lib/category";
 
 type TeamDetailViewProps = {
   team: TeamDetail;
+  category: Category;
   canWrite: boolean;
 };
 
-export function TeamDetailView({ team, canWrite }: TeamDetailViewProps) {
+export function TeamDetailView({
+  team,
+  category,
+  canWrite,
+}: TeamDetailViewProps) {
   const [editTeamOpen, setEditTeamOpen] = useState(false);
   const [createPlayerOpen, setCreatePlayerOpen] = useState(false);
 
@@ -105,12 +111,13 @@ export function TeamDetailView({ team, canWrite }: TeamDetailViewProps) {
                     <TeamForm
                       mode="edit"
                       team={team}
+                      category={category}
                       onSuccess={() => setEditTeamOpen(false)}
                     />
                   </div>
                 </SheetContent>
               </Sheet>
-              <DeleteTeamButton team={team} />
+              <DeleteTeamButton team={team} category={category} />
             </div>
           ) : null}
         </div>
@@ -211,7 +218,13 @@ function SheetTriggerButton({
   );
 }
 
-function DeleteTeamButton({ team }: { team: TeamDetail }) {
+function DeleteTeamButton({
+  team,
+  category,
+}: {
+  team: TeamDetail;
+  category: Category;
+}) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -232,7 +245,11 @@ function DeleteTeamButton({ team }: { team: TeamDetail }) {
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <form action={deleteTeam}>
             <input type="hidden" name="id" value={team.id} />
-            <input type="hidden" name="redirectTo" value="/teams" />
+            <input
+              type="hidden"
+              name="redirectTo"
+              value={`/${category}/teams`}
+            />
             <AlertDialogAction type="submit" variant="destructive">
               Eliminar equipo
             </AlertDialogAction>

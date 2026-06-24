@@ -1,9 +1,10 @@
 import { asc, eq, sql } from "drizzle-orm";
 import { db, schema } from "@mr/db";
+import type { Category } from "@/lib/category";
 
 const { player, team } = schema;
 
-export type TeamCategory = "senior" | "cadet";
+export type TeamCategory = Category;
 
 export type TeamSummary = {
   id: string;
@@ -25,7 +26,7 @@ export type PlayerSummary = {
   teamId: string;
 };
 
-export async function listTeams(): Promise<TeamSummary[]> {
+export async function listTeams(category: Category): Promise<TeamSummary[]> {
   return db
     .select({
       id: team.id,
@@ -35,6 +36,7 @@ export async function listTeams(): Promise<TeamSummary[]> {
     })
     .from(team)
     .leftJoin(player, eq(player.teamId, team.id))
+    .where(eq(team.category, category))
     .groupBy(team.id)
     .orderBy(asc(team.name));
 }

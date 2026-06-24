@@ -15,7 +15,6 @@ import {
   AlertDialogTrigger,
   Avatar,
   AvatarFallback,
-  Badge,
   Button,
   Card,
   CardAction,
@@ -46,14 +45,15 @@ import { deleteGroup } from "./actions";
 import { groupAvatarStyle } from "./avatar-utils";
 import { GroupForm } from "./group-form";
 import type { GroupSummary } from "./data";
-import { categoryLabel } from "../teams/avatar-utils";
+import type { Category } from "@/lib/category";
 
 type GroupsListProps = {
   groups: GroupSummary[];
+  category: Category;
   canWrite: boolean;
 };
 
-export function GroupsList({ groups, canWrite }: GroupsListProps) {
+export function GroupsList({ groups, category, canWrite }: GroupsListProps) {
   const [search, setSearch] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -64,8 +64,7 @@ export function GroupsList({ groups, canWrite }: GroupsListProps) {
     return groups.filter(
       (group) =>
         group.name.toLowerCase().includes(query) ||
-        group.avatarLabel.toLowerCase().includes(query) ||
-        categoryLabel(group.category).toLowerCase().includes(query),
+        group.avatarLabel.toLowerCase().includes(query),
     );
   }, [groups, search]);
 
@@ -95,6 +94,7 @@ export function GroupsList({ groups, canWrite }: GroupsListProps) {
               <div className="px-4">
                 <GroupForm
                   mode="create"
+                  category={category}
                   onSuccess={() => setCreateOpen(false)}
                 />
               </div>
@@ -129,7 +129,12 @@ export function GroupsList({ groups, canWrite }: GroupsListProps) {
     >
       <div className="flex flex-col gap-3 md:hidden">
         {filteredGroups.map((group) => (
-          <GroupCard key={group.id} group={group} canWrite={canWrite} />
+          <GroupCard
+            key={group.id}
+            group={group}
+            category={category}
+            canWrite={canWrite}
+          />
         ))}
       </div>
       <div className="hidden rounded-none border md:block">
@@ -137,7 +142,6 @@ export function GroupsList({ groups, canWrite }: GroupsListProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Grupo</TableHead>
-              <TableHead>Categoría</TableHead>
               <TableHead>Equipos</TableHead>
               {canWrite ? (
                 <TableHead className="w-12">
@@ -151,22 +155,17 @@ export function GroupsList({ groups, canWrite }: GroupsListProps) {
               <TableRow key={group.id}>
                 <TableCell>
                   <Link
-                    href={`/groups/${group.id}`}
+                    href={`/${category}/groups/${group.id}`}
                     className="inline-flex max-w-full min-w-0 items-center gap-3 font-medium hover:underline"
                   >
                     <GroupAvatar group={group} />
                     <span className="truncate">{group.name}</span>
                   </Link>
                 </TableCell>
-                <TableCell>
-                  <Badge variant="secondary">
-                    {categoryLabel(group.category)}
-                  </Badge>
-                </TableCell>
                 <TableCell>{group.teamCount}</TableCell>
                 {canWrite ? (
                   <TableCell>
-                    <GroupActions group={group} />
+                    <GroupActions group={group} category={category} />
                   </TableCell>
                 ) : null}
               </TableRow>
@@ -180,9 +179,11 @@ export function GroupsList({ groups, canWrite }: GroupsListProps) {
 
 function GroupCard({
   group,
+  category,
   canWrite,
 }: {
   group: GroupSummary;
+  category: Category;
   canWrite: boolean;
 }) {
   return (
@@ -190,26 +191,27 @@ function GroupCard({
       <CardHeader>
         <CardTitle>
           <Link
-            href={`/groups/${group.id}`}
+            href={`/${category}/groups/${group.id}`}
             className="flex min-w-0 items-center gap-3 hover:underline"
           >
             <GroupAvatar group={group} />
             <span className="truncate">{group.name}</span>
           </Link>
         </CardTitle>
-        <CardDescription className="flex items-center gap-2">
-          <Badge variant="secondary">{categoryLabel(group.category)}</Badge>
+        <CardDescription>
           <span>{group.teamCount} equipos</span>
         </CardDescription>
         {canWrite ? (
           <CardAction>
-            <GroupActions group={group} />
+            <GroupActions group={group} category={category} />
           </CardAction>
         ) : null}
       </CardHeader>
       <CardContent>
         <Button asChild variant="outline" size="sm" className="w-full">
-          <Link href={`/groups/${group.id}`}>Gestionar equipos</Link>
+          <Link href={`/${category}/groups/${group.id}`}>
+            Gestionar equipos
+          </Link>
         </Button>
       </CardContent>
     </Card>
@@ -229,7 +231,13 @@ function GroupAvatar({ group }: { group: GroupSummary }) {
   );
 }
 
-function GroupActions({ group }: { group: GroupSummary }) {
+function GroupActions({
+  group,
+  category,
+}: {
+  group: GroupSummary;
+  category: Category;
+}) {
   const [editOpen, setEditOpen] = useState(false);
 
   return (
@@ -266,6 +274,7 @@ function GroupActions({ group }: { group: GroupSummary }) {
             <GroupForm
               mode="edit"
               group={group}
+              category={category}
               onSuccess={() => setEditOpen(false)}
             />
           </div>

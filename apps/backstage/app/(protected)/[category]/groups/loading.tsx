@@ -44,7 +44,6 @@ export default function GroupsLoading() {
           <TableHeader>
             <TableRow>
               <TableHead>Grupo</TableHead>
-              <TableHead>Categoría</TableHead>
               <TableHead>Equipos</TableHead>
               <TableHead className="w-12">
                 <span className="sr-only">Acciones</span>
@@ -59,9 +58,6 @@ export default function GroupsLoading() {
                     <Skeleton className="size-8 rounded-full" />
                     <Skeleton className="h-4 w-40" />
                   </div>
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-5 w-16" />
                 </TableCell>
                 <TableCell>
                   <Skeleton className="h-4 w-8" />

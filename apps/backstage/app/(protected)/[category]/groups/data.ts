@@ -38,7 +38,9 @@ export type GroupDetail = {
   matches: GroupMatchSummary[];
 };
 
-export async function listGroups(): Promise<GroupSummary[]> {
+export async function listGroups(
+  category: TeamCategory,
+): Promise<GroupSummary[]> {
   return db
     .select({
       id: tournamentGroup.id,
@@ -49,6 +51,7 @@ export async function listGroups(): Promise<GroupSummary[]> {
     })
     .from(tournamentGroup)
     .leftJoin(team, eq(team.groupId, tournamentGroup.id))
+    .where(eq(tournamentGroup.category, category))
     .groupBy(tournamentGroup.id)
     .orderBy(asc(tournamentGroup.name));
 }

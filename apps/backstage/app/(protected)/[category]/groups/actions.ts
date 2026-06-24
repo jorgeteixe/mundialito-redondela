@@ -5,10 +5,15 @@ import { redirect } from "next/navigation";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { db, schema } from "@mr/db";
 import { requireAdminWrite } from "@/lib/authz";
-import type { TeamCategory } from "../teams/data";
+import { isCategory } from "@/lib/category";
 
 const { match, team, tournamentGroup } = schema;
 const tournamentTimeZone = "Europe/Madrid";
+
+// Dynamic-segment revalidation across every category variant of these routes.
+const TEAMS_PATH = "/[category]/teams";
+const GROUPS_PATH = "/[category]/groups";
+const GROUP_DETAIL_PATH = "/[category]/groups/[groupId]";
 
 export type FormState = {
   status: "idle" | "success" | "error";
@@ -16,7 +21,6 @@ export type FormState = {
   fieldErrors?: {
     name?: string;
     avatarLabel?: string;
-    category?: string;
     groupId?: string;
     teamId?: string;
     homeTeamId?: string;
@@ -48,11 +52,6 @@ function validateName(formData: FormData) {
   }
 
   return { name };
-}
-
-function parseCategory(value: string): TeamCategory | null {
-  if (value === "senior" || value === "cadet") return value;
-  return null;
 }
 
 function validateAvatarLabel(formData: FormData) {
@@ -202,16 +201,15 @@ export async function createGroup(
 
   const nameResult = validateName(formData);
   const avatarResult = validateAvatarLabel(formData);
-  const category = parseCategory(readString(formData, "category"));
+  const category = readString(formData, "category");
 
-  if (nameResult.error || avatarResult.error || !category) {
+  if (nameResult.error || avatarResult.error || !isCategory(category)) {
     return {
       status: "error",
       message: "Revisa los campos marcados.",
       fieldErrors: {
         name: nameResult.error,
         avatarLabel: avatarResult.error,
-        category: category ? undefined : "Selecciona una categoría.",
       },
     };
   }
@@ -222,7 +220,7 @@ export async function createGroup(
     category,
   });
 
-  revalidatePath("/groups");
+  revalidatePath(GROUPS_PATH, "page");
   return { status: "success", message: "Grupo registrado." };
 }
 
@@ -235,42 +233,16 @@ export async function updateGroup(
   const id = readString(formData, "id");
   const nameResult = validateName(formData);
   const avatarResult = validateAvatarLabel(formData);
-  const category = parseCategory(readString(formData, "category"));
 
-  if (!id || nameResult.error || avatarResult.error || !category) {
+  if (!id || nameResult.error || avatarResult.error) {
     return {
       status: "error",
       message: "Revisa los campos marcados.",
       fieldErrors: {
         name: nameResult.error,
         avatarLabel: avatarResult.error,
-        category: category ? undefined : "Selecciona una categoría.",
       },
     };
-  }
-
-  const [currentGroup] = await db
-    .select({ category: tournamentGroup.category })
-    .from(tournamentGroup)
-    .where(eq(tournamentGroup.id, id))
-    .limit(1);
-
-  if (currentGroup?.category && currentGroup.category !== category) {
-    const [assignedTeam] = await db
-      .select({ id: team.id })
-      .from(team)
-      .where(eq(team.groupId, id))
-      .limit(1);
-
-    if (assignedTeam) {
-      return {
-        status: "error",
-        message: "Quita los equipos antes de cambiar la categoría.",
-        fieldErrors: {
-          category: "El grupo debe estar vacío para cambiar la categoría.",
-        },
-      };
-    }
   }
 
   await db
@@ -278,12 +250,11 @@ export async function updateGroup(
     .set({
       name: nameResult.name,
       avatarLabel: avatarResult.avatarLabel,
-      category,
     })
     .where(eq(tournamentGroup.id, id));
 
-  revalidatePath("/groups");
-  revalidatePath(`/groups/${id}`);
+  revalidatePath(GROUPS_PATH, "page");
+  revalidatePath(GROUP_DETAIL_PATH, "page");
   return { status: "success", message: "Grupo actualizado." };
 }
 
@@ -297,8 +268,8 @@ export async function deleteGroup(formData: FormData) {
 
   await db.delete(tournamentGroup).where(eq(tournamentGroup.id, id));
 
-  revalidatePath("/groups");
-  revalidatePath("/teams");
+  revalidatePath(GROUPS_PATH, "page");
+  revalidatePath(TEAMS_PATH, "page");
   if (redirectTo) redirect(redirectTo);
 }
 
@@ -360,9 +331,9 @@ export async function addTeamToGroup(
     };
   }
 
-  revalidatePath("/groups");
-  revalidatePath(`/groups/${groupId}`);
-  revalidatePath("/teams");
+  revalidatePath(GROUPS_PATH, "page");
+  revalidatePath(GROUP_DETAIL_PATH, "page");
+  revalidatePath(TEAMS_PATH, "page");
   return { status: "success", message: "Equipo añadido." };
 }
 
@@ -379,9 +350,9 @@ export async function removeTeamFromGroup(formData: FormData) {
     .set({ groupId: null })
     .where(and(eq(team.id, teamId), eq(team.groupId, groupId)));
 
-  revalidatePath("/groups");
-  revalidatePath(`/groups/${groupId}`);
-  revalidatePath("/teams");
+  revalidatePath(GROUPS_PATH, "page");
+  revalidatePath(GROUP_DETAIL_PATH, "page");
+  revalidatePath(TEAMS_PATH, "page");
 }
 
 export async function createGroupMatch(
@@ -456,7 +427,7 @@ export async function createGroupMatch(
     scheduledAt,
   });
 
-  revalidatePath(`/groups/${groupId}`);
+  revalidatePath(GROUP_DETAIL_PATH, "page");
   return { status: "success", message: "Partido programado." };
 }
 
@@ -544,7 +515,7 @@ export async function updateGroupMatch(
     };
   }
 
-  revalidatePath(`/groups/${groupId}`);
+  revalidatePath(GROUP_DETAIL_PATH, "page");
   return { status: "success", message: "Partido actualizado." };
 }
 
@@ -560,5 +531,5 @@ export async function deleteGroupMatch(formData: FormData) {
     .delete(match)
     .where(and(eq(match.id, id), eq(match.groupId, groupId)));
 
-  revalidatePath(`/groups/${groupId}`);
+  revalidatePath(GROUP_DETAIL_PATH, "page");
 }

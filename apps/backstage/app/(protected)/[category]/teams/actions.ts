@@ -5,16 +5,20 @@ import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@mr/db";
 import { requireAdminWrite } from "@/lib/authz";
-import type { TeamCategory } from "./data";
+import { isCategory } from "@/lib/category";
 
 const { player, team } = schema;
+
+// Dynamic-segment revalidation: refresh every category variant of these routes
+// without needing to know which one the mutation came from.
+const TEAMS_PATH = "/[category]/teams";
+const TEAM_DETAIL_PATH = "/[category]/teams/[teamId]";
 
 export type FormState = {
   status: "idle" | "success" | "error";
   message?: string;
   fieldErrors?: {
     name?: string;
-    category?: string;
     teamId?: string;
   };
 };
@@ -22,11 +26,6 @@ export type FormState = {
 function readString(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
-}
-
-function parseCategory(value: string): TeamCategory | null {
-  if (value === "senior" || value === "cadet") return value;
-  return null;
 }
 
 function validateName(formData: FormData) {
@@ -56,15 +55,14 @@ export async function createTeam(
   await requireAdminWrite();
 
   const nameResult = validateName(formData);
-  const category = parseCategory(readString(formData, "category"));
+  const category = readString(formData, "category");
 
-  if (nameResult.error || !category) {
+  if (nameResult.error || !isCategory(category)) {
     return {
       status: "error",
       message: "Revisa los campos marcados.",
       fieldErrors: {
         name: nameResult.error,
-        category: category ? undefined : "Selecciona una categoría.",
       },
     };
   }
@@ -74,7 +72,7 @@ export async function createTeam(
     category,
   });
 
-  revalidatePath("/teams");
+  revalidatePath(TEAMS_PATH, "page");
   return { status: "success", message: "Equipo registrado." };
 }
 
@@ -86,26 +84,21 @@ export async function updateTeam(
 
   const id = readString(formData, "id");
   const nameResult = validateName(formData);
-  const category = parseCategory(readString(formData, "category"));
 
-  if (!id || nameResult.error || !category) {
+  if (!id || nameResult.error) {
     return {
       status: "error",
       message: "Revisa los campos marcados.",
       fieldErrors: {
         name: nameResult.error,
-        category: category ? undefined : "Selecciona una categoría.",
       },
     };
   }
 
-  await db
-    .update(team)
-    .set({ name: nameResult.name, category })
-    .where(eq(team.id, id));
+  await db.update(team).set({ name: nameResult.name }).where(eq(team.id, id));
 
-  revalidatePath("/teams");
-  revalidatePath(`/teams/${id}`);
+  revalidatePath(TEAMS_PATH, "page");
+  revalidatePath(TEAM_DETAIL_PATH, "page");
   return { status: "success", message: "Equipo actualizado." };
 }
 
@@ -119,7 +112,7 @@ export async function deleteTeam(formData: FormData) {
 
   await db.delete(team).where(eq(team.id, id));
 
-  revalidatePath("/teams");
+  revalidatePath(TEAMS_PATH, "page");
   if (redirectTo) redirect(redirectTo);
 }
 
@@ -148,8 +141,8 @@ export async function createPlayer(
     teamId,
   });
 
-  revalidatePath("/teams");
-  revalidatePath(`/teams/${teamId}`);
+  revalidatePath(TEAMS_PATH, "page");
+  revalidatePath(TEAM_DETAIL_PATH, "page");
   return { status: "success", message: "Jugador añadido." };
 }
 
@@ -179,8 +172,8 @@ export async function updatePlayer(
     .set({ name: nameResult.name })
     .where(eq(player.id, id));
 
-  revalidatePath("/teams");
-  revalidatePath(`/teams/${teamId}`);
+  revalidatePath(TEAMS_PATH, "page");
+  revalidatePath(TEAM_DETAIL_PATH, "page");
   return { status: "success", message: "Jugador actualizado." };
 }
 
@@ -194,6 +187,6 @@ export async function deletePlayer(formData: FormData) {
 
   await db.delete(player).where(eq(player.id, id));
 
-  revalidatePath("/teams");
-  revalidatePath(`/teams/${teamId}`);
+  revalidatePath(TEAMS_PATH, "page");
+  revalidatePath(TEAM_DETAIL_PATH, "page");
 }

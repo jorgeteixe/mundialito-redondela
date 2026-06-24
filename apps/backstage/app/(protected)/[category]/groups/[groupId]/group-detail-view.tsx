@@ -63,15 +63,18 @@ import {
   teamAvatarUrl,
 } from "../../teams/avatar-utils";
 import type { GroupDetail, GroupMatchSummary, GroupTeamSummary } from "../data";
+import type { Category } from "@/lib/category";
 
 type GroupDetailViewProps = {
   group: GroupDetail;
+  category: Category;
   availableTeams: GroupTeamSummary[];
   canWrite: boolean;
 };
 
 export function GroupDetailView({
   group,
+  category,
   availableTeams,
   canWrite,
 }: GroupDetailViewProps) {
@@ -112,12 +115,13 @@ export function GroupDetailView({
                     <GroupForm
                       mode="edit"
                       group={group}
+                      category={category}
                       onSuccess={() => setEditGroupOpen(false)}
                     />
                   </div>
                 </SheetContent>
               </Sheet>
-              <DeleteGroupButton group={group} />
+              <DeleteGroupButton group={group} category={category} />
             </div>
           ) : null}
         </div>
@@ -191,6 +195,7 @@ export function GroupDetailView({
                 key={team.id}
                 team={team}
                 groupId={group.id}
+                category={category}
                 canWrite={canWrite}
               />
             ))}
@@ -443,7 +448,13 @@ function SheetTriggerButton({
   );
 }
 
-function DeleteGroupButton({ group }: { group: GroupDetail }) {
+function DeleteGroupButton({
+  group,
+  category,
+}: {
+  group: GroupDetail;
+  category: Category;
+}) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -463,7 +474,11 @@ function DeleteGroupButton({ group }: { group: GroupDetail }) {
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <form action={deleteGroup}>
             <input type="hidden" name="id" value={group.id} />
-            <input type="hidden" name="redirectTo" value="/groups" />
+            <input
+              type="hidden"
+              name="redirectTo"
+              value={`/${category}/groups`}
+            />
             <AlertDialogAction type="submit" variant="destructive">
               Eliminar grupo
             </AlertDialogAction>
@@ -477,10 +492,12 @@ function DeleteGroupButton({ group }: { group: GroupDetail }) {
 function GroupTeamCard({
   team,
   groupId,
+  category,
   canWrite,
 }: {
   team: GroupTeamSummary;
   groupId: string;
+  category: Category;
   canWrite: boolean;
 }) {
   return (
@@ -494,7 +511,10 @@ function GroupTeamCard({
             />
             <AvatarFallback>{initials(team.name)}</AvatarFallback>
           </Avatar>
-          <Link href={`/teams/${team.id}`} className="truncate hover:underline">
+          <Link
+            href={`/${category}/teams/${team.id}`}
+            className="truncate hover:underline"
+          >
             {team.name}
           </Link>
         </CardTitle>
