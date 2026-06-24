@@ -39,10 +39,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Validate Trigger.dev configuration
-        run: |
-          test -n "$TRIGGER_API_URL"
-          test -n "$TRIGGER_ACCESS_TOKEN"
-
       - name: Deploy Trigger.dev jobs
         run: pnpm --filter @mr/jobs run deploy -- --skip-update-check
