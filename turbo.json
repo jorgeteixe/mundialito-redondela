@@ -29,6 +29,9 @@
     "POSTIZ_API_KEY",
     "POSTIZ_INSTAGRAM_INTEGRATION_ID",
     "POSTIZ_FACEBOOK_INTEGRATION_ID",
+    "TRIGGER_API_URL",
+    "TRIGGER_SECRET_KEY",
+    "TRIGGER_PROJECT_REF",
     "CONFIRM_PUBLISH"
   ],
   "tasks": {
@@ -69,6 +72,9 @@
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "deploy": {
+      "cache": false
     },
     "worker": {
       "cache": false,

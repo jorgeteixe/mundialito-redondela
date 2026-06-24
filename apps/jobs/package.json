@@ -1,0 +1,27 @@
+{
+  "name": "@mr/jobs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/trigger-cli.ts dev",
+    "deploy": "tsx src/trigger-cli.ts deploy",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "trigger:dummy": "tsx src/trigger-dummy.ts"
+  },
+  "dependencies": {
+    "@trigger.dev/sdk": "4.4.6",
+    "dotenv": "^17.4.2"
+  },
+  "devDependencies": {
+    "@mr/eslint-config": "workspace:*",
+    "@mr/typescript-config": "workspace:*",
+    "@trigger.dev/build": "4.4.6",
+    "@types/node": "^22.15.3",
+    "eslint": "^9.39.1",
+    "trigger.dev": "4.4.6",
+    "tsx": "^4.22.4",
+    "typescript": "5.9.2"
+  }
+}

@@ -20,6 +20,7 @@ artifacts
 
 # Turbo
 .turbo
+.trigger/
 
 # Vercel
 .vercel

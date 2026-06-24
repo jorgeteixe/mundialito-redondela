@@ -11,6 +11,7 @@ This directory contains technical guides, workflow documentation, and developmen
 ## Guides
 
 - [Video Generation Queue](./video-generation-queue.md)
+- [Trigger.dev Pilot](./trigger-dev-pilot.md)
 
 ## Folder Conventions
 

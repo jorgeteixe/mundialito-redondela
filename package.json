@@ -16,6 +16,9 @@
     "seed": "pnpm --filter @mr/tools seed",
     "video:worker": "turbo run worker --filter @mr/video-worker",
     "social:worker": "turbo run worker --filter @mr/social-worker",
+    "jobs:dev": "turbo run dev --filter @mr/jobs",
+    "jobs:deploy": "turbo run deploy --filter @mr/jobs",
+    "jobs:dummy": "pnpm --filter @mr/jobs trigger:dummy",
     "prepare": "husky",
     "screenshot:storybook": "turbo run screenshot:storybook"
   },
