@@ -48,4 +48,4 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy Trigger.dev jobs
-        run: pnpm --filter @mr/jobs run deploy -- --self-hosted --push --skip-update-check
+        run: pnpm --filter @mr/jobs run deploy -- --local-build --skip-update-check
