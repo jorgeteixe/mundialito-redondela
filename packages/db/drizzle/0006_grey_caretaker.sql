@@ -1,1 +1,0 @@
-ALTER TABLE "social_post_target" ADD COLUMN "provider_permalink" text;

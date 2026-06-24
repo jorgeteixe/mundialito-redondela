@@ -5,78 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1781437820446,
-      "tag": "0000_mature_stepford_cuckoos",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1781454255042,
-      "tag": "0001_graceful_cloak",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1781894646290,
-      "tag": "0002_previous_roxanne_simpson",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1781967358795,
-      "tag": "0003_mighty_trauma",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1781967819181,
-      "tag": "0004_sturdy_leper_queen",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1781975002938,
-      "tag": "0005_fearless_golden_guardian",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1781978942396,
-      "tag": "0006_grey_caretaker",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1781986861883,
-      "tag": "0007_steady_tyrannus",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1782146839202,
-      "tag": "0008_closed_mathemanic",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1782148371475,
-      "tag": "0009_stale_screwball",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1782157319856,
-      "tag": "0010_redundant_yellow_claw",
+      "when": 1782318998417,
+      "tag": "0000_hesitant_grandmaster",
       "breakpoints": true
     }
   ]
