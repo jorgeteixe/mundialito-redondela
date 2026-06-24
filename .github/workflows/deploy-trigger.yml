@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      packages: write
 
     env:
       TRIGGER_API_URL: ${{ vars.TRIGGER_API_URL }}
@@ -39,5 +40,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Deploy Trigger.dev jobs
-        run: pnpm --filter @mr/jobs run deploy -- --skip-update-check
+        run: pnpm --filter @mr/jobs run deploy -- --self-hosted --push --skip-update-check
