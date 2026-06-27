@@ -10,7 +10,7 @@ import {
   TabsTrigger,
   type StandingsRow,
 } from "@mr/ui";
-import { Trophy } from "lucide-react";
+import { ListOrdered, Trophy } from "lucide-react";
 import type { PublicCategory, PublicGroupStanding } from "@mr/db";
 
 type GroupStandingsSectionProps = {
@@ -29,8 +29,9 @@ export function GroupStandingsSection({ groups }: GroupStandingsSectionProps) {
     <section className="mx-auto w-full max-w-3xl px-4 pb-10 sm:px-6">
       <Tabs defaultValue="senior" className="gap-4">
         <header className="border bg-card px-4 pt-3">
-          <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight text-foreground">
-            Clasificación
+          <h2 className="flex items-center justify-between gap-2 text-xl font-semibold tracking-tight text-foreground">
+            Grupos
+            <ListOrdered className="size-5 text-muted-foreground" />
           </h2>
           <TabsList
             className="mt-1 h-10 w-full justify-start gap-5 overflow-x-auto p-0"
