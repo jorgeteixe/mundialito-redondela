@@ -41,6 +41,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  Standings,
   Tabs,
   TabsContent,
   TabsList,
@@ -319,54 +320,32 @@ export function GroupDetailView({
             Calculada con partidos finalizados de este grupo.
           </p>
         </div>
-        {group.standings.length === 0 ? (
-          <EmptyState
-            icon={<UserRoundPlus className="h-10 w-10" />}
-            title="Sin equipos"
-            description="Añade equipos al grupo para ver la clasificación."
-          />
-        ) : (
-          <div className="rounded-none border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Equipo</TableHead>
-                  <TableHead className="text-right">PJ</TableHead>
-                  <TableHead className="text-right">G</TableHead>
-                  <TableHead className="text-right">E</TableHead>
-                  <TableHead className="text-right">P</TableHead>
-                  <TableHead className="text-right">GF</TableHead>
-                  <TableHead className="text-right">GC</TableHead>
-                  <TableHead className="text-right">DG</TableHead>
-                  <TableHead className="text-right">Pts</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {group.standings.map((row) => (
-                  <TableRow key={row.teamId}>
-                    <TableCell className="font-medium">
-                      {row.teamName}
-                    </TableCell>
-                    <TableCell className="text-right">{row.played}</TableCell>
-                    <TableCell className="text-right">{row.wins}</TableCell>
-                    <TableCell className="text-right">{row.draws}</TableCell>
-                    <TableCell className="text-right">{row.losses}</TableCell>
-                    <TableCell className="text-right">{row.goalsFor}</TableCell>
-                    <TableCell className="text-right">
-                      {row.goalsAgainst}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {row.goalDifference}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {row.points}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+        <Standings
+          rows={group.standings.map((row) => ({
+            team: {
+              id: row.teamId,
+              name: row.teamName,
+              crestUrl: teamAvatarUrl(row.teamId),
+              href: `/${category}/teams/${row.teamId}`,
+            },
+            played: row.played,
+            wins: row.wins,
+            draws: row.draws,
+            losses: row.losses,
+            goalsFor: row.goalsFor,
+            goalsAgainst: row.goalsAgainst,
+            goalDifference: row.goalDifference,
+            points: row.points,
+          }))}
+          linkComponent={Link}
+          emptyState={
+            <EmptyState
+              icon={<UserRoundPlus className="h-10 w-10" />}
+              title="Sin equipos"
+              description="Añade equipos al grupo para ver la clasificación."
+            />
+          }
+        />
       </TabsContent>
     </Tabs>
   );
