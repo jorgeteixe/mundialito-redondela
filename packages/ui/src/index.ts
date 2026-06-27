@@ -2,6 +2,11 @@
 export { cn } from "./lib/utils";
 
 // custom components — src/components/*
+export {
+  CategoryBadge,
+  type CategoryBadgeProps,
+  type TournamentCategory,
+} from "./components/category-badge";
 export { DashboardPage } from "./components/dashboard-page";
 export {
   DateTimePicker,

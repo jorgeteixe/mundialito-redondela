@@ -4,6 +4,7 @@ import * as React from "react";
 import { cn } from "../lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
+import { CategoryBadge, type TournamentCategory } from "./category-badge";
 import { Skeleton } from "../ui/skeleton";
 import {
   Table,
@@ -29,6 +30,8 @@ export interface ScheduleMatch {
   timeLabel: string;
   /** Preformatted category label; only shown when `showCategory`. */
   categoryLabel?: string;
+  /** Category value, used to color the tag when `showCategory`. */
+  category?: TournamentCategory;
   group?: ScheduleGroup;
   home: TournamentTeam;
   away: TournamentTeam;
@@ -126,7 +129,12 @@ export function ScheduleTable({
                     </TableCell>
                     {showCategory ? (
                       <TableCell>
-                        {match.categoryLabel ? (
+                        {match.category ? (
+                          <CategoryBadge
+                            category={match.category}
+                            label={match.categoryLabel}
+                          />
+                        ) : match.categoryLabel ? (
                           <Badge variant="secondary">
                             {match.categoryLabel}
                           </Badge>

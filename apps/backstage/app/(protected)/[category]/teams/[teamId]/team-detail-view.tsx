@@ -21,13 +21,13 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-  Badge,
   Button,
   Card,
   CardAction,
   CardDescription,
   CardHeader,
   CardTitle,
+  CategoryBadge,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -45,12 +45,7 @@ import {
   TabsTrigger,
 } from "@mr/ui";
 import { deletePlayer, deleteTeam } from "../actions";
-import {
-  categoryLabel,
-  initials,
-  playerAvatarUrl,
-  teamAvatarUrl,
-} from "../avatar-utils";
+import { initials, playerAvatarUrl, teamAvatarUrl } from "../avatar-utils";
 import { PlayerForm } from "../player-form";
 import { TeamForm } from "../team-form";
 import type { PlayerSummary, TeamDetail } from "../data";
@@ -87,9 +82,7 @@ export function TeamDetailView({
                 {team.name}
               </h1>
               <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                <Badge variant="secondary">
-                  {categoryLabel(team.category)}
-                </Badge>
+                <CategoryBadge category={team.category} />
                 <span className="leading-5">
                   {team.players.length} jugadores
                 </span>

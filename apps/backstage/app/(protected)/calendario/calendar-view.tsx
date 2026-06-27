@@ -17,6 +17,7 @@ export function CalendarView({ days, showCategory }: CalendarViewProps) {
       id: match.id,
       timeLabel: formatMatchTime(match.scheduledAt),
       categoryLabel: showCategory ? categoryLabel(match.category) : undefined,
+      category: showCategory ? match.category : undefined,
       group: {
         name: match.groupName,
         avatarLabel: match.groupAvatarLabel,

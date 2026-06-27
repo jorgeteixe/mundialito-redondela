@@ -23,13 +23,13 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-  Badge,
   Button,
   Card,
   CardAction,
   CardDescription,
   CardHeader,
   CardTitle,
+  CategoryBadge,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -57,11 +57,7 @@ import { deleteGroup, deleteGroupMatch, removeTeamFromGroup } from "../actions";
 import { groupAvatarStyle } from "../avatar-utils";
 import { GroupForm } from "../group-form";
 import { ScheduleMatchForm } from "../schedule-match-form";
-import {
-  categoryLabel,
-  initials,
-  teamAvatarUrl,
-} from "../../teams/avatar-utils";
+import { initials, teamAvatarUrl } from "../../teams/avatar-utils";
 import type { GroupDetail, GroupMatchSummary, GroupTeamSummary } from "../data";
 import type { Category } from "@/lib/category";
 
@@ -93,9 +89,7 @@ export function GroupDetailView({
                 {group.name}
               </h1>
               <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                <Badge variant="secondary">
-                  {categoryLabel(group.category)}
-                </Badge>
+                <CategoryBadge category={group.category} />
                 <span>{group.teams.length} equipos</span>
               </div>
             </div>
@@ -519,7 +513,7 @@ function GroupTeamCard({
           </Link>
         </CardTitle>
         <CardDescription>
-          <Badge variant="secondary">{categoryLabel(team.category)}</Badge>
+          <CategoryBadge category={team.category} />
         </CardDescription>
         {canWrite ? (
           <CardAction>
