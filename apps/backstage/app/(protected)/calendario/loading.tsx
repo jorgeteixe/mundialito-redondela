@@ -1,4 +1,4 @@
-import { ScheduleTableSkeleton } from "@mr/ui";
+import { MatchScheduleSkeleton } from "@mr/ui";
 
 export default function CalendarLoading() {
   return (
@@ -9,7 +9,7 @@ export default function CalendarLoading() {
           Todos los partidos programados, de todas las categorías.
         </p>
       </div>
-      <ScheduleTableSkeleton showCategory />
+      <MatchScheduleSkeleton />
     </main>
   );
 }

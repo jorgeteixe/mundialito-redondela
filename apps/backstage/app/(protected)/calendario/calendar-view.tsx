@@ -1,5 +1,5 @@
 import { CalendarDays } from "lucide-react";
-import { EmptyState, ScheduleTable, type ScheduleDay } from "@mr/ui";
+import { EmptyState, MatchSchedule, type ScheduleDay } from "@mr/ui";
 import { groupAvatarStyle } from "../[category]/groups/avatar-utils";
 import { categoryLabel, teamAvatarUrl } from "../[category]/teams/avatar-utils";
 import { formatMatchTime, type CalendarDay } from "./calendar-format";
@@ -37,7 +37,7 @@ export function CalendarView({ days, showCategory }: CalendarViewProps) {
   }));
 
   return (
-    <ScheduleTable
+    <MatchSchedule
       days={scheduleDays}
       showCategory={showCategory}
       emptyState={

@@ -14,36 +14,17 @@ export {
 } from "./components/date-time-picker";
 export { EmptyState } from "./components/empty-state";
 export {
-  DayMatches,
-  KnockoutBracket,
-  MatchCard,
   MatchRow,
-  MatchScore,
-  MatchStatusBadge,
-  QualifiedBadge,
-  Schedule,
-  StandingsTable,
-  TeamBadge,
-  TeamCard,
-  TeamList,
-  TodayMatches,
-  type KnockoutNode,
-  type KnockoutRound,
+  MatchSchedule,
+  MatchScheduleSkeleton,
+  type MatchSide,
   type MatchStatus,
-  type MatchTeam,
-  type StandingRow,
-  type TournamentMatch,
-  type TournamentTeam,
-} from "./components/tournament";
-export {
-  ScheduleTable,
-  ScheduleTableSkeleton,
+  type MatchScheduleProps,
+  type MatchScheduleSkeletonProps,
   type ScheduleDay,
   type ScheduleGroup,
   type ScheduleMatch,
-  type ScheduleTableProps,
-  type ScheduleTableSkeletonProps,
-} from "./components/schedule-table";
+} from "./components/match-schedule";
 
 // shadcn primitives — src/ui/* — never edit manually
 export { Button, buttonVariants } from "./ui/button";
