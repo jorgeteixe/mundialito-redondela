@@ -22,7 +22,7 @@ export default async function Home() {
         eventName="Mundialito da Xunqueira"
         actions={<ModeToggle />}
       />
-      <main className="flex flex-1 pt-20">
+      <main className="flex flex-1">
         <DayCalendar days={days} todayKey={todayKey()} />
       </main>
       <Footer

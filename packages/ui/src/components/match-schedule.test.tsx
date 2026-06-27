@@ -109,17 +109,17 @@ test("only shows the category tag when showCategory is set", () => {
 
 test("renders day headings when grouped by day", () => {
   const days: ScheduleDay[] = [
-    { key: "d1", label: "sábado, 27 jun", matches: [base] },
+    { key: "d1", label: "sábado, 27 junio", matches: [base] },
     {
       key: "d2",
-      label: "domingo, 28 jun",
+      label: "domingo, 28 junio",
       matches: [{ ...base, id: "m2" }],
     },
   ];
   render(<MatchSchedule days={days} />);
 
-  expect(screen.getByText("sábado, 27 jun")).toBeInTheDocument();
-  expect(screen.getByText("domingo, 28 jun")).toBeInTheDocument();
+  expect(screen.getByText("sábado, 27 junio")).toBeInTheDocument();
+  expect(screen.getByText("domingo, 28 junio")).toBeInTheDocument();
 });
 
 test("renders a flat list of spare games without day headings", () => {

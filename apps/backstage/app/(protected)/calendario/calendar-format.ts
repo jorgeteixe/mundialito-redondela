@@ -40,8 +40,16 @@ const dayKeyFormatter = new Intl.DateTimeFormat("en-CA", {
 const dayLabelFormatter = new Intl.DateTimeFormat("es-ES", {
   timeZone: TIME_ZONE,
   weekday: "long",
+});
+
+const dayNumberFormatter = new Intl.DateTimeFormat("es-ES", {
+  timeZone: TIME_ZONE,
   day: "numeric",
-  month: "short",
+});
+
+const monthLabelFormatter = new Intl.DateTimeFormat("es-ES", {
+  timeZone: TIME_ZONE,
+  month: "long",
 });
 
 const timeFormatter = new Intl.DateTimeFormat("es-ES", {
@@ -67,11 +75,15 @@ export function groupByDay(matches: CalendarMatch[]): CalendarDay[] {
     const dateKey = dayKeyFormatter.format(date);
     let day = days.get(dateKey);
     if (!day) {
-      day = { dateKey, label: dayLabelFormatter.format(date), matches: [] };
+      day = { dateKey, label: formatDayLabel(date), matches: [] };
       days.set(dateKey, day);
     }
     day.matches.push(match);
   }
 
   return [...days.values()];
+}
+
+function formatDayLabel(date: Date) {
+  return `${dayLabelFormatter.format(date)}, ${dayNumberFormatter.format(date)} ${monthLabelFormatter.format(date)}`;
 }

@@ -13,8 +13,16 @@ const dayKeyFormatter = new Intl.DateTimeFormat("en-CA", {
 const dayLabelFormatter = new Intl.DateTimeFormat("es-ES", {
   timeZone: TIME_ZONE,
   weekday: "long",
+});
+
+const dayNumberFormatter = new Intl.DateTimeFormat("es-ES", {
+  timeZone: TIME_ZONE,
   day: "numeric",
-  month: "short",
+});
+
+const monthLabelFormatter = new Intl.DateTimeFormat("es-ES", {
+  timeZone: TIME_ZONE,
+  month: "long",
 });
 
 const timeFormatter = new Intl.DateTimeFormat("es-ES", {
@@ -48,7 +56,7 @@ export function clampDayKey(key: string, minKey: string, maxKey: string) {
 }
 
 export function labelForDayKey(key: string) {
-  return dayLabelFormatter.format(dateFromDayKey(key));
+  return formatDayLabel(dateFromDayKey(key));
 }
 
 export function buildScheduleDays(
@@ -64,7 +72,7 @@ export function buildScheduleDays(
     if (!day) {
       day = {
         key,
-        label: dayLabelFormatter.format(date),
+        label: formatDayLabel(date),
         matches: [],
       };
       days.set(key, day);
@@ -80,6 +88,10 @@ function dateFromDayKey(key: string) {
   const [year, month, day] = key.split("-").map(Number);
 
   return new Date(Date.UTC(year!, month! - 1, day!, 12));
+}
+
+function formatDayLabel(date: Date) {
+  return `${dayLabelFormatter.format(date)}, ${dayNumberFormatter.format(date)} ${monthLabelFormatter.format(date)}`;
 }
 
 function toScheduleMatch(match: PublicCalendarMatch): ScheduleMatch {

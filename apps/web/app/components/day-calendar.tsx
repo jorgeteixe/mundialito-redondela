@@ -37,13 +37,13 @@ export function DayCalendar({ days, todayKey }: DayCalendarProps) {
         : `${matchCount} partidos`;
 
   return (
-    <section className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-6 sm:px-6">
-      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
+    <section className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6 sm:px-6">
+      <div className="mx-auto grid w-full max-w-md grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
         <Button
           type="button"
           variant="outline"
           size="icon-lg"
-          className="size-11 sm:size-9"
+          className="size-11 sm:size-10"
           aria-label="Día anterior"
           disabled={selectedKey === TOURNAMENT_START_KEY}
           onClick={() =>
@@ -59,9 +59,9 @@ export function DayCalendar({ days, todayKey }: DayCalendarProps) {
           <ChevronLeft />
         </Button>
         <div className="min-w-0 text-center">
-          <h1 className="truncate text-base font-semibold capitalize text-foreground">
+          <h2 className="truncate text-base font-semibold capitalize text-foreground">
             {title}
-          </h1>
+          </h2>
           <p className="mt-0.5 truncate text-xs text-muted-foreground">
             {matchCountLabel}
           </p>
@@ -70,7 +70,7 @@ export function DayCalendar({ days, todayKey }: DayCalendarProps) {
           type="button"
           variant="outline"
           size="icon-lg"
-          className="size-11 sm:size-9"
+          className="size-11 sm:size-10"
           aria-label="Día siguiente"
           disabled={selectedKey === TOURNAMENT_END_KEY}
           onClick={() =>

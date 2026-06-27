@@ -64,7 +64,7 @@ export interface ScheduleMatch {
 
 export interface ScheduleDay {
   key: string;
-  /** Preformatted day heading, e.g. "sábado, 27 jun". */
+  /** Preformatted day heading, e.g. "sábado, 27 junio". */
   label: string;
   matches: ScheduleMatch[];
 }

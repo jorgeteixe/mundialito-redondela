@@ -89,7 +89,7 @@ const penaltyShootout: ScheduleMatch = {
 const days: ScheduleDay[] = [
   {
     key: "2026-06-27",
-    label: "sábado, 27 jun",
+    label: "sábado, 27 junio",
     matches: [
       scheduled,
       { ...live, id: "d1-live" },
@@ -98,7 +98,7 @@ const days: ScheduleDay[] = [
   },
   {
     key: "2026-06-28",
-    label: "domingo, 28 jun",
+    label: "domingo, 28 junio",
     matches: [
       {
         id: "d2-1",
@@ -119,7 +119,7 @@ const dayNavigatorDays: ScheduleDay[] = [
   days[1]!,
   {
     key: "2026-06-29",
-    label: "lunes, 29 jun",
+    label: "lunes, 29 junio",
     matches: [
       {
         id: "d3-1",
