@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { type StandingsRow } from "@mr/ui";
 import {
-  listPublicF1GroupStandings,
+  listPublicGroupStandings,
   listPublicMatches,
   type PublicGroupStanding,
 } from "@mr/db";
@@ -23,42 +23,69 @@ const CATEGORY_LABELS = {
   cadet: "Cadete",
 } as const;
 
+const STAGE_LABELS = {
+  f1: "Fase 1",
+  f2: "Fase 2",
+} as const;
+
 type TeamPageProps = {
   params: Promise<{ teamId: string }>;
 };
 
-type TeamGroup = {
-  group: PublicGroupStanding;
+type TeamGroups = {
+  /** Every group the team belongs to, ordered F1 → F2. */
+  groups: PublicGroupStanding[];
   teamName: string;
 };
+
+async function findTeamGroups(teamId: string): Promise<TeamGroups | undefined> {
+  const [f1, f2] = await Promise.all([
+    listPublicGroupStandings("f1"),
+    listPublicGroupStandings("f2"),
+  ]);
+
+  const groups: PublicGroupStanding[] = [];
+  let teamName: string | undefined;
+
+  for (const group of [...f1, ...f2]) {
+    const row = group.standings.find((standing) => standing.teamId === teamId);
+    if (row) {
+      groups.push(group);
+      teamName ??= row.teamName;
+    }
+  }
+
+  if (!teamName) return undefined;
+
+  return { groups, teamName };
+}
 
 export async function generateMetadata({
   params,
 }: TeamPageProps): Promise<Metadata> {
   const { teamId } = await params;
-  const teamGroup = findTeamGroup(await listPublicF1GroupStandings(), teamId);
+  const teamGroups = await findTeamGroups(teamId);
 
-  if (!teamGroup) {
+  if (!teamGroups) {
     return {
       title: "Equipo no encontrado | Mundialito Redondela 2026",
     };
   }
 
   return {
-    title: `${teamGroup.teamName} | Mundialito Redondela 2026`,
-    description: `Partidos y clasificación de ${teamGroup.teamName} en el Mundialito Redondela 2026.`,
+    title: `${teamGroups.teamName} | Mundialito Redondela 2026`,
+    description: `Partidos y clasificación de ${teamGroups.teamName} en el Mundialito Redondela 2026.`,
   };
 }
 
 export default async function TeamPage({ params }: TeamPageProps) {
   const { teamId } = await params;
-  const [matches, groupStandings] = await Promise.all([
+  const [matches, teamGroups] = await Promise.all([
     listPublicMatches(),
-    listPublicF1GroupStandings(),
+    findTeamGroups(teamId),
   ]);
-  const teamGroup = findTeamGroup(groupStandings, teamId);
 
-  if (!teamGroup) notFound();
+  if (!teamGroups) notFound();
 
   const matchDays = buildScheduleDays(
     matches.filter(
@@ -76,15 +103,16 @@ export default async function TeamPage({ params }: TeamPageProps) {
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
         <TeamDetailSections
           matchDays={matchDays}
-          standingsRows={toStandingsRows(teamGroup.group)}
           teamId={teamId}
-          teamName={teamGroup.teamName}
-          group={{
-            id: teamGroup.group.id,
-            name: teamGroup.group.name,
-            category: teamGroup.group.category,
-            categoryLabel: CATEGORY_LABELS[teamGroup.group.category],
-          }}
+          teamName={teamGroups.teamName}
+          groups={teamGroups.groups.map((group) => ({
+            id: group.id,
+            name: group.name,
+            category: group.category,
+            categoryLabel: CATEGORY_LABELS[group.category],
+            stageLabel: STAGE_LABELS[group.stage],
+            standingsRows: toStandingsRows(group),
+          }))}
         />
       </main>
       <Footer
@@ -93,18 +121,6 @@ export default async function TeamPage({ params }: TeamPageProps) {
       />
     </div>
   );
-}
-
-function findTeamGroup(
-  groups: PublicGroupStanding[],
-  teamId: string,
-): TeamGroup | undefined {
-  for (const group of groups) {
-    const row = group.standings.find((standing) => standing.teamId === teamId);
-    if (row) return { group, teamName: row.teamName };
-  }
-
-  return undefined;
 }
 
 function toStandingsRows(group: PublicGroupStanding): StandingsRow[] {
