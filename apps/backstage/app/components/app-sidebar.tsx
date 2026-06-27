@@ -43,9 +43,13 @@ const scopedItems = [
   { title: "Calendario", path: "calendario", icon: CalendarDays },
 ];
 
-// Items that apply across all categories.
+// General items that apply across all categories.
 const generalNavItems = [
   { title: "Calendario", url: "/calendario", icon: CalendarRange },
+];
+
+// Social-media items, grouped under "Redes sociales".
+const socialNavItems = [
   { title: "Vídeos", url: "/videos", icon: Clapperboard },
   { title: "Imágenes", url: "/images", icon: ImageIcon },
   { title: "Publicaciones", url: "/publicaciones", icon: Send },
@@ -129,6 +133,12 @@ export function AppSidebar({ canManageUsers }: { canManageUsers: boolean }) {
                   : []),
               ].map(renderItem)}
             </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Redes sociales</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>{socialNavItems.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
