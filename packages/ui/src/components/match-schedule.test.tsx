@@ -67,6 +67,28 @@ test("emphasizes the winning side of a finished match", () => {
   expect(screen.getByText("Cesantes Atl.")).not.toHaveClass("font-semibold");
 });
 
+test("shows penalties and emphasizes the shootout winner on a level match", () => {
+  render(
+    <MatchSchedule
+      matches={[
+        {
+          ...base,
+          status: "finished",
+          home: { ...base.home, score: 2, penaltyScore: 4 },
+          away: { ...base.away, score: 2, penaltyScore: 5 },
+        },
+      ]}
+    />,
+  );
+
+  // Penalty counts render alongside the level regular-time score.
+  expect(screen.getByText("(4)")).toBeInTheDocument();
+  expect(screen.getByText("(5)")).toBeInTheDocument();
+  // The shootout winner is emphasized even though regular time was a draw.
+  expect(screen.getByText("Cesantes Atl.")).toHaveClass("font-semibold");
+  expect(screen.getByText("Chapela FC")).not.toHaveClass("font-semibold");
+});
+
 test("shows the live minute label for a live match", () => {
   render(
     <MatchSchedule

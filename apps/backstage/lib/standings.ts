@@ -64,15 +64,37 @@ export function calculateStandings(
     applyResult(away, match.awayScore, match.homeScore);
   }
 
-  return [...rows.values()].sort((a, b) => {
-    return (
-      b.points - a.points ||
-      b.goalDifference - a.goalDifference ||
-      b.goalsFor - a.goalsFor ||
-      a.teamName.localeCompare(b.teamName, "es") ||
-      a.teamId.localeCompare(b.teamId)
-    );
-  });
+  return [...rows.values()].sort(compareStandingRows);
+}
+
+/**
+ * Deterministic ordering for standing rows: points, then goal difference, then
+ * goals for, then name, then id. Used both within a group and — since there is
+ * no cross-group head-to-head — to rank same-position finishers across groups.
+ */
+export function compareStandingRows(a: StandingRow, b: StandingRow): number {
+  return (
+    b.points - a.points ||
+    b.goalDifference - a.goalDifference ||
+    b.goalsFor - a.goalsFor ||
+    a.teamName.localeCompare(b.teamName, "es") ||
+    a.teamId.localeCompare(b.teamId)
+  );
+}
+
+/**
+ * Rank the teams that finished in a given position across several groups.
+ * `groupStandings` is one already-sorted standings array per group. Returns the
+ * `position`-th finisher of each group ordered best-first (index 0 = rank 1).
+ */
+export function rankAcrossGroups(
+  groupStandings: StandingRow[][],
+  position: number,
+): StandingRow[] {
+  const finishers = groupStandings
+    .map((standings) => standings[position - 1])
+    .filter((row): row is StandingRow => row != null);
+  return [...finishers].sort(compareStandingRows);
 }
 
 function applyResult(row: StandingRow, goalsFor: number, goalsAgainst: number) {

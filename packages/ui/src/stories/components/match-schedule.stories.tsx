@@ -70,6 +70,19 @@ const finished: ScheduleMatch = {
   away: { ...angorino, score: 1 },
 };
 
+// Knockout tie level after regular time, decided on penalties: the away side
+// wins the shootout, so it stays solid while the home side dims.
+const penaltyShootout: ScheduleMatch = {
+  id: "penalties",
+  timeLabel: "22:00",
+  status: "finished",
+  category: "senior",
+  categoryLabel: "Senior",
+  group: { name: "Semifinal", avatarLabel: "SF" },
+  home: { ...chapela, score: 2, penaltyScore: 4 },
+  away: { ...cesantes, score: 2, penaltyScore: 5 },
+};
+
 const days: ScheduleDay[] = [
   {
     key: "2026-06-27",
@@ -117,6 +130,10 @@ export const Live: Story = {
 
 export const Finished: Story = {
   args: { matches: [finished], showCategory: true },
+};
+
+export const PenaltyShootout: Story = {
+  args: { matches: [penaltyShootout], showCategory: true },
 };
 
 export const DayGrouped: Story = {

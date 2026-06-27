@@ -39,11 +39,6 @@ try {
   console.log("Applying migrations…");
   await migrate(drizzle(client), { migrationsFolder });
 
-  console.log("Seeding…");
-  const { seed } = await import("./seed");
-  const { db } = await import("@mr/db");
-  await seed(db);
-
   console.log("Database reset complete.");
   await client.end();
   process.exit(0);

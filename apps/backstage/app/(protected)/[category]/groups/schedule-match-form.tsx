@@ -46,7 +46,6 @@ export function ScheduleMatchForm({
   const [scheduledAt, setScheduledAt] = useState<Date | undefined>(
     match ? madridWallTimeDate(match.scheduledAt) : undefined,
   );
-  const [status, setStatus] = useState(match?.status ?? "scheduled");
   const handledStateRef = useRef<FormState>(initialFormState);
   const sameTeamSelected = Boolean(homeTeamId && homeTeamId === awayTeamId);
   const canSubmit = Boolean(
@@ -71,7 +70,6 @@ export function ScheduleMatchForm({
         setHomePlaceholder("");
         setAwayPlaceholder("");
         setScheduledAt(undefined);
-        setStatus("scheduled");
       }
       onSuccess?.();
     }
@@ -195,70 +193,6 @@ export function ScheduleMatchForm({
             {state.fieldErrors.scheduledAt}
           </p>
         ) : null}
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="schedule-match-status">Estado</Label>
-          <Select
-            name="status"
-            value={status}
-            onValueChange={(value) => {
-              if (
-                value === "scheduled" ||
-                value === "live" ||
-                value === "finished" ||
-                value === "postponed"
-              ) {
-                setStatus(value);
-              }
-            }}
-          >
-            <SelectTrigger id="schedule-match-status" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="scheduled">Programado</SelectItem>
-              <SelectItem value="live">En directo</SelectItem>
-              <SelectItem value="finished">Finalizado</SelectItem>
-              <SelectItem value="postponed">Aplazado</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="schedule-home-score">Goles local</Label>
-          <Input
-            id="schedule-home-score"
-            name="homeScore"
-            type="number"
-            min={0}
-            max={99}
-            defaultValue={match?.homeScore ?? ""}
-            aria-invalid={Boolean(state.fieldErrors?.homeScore)}
-          />
-          {state.fieldErrors?.homeScore ? (
-            <p className="text-xs text-destructive">
-              {state.fieldErrors.homeScore}
-            </p>
-          ) : null}
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="schedule-away-score">Goles visitante</Label>
-          <Input
-            id="schedule-away-score"
-            name="awayScore"
-            type="number"
-            min={0}
-            max={99}
-            defaultValue={match?.awayScore ?? ""}
-            aria-invalid={Boolean(state.fieldErrors?.awayScore)}
-          />
-          {state.fieldErrors?.awayScore ? (
-            <p className="text-xs text-destructive">
-              {state.fieldErrors.awayScore}
-            </p>
-          ) : null}
-        </div>
       </div>
 
       <Button type="submit" disabled={!canSubmit}>

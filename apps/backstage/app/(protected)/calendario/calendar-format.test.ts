@@ -13,6 +13,7 @@ function makeMatch(
     groupName: "Grupo A",
     groupAvatarLabel: "A",
     groupStage: "f1",
+    kind: "group",
     category: "senior",
     homeTeamId: "home-1",
     homeTeamName: "Local",
@@ -21,6 +22,8 @@ function makeMatch(
     status: "scheduled",
     homeScore: null,
     awayScore: null,
+    homePenalties: null,
+    awayPenalties: null,
     ...overrides,
   };
 }

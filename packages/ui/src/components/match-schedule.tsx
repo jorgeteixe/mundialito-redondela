@@ -21,6 +21,12 @@ export interface MatchSide {
   crestUrl?: string;
   /** Goals scored. Absent until results exist — renders a placeholder. */
   score?: number;
+  /**
+   * Penalty-shootout goals. Shown in parentheses next to the score and used to
+   * decide the winner when regular time is level. Only rendered when both sides
+   * have a value.
+   */
+  penaltyScore?: number;
   /** When set, the team (name + crest) links here. */
   href?: string;
 }
@@ -116,7 +122,16 @@ function hasResult(status: MatchStatus) {
 function isWinner(side: MatchSide, other: MatchSide, status: MatchStatus) {
   if (status !== "finished") return false;
   if (side.score == null || other.score == null) return false;
-  return side.score > other.score;
+  if (side.score !== other.score) return side.score > other.score;
+  // Regular time level — fall back to the penalty shootout when present.
+  if (
+    side.penaltyScore != null &&
+    other.penaltyScore != null &&
+    side.penaltyScore !== other.penaltyScore
+  ) {
+    return side.penaltyScore > other.penaltyScore;
+  }
+  return false;
 }
 
 function TeamSide({
@@ -197,6 +212,10 @@ function ScoreBox({ match }: { match: ScheduleMatch }) {
   const homeMuted = isWinner(match.away, match.home, status);
   const awayMuted = isWinner(match.home, match.away, status);
 
+  // Penalties only make sense as a pair; show them when both are recorded.
+  const showPenalties =
+    match.home.penaltyScore != null && match.away.penaltyScore != null;
+
   return (
     <div className="flex items-center gap-2 px-2 text-lg font-semibold tabular-nums sm:px-3 sm:text-xl">
       <span
@@ -206,6 +225,9 @@ function ScoreBox({ match }: { match: ScheduleMatch }) {
         )}
       >
         {match.home.score}
+        {showPenalties ? (
+          <PenaltyMark value={match.home.penaltyScore!} />
+        ) : null}
       </span>
       <span className="text-muted-foreground">-</span>
       <span
@@ -215,8 +237,23 @@ function ScoreBox({ match }: { match: ScheduleMatch }) {
         )}
       >
         {match.away.score}
+        {showPenalties ? (
+          <PenaltyMark value={match.away.penaltyScore!} />
+        ) : null}
       </span>
     </div>
+  );
+}
+
+/** Small parenthetical penalty count rendered next to a regular-time score. */
+function PenaltyMark({ value }: { value: number }) {
+  return (
+    <span
+      className="ml-0.5 align-top text-[0.6em] font-medium text-muted-foreground"
+      title="Penaltis"
+    >
+      ({value})
+    </span>
   );
 }
 

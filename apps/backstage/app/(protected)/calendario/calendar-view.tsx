@@ -35,8 +35,8 @@ export function CalendarView({
               href: `/${match.category}/groups/${match.groupStage}/${match.groupId}`,
             }
           : {
-              name: "Eliminatorias",
-              avatarLabel: "E",
+              name: knockoutLabel(match.kind),
+              avatarLabel: knockoutAvatar(match.kind),
             }
         : undefined,
       status: match.status,
@@ -50,6 +50,7 @@ export function CalendarView({
           ? `/${match.category}/teams/${match.homeTeamId}`
           : undefined,
         score: match.homeScore ?? undefined,
+        penaltyScore: match.homePenalties ?? undefined,
       },
       away: {
         id: match.awayTeamId ?? `${match.id}-away`,
@@ -61,6 +62,7 @@ export function CalendarView({
           ? `/${match.category}/teams/${match.awayTeamId}`
           : undefined,
         score: match.awayScore ?? undefined,
+        penaltyScore: match.awayPenalties ?? undefined,
       },
     })),
   }));
@@ -80,4 +82,18 @@ export function CalendarView({
       }
     />
   );
+}
+
+function knockoutLabel(kind: CalendarDay["matches"][number]["kind"]): string {
+  if (kind === "semifinal") return "Semifinal";
+  if (kind === "third_place") return "3.º-4.º puesto";
+  if (kind === "final") return "Final";
+  return "Eliminatorias";
+}
+
+function knockoutAvatar(kind: CalendarDay["matches"][number]["kind"]): string {
+  if (kind === "semifinal") return "SF";
+  if (kind === "third_place") return "3.º";
+  if (kind === "final") return "F";
+  return "E";
 }

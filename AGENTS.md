@@ -33,7 +33,7 @@
 - DB run migrations: `pnpm db:migrate`
 - DB push schema (no migration file): `pnpm db:push`
 - DB studio: `pnpm db:studio`
-- DB reset (drop + migrate + seed): `pnpm db:reset`
+- DB reset (drop + migrate, no seed): `pnpm db:reset`
 - Seed sample data: `pnpm db:seed`
 - Seed admin user: `pnpm db:seed-admin`
 - Run Trigger dev worker: `pnpm jobs:dev`

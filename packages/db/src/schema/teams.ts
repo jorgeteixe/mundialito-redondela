@@ -93,6 +93,10 @@ export const match = pgTable(
   "match",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    // Stable bracket identifier (see @mr/db/bracket). Null for plain F1 group
+    // fixtures; set on F2 group + knockout matches so the bracket resolver can
+    // match a DB row to its advancement definition.
+    code: text("code").unique(),
     category: categoryEnum("category").default("senior").notNull(),
     groupId: uuid("group_id").references(() => tournamentGroup.id, {
       onDelete: "cascade",
@@ -109,6 +113,10 @@ export const match = pgTable(
     awayPlaceholder: text("away_placeholder"),
     homeScore: integer("home_score"),
     awayScore: integer("away_score"),
+    // Penalty-shootout goals. Optional; used as a tiebreaker when regular time
+    // ends level (knockout matches).
+    homePenalties: integer("home_penalties"),
+    awayPenalties: integer("away_penalties"),
     scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")

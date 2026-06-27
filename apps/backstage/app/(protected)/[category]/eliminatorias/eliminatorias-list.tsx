@@ -6,6 +6,7 @@ import {
   MoreHorizontal,
   Pencil,
   Plus,
+  RefreshCcw,
   Trash2,
 } from "lucide-react";
 import {
@@ -40,7 +41,7 @@ import {
 } from "@mr/ui";
 import type { Category } from "@/lib/category";
 import { EliminatoriaForm } from "./eliminatoria-form";
-import { deleteEliminatoriaMatch } from "./actions";
+import { deleteEliminatoriaMatch, recalcBracket } from "./actions";
 import type { EliminatoriaMatch, EliminatoriaTeam } from "./data";
 
 type Props = {
@@ -62,29 +63,38 @@ export function EliminatoriasList({
     <DashboardPage
       actions={
         canWrite ? (
-          <Sheet open={createOpen} onOpenChange={setCreateOpen}>
-            <SheetTrigger asChild>
-              <Button size="sm">
-                <Plus />
-                Programar partido
+          <div className="flex items-center gap-2">
+            <form action={recalcBracket}>
+              <input type="hidden" name="category" value={category} />
+              <Button type="submit" size="sm" variant="outline">
+                <RefreshCcw />
+                Recalcular cruces
               </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>Programar eliminatoria</SheetTitle>
-                <SheetDescription>
-                  Añade semifinal, tercer puesto o final.
-                </SheetDescription>
-              </SheetHeader>
-              <div className="px-4">
-                <EliminatoriaForm
-                  category={category}
-                  teams={teams}
-                  onSuccess={() => setCreateOpen(false)}
-                />
-              </div>
-            </SheetContent>
-          </Sheet>
+            </form>
+            <Sheet open={createOpen} onOpenChange={setCreateOpen}>
+              <SheetTrigger asChild>
+                <Button size="sm">
+                  <Plus />
+                  Programar partido
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Programar eliminatoria</SheetTitle>
+                  <SheetDescription>
+                    Añade semifinal, tercer puesto o final.
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="px-4">
+                  <EliminatoriaForm
+                    category={category}
+                    teams={teams}
+                    onSuccess={() => setCreateOpen(false)}
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         ) : null
       }
       isEmpty={matches.length === 0}
@@ -238,5 +248,9 @@ function formatScore(match: EliminatoriaMatch) {
   if (match.homeScore == null || match.awayScore == null) {
     return match.status === "postponed" ? "Aplazado" : "-";
   }
-  return `${match.homeScore}-${match.awayScore}`;
+  const base = `${match.homeScore}-${match.awayScore}`;
+  if (match.homePenalties != null && match.awayPenalties != null) {
+    return `${base} (${match.homePenalties}-${match.awayPenalties})`;
+  }
+  return base;
 }

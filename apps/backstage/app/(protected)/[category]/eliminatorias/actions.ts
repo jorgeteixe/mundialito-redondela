@@ -6,7 +6,8 @@ import { db, schema } from "@mr/db";
 import { requireAdminWrite } from "@/lib/authz";
 import { isCategory, type Category } from "@/lib/category";
 import { conflictWindow } from "@/lib/match-schedule";
-import type { KnockoutKind, MatchStatus } from "./data";
+import { resolveBracket } from "@/lib/bracket-resolver";
+import type { KnockoutKind } from "./data";
 
 const { match, team } = schema;
 const tournamentTimeZone = "Europe/Madrid";
@@ -44,29 +45,6 @@ function readKind(formData: FormData): KnockoutKind | null {
     return kind;
   }
   return null;
-}
-
-function readStatus(formData: FormData): MatchStatus {
-  const status = readString(formData, "status");
-  if (
-    status === "scheduled" ||
-    status === "live" ||
-    status === "finished" ||
-    status === "postponed"
-  ) {
-    return status;
-  }
-  return "scheduled";
-}
-
-function readScore(formData: FormData, key: string) {
-  const raw = readString(formData, key);
-  if (!raw) return { value: null };
-  const value = Number.parseInt(raw, 10);
-  if (!Number.isInteger(value) || value < 0 || value > 99) {
-    return { value: null, error: "Usa un marcador válido." };
-  }
-  return { value };
 }
 
 function parseMadridDateTime(value: string) {
@@ -224,9 +202,6 @@ function readInput(formData: FormData) {
   const awayPlaceholder = readNullableString(formData, "awayPlaceholder");
   const scheduledRaw = readString(formData, "scheduledAt");
   const scheduledAt = scheduledRaw ? parseMadridDateTime(scheduledRaw) : null;
-  const status = readStatus(formData);
-  const homeScore = readScore(formData, "homeScore");
-  const awayScore = readScore(formData, "awayScore");
 
   return {
     category,
@@ -236,9 +211,6 @@ function readInput(formData: FormData) {
     homePlaceholder,
     awayPlaceholder,
     scheduledAt,
-    status,
-    homeScore,
-    awayScore,
   };
 }
 
@@ -249,9 +221,7 @@ function validateInput(input: ReturnType<typeof readInput>): FormState | null {
     (!input.homeTeamId && !input.homePlaceholder) ||
     (!input.awayTeamId && !input.awayPlaceholder) ||
     !input.scheduledAt ||
-    Number.isNaN(input.scheduledAt.getTime()) ||
-    input.homeScore.error ||
-    input.awayScore.error
+    Number.isNaN(input.scheduledAt.getTime())
   ) {
     return {
       status: "error",
@@ -281,8 +251,6 @@ function validateInput(input: ReturnType<typeof readInput>): FormState | null {
           input.scheduledAt && !Number.isNaN(input.scheduledAt.getTime())
             ? undefined
             : "Indica una fecha y hora válidas.",
-        homeScore: input.homeScore.error,
-        awayScore: input.awayScore.error,
       },
     };
   }
@@ -332,20 +300,19 @@ export async function createEliminatoriaMatch(
     };
   }
 
+  // Results (status + score) are set in a dedicated view, not here.
   await db.insert(match).values({
     category: input.category as Category,
     groupId: null,
     kind: input.kind!,
-    status: input.status,
     homeTeamId: input.homeTeamId,
     awayTeamId: input.awayTeamId,
     homePlaceholder: input.homePlaceholder,
     awayPlaceholder: input.awayPlaceholder,
-    homeScore: input.homeScore.value,
-    awayScore: input.awayScore.value,
     scheduledAt: input.scheduledAt!,
   });
 
+  await resolveBracket(input.category as Category);
   revalidatePath(ELIMINATORIAS_PATH, "page");
   return { status: "success", message: "Partido programado." };
 }
@@ -382,25 +349,37 @@ export async function updateEliminatoriaMatch(
     };
   }
 
+  // Results (status + score) are managed elsewhere; only scheduling is edited here.
   await db
     .update(match)
     .set({
       kind: input.kind!,
-      status: input.status,
       homeTeamId: input.homeTeamId,
       awayTeamId: input.awayTeamId,
       homePlaceholder: input.homePlaceholder,
       awayPlaceholder: input.awayPlaceholder,
-      homeScore: input.homeScore.value,
-      awayScore: input.awayScore.value,
       scheduledAt: input.scheduledAt!,
     })
     .where(
       and(eq(match.id, id), eq(match.category, input.category as Category)),
     );
 
+  // A finished semifinal feeds the final / third-place match — re-resolve.
+  await resolveBracket(input.category as Category);
   revalidatePath(ELIMINATORIAS_PATH, "page");
   return { status: "success", message: "Partido actualizado." };
+}
+
+export async function recalcBracket(formData: FormData): Promise<void> {
+  await requireAdminWrite();
+
+  const category = readString(formData, "category");
+  if (!isCategory(category)) return;
+
+  await resolveBracket(category);
+  revalidatePath(ELIMINATORIAS_PATH, "page");
+  revalidatePath("/[category]/groups", "page");
+  revalidatePath("/[category]/groups/[stage]/[groupId]", "page");
 }
 
 export async function deleteEliminatoriaMatch(formData: FormData) {

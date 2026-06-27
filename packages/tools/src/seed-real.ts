@@ -15,6 +15,7 @@ loadEnv({
 });
 
 import type { db as DbType } from "@mr/db";
+import { bracketForCategory, slotLabel } from "@mr/db/bracket";
 
 type Category = "senior" | "cadet";
 
@@ -61,16 +62,6 @@ const REAL_GROUPS: Record<Category, RealGroup[]> = {
 // --- Real fixture calendar (Fase 1) ---
 // date = local date, time = local time. Home team first.
 type Fixture = { date: string; time: string; home: string; away: string };
-type PlaceholderFixture = {
-  category: Category;
-  stage?: "f2";
-  groupLabel?: string;
-  kind?: "group" | "semifinal" | "third_place" | "final";
-  date: string;
-  time: string;
-  home: string;
-  away: string;
-};
 
 const FIXTURES: Fixture[] = [
   // LUNES 29 JUNIO
@@ -291,268 +282,6 @@ const FIXTURES: Fixture[] = [
   },
 ];
 
-const PLACEHOLDER_FIXTURES: PlaceholderFixture[] = [
-  // VIERNES 10 JULIO
-  {
-    category: "cadet",
-    stage: "f2",
-    groupLabel: "A",
-    date: "2026-07-10",
-    time: "20:00",
-    home: "1.º Grupo A",
-    away: "2.º Grupo B",
-  },
-  {
-    category: "cadet",
-    stage: "f2",
-    groupLabel: "B",
-    date: "2026-07-10",
-    time: "20:30",
-    home: "1.º Grupo B",
-    away: "3.º Grupo A",
-  },
-  {
-    category: "cadet",
-    stage: "f2",
-    groupLabel: "C",
-    date: "2026-07-10",
-    time: "21:00",
-    home: "1.º Grupo C",
-    away: "3.º Grupo B",
-  },
-  {
-    category: "senior",
-    stage: "f2",
-    groupLabel: "A",
-    date: "2026-07-10",
-    time: "21:30",
-    home: "1.º Grupo A",
-    away: "2.º Grupo B",
-  },
-  {
-    category: "senior",
-    stage: "f2",
-    groupLabel: "B",
-    date: "2026-07-10",
-    time: "22:00",
-    home: "1.º Grupo B",
-    away: "2.º Grupo D",
-  },
-  {
-    category: "senior",
-    stage: "f2",
-    groupLabel: "C",
-    date: "2026-07-10",
-    time: "22:30",
-    home: "1.º Grupo C",
-    away: "2.º Grupo A",
-  },
-  // MARTES 14 JULIO
-  {
-    category: "cadet",
-    stage: "f2",
-    groupLabel: "A",
-    date: "2026-07-14",
-    time: "20:00",
-    home: "1.º Grupo A",
-    away: "3.º Grupo C",
-  },
-  {
-    category: "cadet",
-    stage: "f2",
-    groupLabel: "B",
-    date: "2026-07-14",
-    time: "20:30",
-    home: "1.º Grupo B",
-    away: "2.º Grupo C",
-  },
-  {
-    category: "cadet",
-    stage: "f2",
-    groupLabel: "C",
-    date: "2026-07-14",
-    time: "21:00",
-    home: "1.º Grupo C",
-    away: "2.º Grupo A",
-  },
-  {
-    category: "senior",
-    stage: "f2",
-    groupLabel: "D",
-    date: "2026-07-14",
-    time: "21:30",
-    home: "1.º Grupo D",
-    away: "2.º Grupo C",
-  },
-  {
-    category: "senior",
-    stage: "f2",
-    groupLabel: "A",
-    date: "2026-07-14",
-    time: "22:00",
-    home: "1.º Grupo A",
-    away: "3.º Grupo C",
-  },
-  {
-    category: "senior",
-    stage: "f2",
-    groupLabel: "B",
-    date: "2026-07-14",
-    time: "22:30",
-    home: "1.º Grupo B",
-    away: "3.º Grupo A",
-  },
-  // MIÉRCOLES 15 JULIO
-  {
-    category: "cadet",
-    stage: "f2",
-    groupLabel: "A",
-    date: "2026-07-15",
-    time: "20:00",
-    home: "2.º Grupo B",
-    away: "3.º Grupo C",
-  },
-  {
-    category: "cadet",
-    stage: "f2",
-    groupLabel: "B",
-    date: "2026-07-15",
-    time: "20:30",
-    home: "3.º Grupo A",
-    away: "2.º Grupo C",
-  },
-  {
-    category: "cadet",
-    stage: "f2",
-    groupLabel: "C",
-    date: "2026-07-15",
-    time: "21:00",
-    home: "3.º Grupo B",
-    away: "2.º Grupo A",
-  },
-  {
-    category: "senior",
-    stage: "f2",
-    groupLabel: "C",
-    date: "2026-07-15",
-    time: "21:30",
-    home: "1.º Grupo C",
-    away: "3.º Grupo D",
-  },
-  {
-    category: "senior",
-    stage: "f2",
-    groupLabel: "D",
-    date: "2026-07-15",
-    time: "22:00",
-    home: "1.º Grupo D",
-    away: "3.º Grupo B",
-  },
-  {
-    category: "senior",
-    stage: "f2",
-    groupLabel: "A",
-    date: "2026-07-15",
-    time: "22:30",
-    home: "2.º Grupo B",
-    away: "3.º Grupo C",
-  },
-  // JUEVES 16 JULIO
-  {
-    category: "senior",
-    stage: "f2",
-    groupLabel: "B",
-    date: "2026-07-16",
-    time: "21:30",
-    home: "2.º Grupo D",
-    away: "3.º Grupo A",
-  },
-  {
-    category: "senior",
-    stage: "f2",
-    groupLabel: "C",
-    date: "2026-07-16",
-    time: "22:00",
-    home: "2.º Grupo A",
-    away: "3.º Grupo D",
-  },
-  {
-    category: "senior",
-    stage: "f2",
-    groupLabel: "D",
-    date: "2026-07-16",
-    time: "22:30",
-    home: "2.º Grupo C",
-    away: "3.º Grupo B",
-  },
-  // SEMIFINALES
-  {
-    category: "cadet",
-    kind: "semifinal",
-    date: "2026-07-20",
-    time: "20:00",
-    home: "Mejor 1.º Cadete F2",
-    away: "2.º mejor 1.º Cadete F2",
-  },
-  {
-    category: "cadet",
-    kind: "semifinal",
-    date: "2026-07-20",
-    time: "20:30",
-    home: "Peor 1.º Cadete F2",
-    away: "Mejor 2.º Cadete F2",
-  },
-  {
-    category: "senior",
-    kind: "semifinal",
-    date: "2026-07-20",
-    time: "21:30",
-    home: "1.º Grupo A Senior F2",
-    away: "1.º Grupo D Senior F2",
-  },
-  {
-    category: "senior",
-    kind: "semifinal",
-    date: "2026-07-20",
-    time: "22:00",
-    home: "1.º Grupo B Senior F2",
-    away: "1.º Grupo C Senior F2",
-  },
-  // FINAL
-  {
-    category: "cadet",
-    kind: "third_place",
-    date: "2026-07-24",
-    time: "20:00",
-    home: "Perdedor semifinal Cadete 1",
-    away: "Perdedor semifinal Cadete 2",
-  },
-  {
-    category: "senior",
-    kind: "third_place",
-    date: "2026-07-24",
-    time: "20:30",
-    home: "Perdedor semifinal Senior 1",
-    away: "Perdedor semifinal Senior 2",
-  },
-  {
-    category: "cadet",
-    kind: "final",
-    date: "2026-07-24",
-    time: "21:30",
-    home: "Ganador semifinal Cadete 1",
-    away: "Ganador semifinal Cadete 2",
-  },
-  {
-    category: "senior",
-    kind: "final",
-    date: "2026-07-24",
-    time: "22:00",
-    home: "Ganador semifinal Senior 1",
-    away: "Ganador semifinal Senior 2",
-  },
-];
-
 const CATEGORIES: Category[] = ["senior", "cadet"];
 
 /** Normalize a team name for matching across calendar/bracket spelling drift. */
@@ -710,34 +439,40 @@ export async function seedReal(db: typeof DbType) {
 
   await db.insert(schema.match).values(matchValues);
 
-  const placeholderValues = PLACEHOLDER_FIXTURES.map((fixture) => {
-    const groupId =
-      fixture.stage === "f2" && fixture.groupLabel
-        ? f2GroupByCategoryAndLabel.get(
-            `${fixture.category}:${fixture.groupLabel}`,
-          )
-        : null;
+  // F2 group + knockout matches come from the hardcoded bracket. Teams are left
+  // empty (placeholder labels only) — the bracket resolver fills them in as
+  // results land.
+  const bracketValues = CATEGORIES.flatMap((category) =>
+    bracketForCategory(category).map((bracketMatch) => {
+      const groupId =
+        bracketMatch.kind === "group" && bracketMatch.groupLabel
+          ? f2GroupByCategoryAndLabel.get(
+              `${category}:${bracketMatch.groupLabel}`,
+            )
+          : null;
 
-    if (fixture.stage === "f2" && !groupId) {
-      throw new Error(
-        `Missing F2 group ${fixture.category} ${fixture.groupLabel}`,
-      );
-    }
+      if (bracketMatch.kind === "group" && !groupId) {
+        throw new Error(
+          `Missing F2 group ${category} ${bracketMatch.groupLabel}`,
+        );
+      }
 
-    return {
-      category: fixture.category,
-      groupId,
-      kind: fixture.kind ?? "group",
-      homePlaceholder: fixture.home,
-      awayPlaceholder: fixture.away,
-      scheduledAt: parseScheduledAt(fixture.date, fixture.time),
-    };
-  });
+      return {
+        code: bracketMatch.code,
+        category,
+        groupId,
+        kind: bracketMatch.kind,
+        homePlaceholder: slotLabel(bracketMatch.home, category),
+        awayPlaceholder: slotLabel(bracketMatch.away, category),
+        scheduledAt: parseScheduledAt(bracketMatch.date, bracketMatch.time),
+      };
+    }),
+  );
 
-  await db.insert(schema.match).values(placeholderValues);
+  await db.insert(schema.match).values(bracketValues);
 
   console.log(
-    `  matches: ${matchValues.length} F1 fixtures, ${placeholderValues.length} F2/eliminatoria fixtures scheduled.`,
+    `  matches: ${matchValues.length} F1 fixtures, ${bracketValues.length} F2/eliminatoria fixtures scheduled.`,
   );
 }
 

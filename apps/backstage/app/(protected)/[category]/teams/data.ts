@@ -80,6 +80,7 @@ export async function listTeamMatches(
       groupName: tournamentGroup.name,
       groupAvatarLabel: tournamentGroup.avatarLabel,
       groupStage: tournamentGroup.stage,
+      kind: match.kind,
       category: match.category,
       homeTeamId: match.homeTeamId,
       homeTeamName: homeTeam.name,
@@ -90,6 +91,8 @@ export async function listTeamMatches(
       status: match.status,
       homeScore: match.homeScore,
       awayScore: match.awayScore,
+      homePenalties: match.homePenalties,
+      awayPenalties: match.awayPenalties,
     })
     .from(match)
     .leftJoin(tournamentGroup, eq(tournamentGroup.id, match.groupId))
@@ -105,6 +108,7 @@ export async function listTeamMatches(
     groupName: row.groupName,
     groupAvatarLabel: row.groupAvatarLabel,
     groupStage: row.groupStage,
+    kind: row.kind,
     category: row.category,
     homeTeamId: row.homeTeamId,
     homeTeamName: row.homeTeamName ?? row.homePlaceholder ?? "Pendiente",
@@ -113,5 +117,7 @@ export async function listTeamMatches(
     status: row.status,
     homeScore: row.homeScore,
     awayScore: row.awayScore,
+    homePenalties: row.homePenalties,
+    awayPenalties: row.awayPenalties,
   }));
 }

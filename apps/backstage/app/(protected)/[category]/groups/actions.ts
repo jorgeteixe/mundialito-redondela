@@ -8,6 +8,7 @@ import { requireAdminWrite } from "@/lib/authz";
 import { isCategory } from "@/lib/category";
 import { isGroupStage } from "@/lib/group-stage";
 import { conflictWindow } from "@/lib/match-schedule";
+import { resolveBracket } from "@/lib/bracket-resolver";
 
 const { match, team, tournamentGroup, tournamentGroupTeam } = schema;
 const tournamentTimeZone = "Europe/Madrid";
@@ -16,6 +17,16 @@ const tournamentTimeZone = "Europe/Madrid";
 const TEAMS_PATH = "/[category]/teams";
 const GROUPS_PATH = "/[category]/groups";
 const GROUP_DETAIL_PATH = "/[category]/groups/[stage]/[groupId]";
+const ELIMINATORIAS_PATH = "/[category]/eliminatorias";
+
+// A saved result can change standings, so re-run the bracket resolver to push
+// advancing teams into F2 groups + knockout faces, then refresh those views.
+async function syncBracket(category: "senior" | "cadet") {
+  await resolveBracket(category);
+  revalidatePath(GROUPS_PATH, "page");
+  revalidatePath(GROUP_DETAIL_PATH, "page");
+  revalidatePath(ELIMINATORIAS_PATH, "page");
+}
 
 export type FormState = {
   status: "idle" | "success" | "error";
@@ -84,29 +95,6 @@ function validateAvatarLabel(formData: FormData) {
 function readNullableString(formData: FormData, key: string) {
   const value = readString(formData, key);
   return value ? value : null;
-}
-
-function readScore(formData: FormData, key: string) {
-  const raw = readString(formData, key);
-  if (!raw) return { value: null };
-  const value = Number.parseInt(raw, 10);
-  if (!Number.isInteger(value) || value < 0 || value > 99) {
-    return { value: null, error: "Usa un marcador válido." };
-  }
-  return { value };
-}
-
-function readStatus(formData: FormData) {
-  const status = readString(formData, "status");
-  if (
-    status === "scheduled" ||
-    status === "live" ||
-    status === "finished" ||
-    status === "postponed"
-  ) {
-    return status;
-  }
-  return "scheduled";
 }
 
 function parseMadridDateTime(value: string) {
@@ -451,18 +439,13 @@ export async function createGroupMatch(
   const awayPlaceholder = readNullableString(formData, "awayPlaceholder");
   const scheduledRaw = readString(formData, "scheduledAt");
   const scheduledAt = scheduledRaw ? parseMadridDateTime(scheduledRaw) : null;
-  const status = readStatus(formData);
-  const homeScore = readScore(formData, "homeScore");
-  const awayScore = readScore(formData, "awayScore");
 
   if (
     !groupId ||
     (!homeTeamId && !homePlaceholder) ||
     (!awayTeamId && !awayPlaceholder) ||
     !scheduledAt ||
-    Number.isNaN(scheduledAt.getTime()) ||
-    homeScore.error ||
-    awayScore.error
+    Number.isNaN(scheduledAt.getTime())
   ) {
     return {
       status: "error",
@@ -481,8 +464,6 @@ export async function createGroupMatch(
           scheduledAt && !Number.isNaN(scheduledAt.getTime())
             ? undefined
             : "Indica una fecha y hora válidas.",
-        homeScore: homeScore.error,
-        awayScore: awayScore.error,
       },
     };
   }
@@ -540,6 +521,7 @@ export async function createGroupMatch(
     return SCHEDULE_CONFLICT_STATE;
   }
 
+  // Results (status + score) are set in a dedicated view, not here.
   await db.insert(match).values({
     category: group.category,
     groupId,
@@ -547,13 +529,11 @@ export async function createGroupMatch(
     awayTeamId,
     homePlaceholder,
     awayPlaceholder,
-    status,
-    homeScore: homeScore.value,
-    awayScore: awayScore.value,
     scheduledAt,
   });
 
   revalidatePath(GROUP_DETAIL_PATH, "page");
+  await syncBracket(group.category);
   return { status: "success", message: "Partido programado." };
 }
 
@@ -571,9 +551,6 @@ export async function updateGroupMatch(
   const awayPlaceholder = readNullableString(formData, "awayPlaceholder");
   const scheduledRaw = readString(formData, "scheduledAt");
   const scheduledAt = scheduledRaw ? parseMadridDateTime(scheduledRaw) : null;
-  const status = readStatus(formData);
-  const homeScore = readScore(formData, "homeScore");
-  const awayScore = readScore(formData, "awayScore");
 
   if (
     !id ||
@@ -581,9 +558,7 @@ export async function updateGroupMatch(
     (!homeTeamId && !homePlaceholder) ||
     (!awayTeamId && !awayPlaceholder) ||
     !scheduledAt ||
-    Number.isNaN(scheduledAt.getTime()) ||
-    homeScore.error ||
-    awayScore.error
+    Number.isNaN(scheduledAt.getTime())
   ) {
     return {
       status: "error",
@@ -602,8 +577,6 @@ export async function updateGroupMatch(
           scheduledAt && !Number.isNaN(scheduledAt.getTime())
             ? undefined
             : "Indica una fecha y hora válidas.",
-        homeScore: homeScore.error,
-        awayScore: awayScore.error,
       },
     };
   }
@@ -647,6 +620,7 @@ export async function updateGroupMatch(
     return SCHEDULE_CONFLICT_STATE;
   }
 
+  // Results (status + score) are managed elsewhere; only scheduling is edited here.
   const [updatedMatch] = await db
     .update(match)
     .set({
@@ -654,13 +628,10 @@ export async function updateGroupMatch(
       awayTeamId,
       homePlaceholder,
       awayPlaceholder,
-      status,
-      homeScore: homeScore.value,
-      awayScore: awayScore.value,
       scheduledAt,
     })
     .where(and(eq(match.id, id), eq(match.groupId, groupId)))
-    .returning({ id: match.id });
+    .returning({ id: match.id, category: match.category });
 
   if (!updatedMatch) {
     return {
@@ -670,6 +641,7 @@ export async function updateGroupMatch(
   }
 
   revalidatePath(GROUP_DETAIL_PATH, "page");
+  await syncBracket(updatedMatch.category);
   return { status: "success", message: "Partido actualizado." };
 }
 

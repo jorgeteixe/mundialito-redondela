@@ -22,6 +22,8 @@ export type EliminatoriaMatch = {
   status: MatchStatus;
   homeScore: number | null;
   awayScore: number | null;
+  homePenalties: number | null;
+  awayPenalties: number | null;
 };
 
 export type EliminatoriaTeam = {
@@ -51,6 +53,8 @@ export async function listEliminatoriaMatches(
       status: match.status,
       homeScore: match.homeScore,
       awayScore: match.awayScore,
+      homePenalties: match.homePenalties,
+      awayPenalties: match.awayPenalties,
     })
     .from(match)
     .leftJoin(homeTeam, eq(homeTeam.id, match.homeTeamId))

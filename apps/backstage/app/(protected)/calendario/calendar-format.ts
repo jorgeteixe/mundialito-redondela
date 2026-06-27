@@ -9,6 +9,7 @@ export type CalendarMatch = {
   groupName: string | null;
   groupAvatarLabel: string | null;
   groupStage: "f1" | "f2" | null;
+  kind: "group" | "semifinal" | "third_place" | "final";
   category: TeamCategory;
   homeTeamId: string | null;
   homeTeamName: string;
@@ -17,6 +18,8 @@ export type CalendarMatch = {
   status: "scheduled" | "live" | "finished" | "postponed";
   homeScore: number | null;
   awayScore: number | null;
+  homePenalties: number | null;
+  awayPenalties: number | null;
 };
 
 export type CalendarDay = {
