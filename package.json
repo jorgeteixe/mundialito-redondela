@@ -18,6 +18,7 @@
     "db:studio": "pnpm --filter @mr/db db:studio",
     "db:reset": "pnpm --filter @mr/tools db:reset",
     "db:seed": "pnpm --filter @mr/tools db:seed",
+    "db:seed-real": "pnpm --filter @mr/tools db:seed-real",
     "db:seed-admin": "pnpm --filter @mr/tools db:seed-admin",
     "jobs:dev": "turbo run dev --filter @mr/jobs",
     "jobs:deploy": "turbo run deploy --filter @mr/jobs",
