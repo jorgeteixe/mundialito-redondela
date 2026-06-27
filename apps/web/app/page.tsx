@@ -7,6 +7,12 @@ import { GroupStandingsSection } from "./components/group-standings-section";
 import { Header } from "./components/header";
 import { ModeToggle } from "./components/mode-toggle";
 
+// "Hoy" / the calendar's selected day derive from `new Date()` at render time,
+// so the page must render per-request rather than be baked at build time.
+// Otherwise the prerendered HTML and the per-request tree disagree on date-
+// derived state (e.g. the disabled prev-day button) and hydration mismatches.
+export const dynamic = "force-dynamic";
+
 const LEGAL_LINKS = [
   { label: "Política de privacidad", href: "/privacidad" },
   { label: "Aviso legal", href: "/aviso-legal" },
