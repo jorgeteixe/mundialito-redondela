@@ -45,8 +45,11 @@ export function GroupStandingsSection({
 
   return (
     <section className="mx-auto w-full max-w-3xl px-4 pb-10 sm:px-6">
-      <Tabs defaultValue="senior" className="gap-4">
-        <header className="border bg-card px-4 pt-3">
+      <Tabs
+        defaultValue="senior"
+        className="gap-0 overflow-hidden border bg-card"
+      >
+        <header className="border-b px-4 pt-3">
           <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight text-foreground">
             Grupos
             <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
@@ -74,7 +77,7 @@ export function GroupStandingsSection({
           <TabsContent
             key={category}
             value={category}
-            className="flex flex-col gap-4"
+            className="flex flex-col divide-y"
           >
             {groups.filter((group) => group.category === category).length ===
             0 ? (
@@ -82,14 +85,14 @@ export function GroupStandingsSection({
                 icon={<Trophy className="h-10 w-10" />}
                 title="Sin grupos"
                 description="Aún no hay grupos en esta categoría."
-                className="border border-dashed bg-card px-4"
+                className="px-4 py-12"
               />
             ) : (
               groups
                 .filter((group) => group.category === category)
                 .map((group) => (
-                  <section key={group.id} className="flex flex-col gap-3">
-                    <header className="flex items-center gap-2">
+                  <section key={group.id} className="flex flex-col gap-3 py-4">
+                    <header className="flex items-center gap-2 px-3 sm:px-4">
                       <Link
                         href={`/grupos/${group.id}`}
                         className="inline-flex max-w-full transition-opacity hover:opacity-80"
@@ -103,6 +106,7 @@ export function GroupStandingsSection({
                       </Link>
                     </header>
                     <Standings
+                      bare
                       rows={toStandingsRows(group)}
                       highlightedTeamId={highlightedTeamId}
                       qualifyCount={F1_QUALIFY_COUNT}
@@ -112,7 +116,7 @@ export function GroupStandingsSection({
                           icon={<Trophy className="h-10 w-10" />}
                           title="Sin equipos"
                           description="Aún no hay equipos en este grupo."
-                          className="border border-dashed bg-card px-4"
+                          className="py-8"
                         />
                       }
                     />

@@ -69,9 +69,9 @@ export function DayCalendar({ days, todayKey }: DayCalendarProps) {
         onValueChange={(value) =>
           setSelectedCategory(value as CalendarCategory)
         }
-        className="gap-4"
+        className="gap-0 overflow-hidden border bg-card"
       >
-        <header className="border bg-card px-4 pt-3">
+        <header className="border-b px-4 pt-3">
           <h1 className="flex items-center justify-between gap-2 text-xl font-semibold tracking-tight text-foreground">
             Calendario
             <CalendarDays className="size-5 text-muted-foreground" />
@@ -96,9 +96,9 @@ export function DayCalendar({ days, todayKey }: DayCalendarProps) {
           <TabsContent
             key={category}
             value={category}
-            className="flex flex-col gap-6"
+            className="flex flex-col"
           >
-            <div className="mx-auto grid w-full max-w-md grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
+            <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-4">
               <Button
                 type="button"
                 variant="outline"
@@ -148,6 +148,7 @@ export function DayCalendar({ days, todayKey }: DayCalendarProps) {
             </div>
 
             <MatchSchedule
+              bare
               matches={selectedMatches}
               showCategory={selectedCategory === "all"}
               linkComponent={Link}
@@ -156,7 +157,7 @@ export function DayCalendar({ days, todayKey }: DayCalendarProps) {
                   icon={<CalendarDays className="h-10 w-10" />}
                   title="Sin partidos"
                   description="No hay partidos programados para este día."
-                  className="border border-dashed bg-card px-4"
+                  className="px-4 py-12"
                 />
               }
             />

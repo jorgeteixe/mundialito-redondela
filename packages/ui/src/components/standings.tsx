@@ -53,6 +53,11 @@ export interface StandingsProps {
   fullColumns?: boolean;
   /** Rendered when there are no rows. */
   emptyState?: React.ReactNode;
+  /**
+   * Drops the table's own border and surface so it can sit flush inside a
+   * surrounding card. Used by the grouped standings overview.
+   */
+  bare?: boolean;
   className?: string;
 }
 
@@ -141,6 +146,7 @@ export function Standings({
   fullColumns = false,
   linkComponent,
   emptyState,
+  bare,
   className,
 }: StandingsProps) {
   if (rows.length === 0) return <>{emptyState ?? null}</>;
@@ -154,7 +160,7 @@ export function Standings({
     <div className={cn("text-sm", className)}>
       <div
         className={cn(
-          "border bg-card",
+          !bare && "border bg-card",
           fullColumns ? "overflow-x-auto" : "overflow-hidden",
         )}
       >
@@ -241,7 +247,7 @@ export function Standings({
         </table>
       </div>
       {showLegend ? (
-        <p className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+        <p className="mt-2 flex items-center gap-2 px-3 text-xs text-muted-foreground sm:px-4">
           <span className="h-3 w-0.5 flex-none bg-primary" aria-hidden="true" />
           Clasifican a la siguiente fase
         </p>

@@ -80,6 +80,11 @@ export interface MatchScheduleProps {
   linkComponent?: LinkComponent;
   /** Rendered when there are no matches. */
   emptyState?: React.ReactNode;
+  /**
+   * Drops the list's own border and surface so it can sit flush inside a
+   * surrounding card (rows still divide). Used by the calendar.
+   */
+  bare?: boolean;
   className?: string;
 }
 
@@ -390,14 +395,21 @@ function MatchList({
   showCategory,
   showGroup,
   linkComponent,
+  bare,
 }: {
   matches: ScheduleMatch[];
   showCategory: boolean;
   showGroup: boolean;
   linkComponent?: LinkComponent;
+  bare?: boolean;
 }) {
   return (
-    <div className="divide-y divide-border border bg-card px-3 sm:px-4">
+    <div
+      className={cn(
+        "divide-y divide-border px-3 sm:px-4",
+        !bare && "border bg-card",
+      )}
+    >
       {matches.map((match) => (
         <MatchRow
           key={match.id}
@@ -422,6 +434,7 @@ export function MatchSchedule({
   showGroup = true,
   linkComponent,
   emptyState,
+  bare,
   className,
 }: MatchScheduleProps) {
   if (days && days.length > 0) {
@@ -435,6 +448,7 @@ export function MatchSchedule({
               showCategory={showCategory}
               showGroup={showGroup}
               linkComponent={linkComponent}
+              bare={bare}
             />
           </section>
         ))}
@@ -450,6 +464,7 @@ export function MatchSchedule({
           showCategory={showCategory}
           showGroup={showGroup}
           linkComponent={linkComponent}
+          bare={bare}
         />
       </div>
     );
