@@ -26,6 +26,7 @@ const segmentLabels: Record<string, string> = {
   f2: "F2",
   eliminatorias: "Eliminatorias",
   calendario: "Calendario",
+  resultados: "Resultados",
   videos: "Vídeos",
   images: "Imágenes",
   publicaciones: "Publicaciones",

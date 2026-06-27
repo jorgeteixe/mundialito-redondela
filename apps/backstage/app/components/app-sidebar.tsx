@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   CalendarDays,
   CalendarRange,
+  ClipboardList,
   Clapperboard,
   Image as ImageIcon,
   LogOut,
@@ -49,6 +50,7 @@ const scopedItems = [
 // General items that apply across all categories.
 const generalNavItems = [
   { title: "Calendario", url: "/calendario", icon: CalendarRange },
+  { title: "Resultados", url: "/resultados", icon: ClipboardList },
 ];
 
 // Social-media items, grouped under "Redes sociales".
