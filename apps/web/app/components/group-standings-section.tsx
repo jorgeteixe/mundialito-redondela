@@ -17,6 +17,12 @@ import type { PublicCategory, PublicGroupStanding } from "@mr/db";
 
 type GroupStandingsSectionProps = {
   groups: PublicGroupStanding[];
+  /**
+   * Team ids that advance from this stage. Computed by the caller (see
+   * `qualifyingTeamIds` in @mr/db) because the rule differs per stage and, for
+   * cadet F2, depends on a cross-group ranking.
+   */
+  qualifyingTeamIds?: readonly string[];
   highlightedTeamId?: string;
 };
 
@@ -32,12 +38,9 @@ const STAGE_LABELS = {
 
 const CATEGORIES: PublicCategory[] = ["senior", "cadet"];
 
-// Top 3 of every F1 group advance to F2 (see @mr/db/bracket). This overview
-// only renders F1 groups, so a fixed count is enough here.
-const F1_QUALIFY_COUNT = 3;
-
 export function GroupStandingsSection({
   groups,
+  qualifyingTeamIds,
   highlightedTeamId,
 }: GroupStandingsSectionProps) {
   // This overview only renders one stage at a time; label it from the groups.
@@ -109,7 +112,7 @@ export function GroupStandingsSection({
                       bare
                       rows={toStandingsRows(group)}
                       highlightedTeamId={highlightedTeamId}
-                      qualifyCount={F1_QUALIFY_COUNT}
+                      qualifyingTeamIds={qualifyingTeamIds}
                       linkComponent={Link}
                       emptyState={
                         <EmptyState

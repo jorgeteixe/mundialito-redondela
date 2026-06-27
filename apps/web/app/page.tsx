@@ -1,4 +1,8 @@
-import { listPublicF1GroupStandings, listPublicMatches } from "@mr/db";
+import {
+  listPublicGroupStandings,
+  listPublicMatches,
+  qualifyingTeamIds,
+} from "@mr/db";
 import { SocialCallout } from "@mr/ui";
 import { buildScheduleDays, todayKey } from "./calendar-format";
 import { DayCalendar } from "./components/day-calendar";
@@ -25,11 +29,14 @@ const SOCIAL_LINKS = {
 };
 
 export default async function Home() {
-  const [matches, groupStandings] = await Promise.all([
+  const [matches, f1Groups, f2Groups] = await Promise.all([
     listPublicMatches(),
-    listPublicF1GroupStandings(),
+    listPublicGroupStandings("f1"),
+    listPublicGroupStandings("f2"),
   ]);
   const days = buildScheduleDays(matches);
+  const f1Qualifying = [...qualifyingTeamIds(f1Groups)];
+  const f2Qualifying = [...qualifyingTeamIds(f2Groups)];
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -48,7 +55,16 @@ export default async function Home() {
           />
         </section>
         <DayCalendar days={days} todayKey={todayKey()} />
-        <GroupStandingsSection groups={groupStandings} />
+        <GroupStandingsSection
+          groups={f1Groups}
+          qualifyingTeamIds={f1Qualifying}
+        />
+        {f2Groups.length > 0 ? (
+          <GroupStandingsSection
+            groups={f2Groups}
+            qualifyingTeamIds={f2Qualifying}
+          />
+        ) : null}
       </main>
       <Footer
         copyright="© 2026 Mundialito Redondela · Sitio no oficial"
