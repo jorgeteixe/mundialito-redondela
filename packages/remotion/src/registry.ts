@@ -2,6 +2,8 @@ import type { ComponentType } from "react";
 import type { z } from "zod";
 import { Countdown } from "./compositions/countdown/Component";
 import { CountdownImage } from "./compositions/countdown/Image";
+import { Schedule } from "./compositions/schedule/Component";
+import { ScheduleImage } from "./compositions/schedule/Image";
 import { InstagramProfile } from "./compositions/dummy/InstagramProfile";
 import { FacebookProfile } from "./compositions/dummy/FacebookProfile";
 import { FacebookCover } from "./compositions/dummy/FacebookCover";
@@ -62,6 +64,16 @@ export const TEMPLATES: Template[] = [
   defineTemplate({
     ...getTemplateDefinition("countdown-post"),
     Component: CountdownImage as unknown as ComponentType<
+      Record<string, unknown>
+    >,
+  }),
+  defineTemplate({
+    ...getTemplateDefinition("daily-schedule"),
+    Component: Schedule as unknown as ComponentType<Record<string, unknown>>,
+  }),
+  defineTemplate({
+    ...getTemplateDefinition("daily-schedule-post"),
+    Component: ScheduleImage as unknown as ComponentType<
       Record<string, unknown>
     >,
   }),

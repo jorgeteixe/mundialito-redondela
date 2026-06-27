@@ -16,6 +16,7 @@ export {
 } from "./compositions/countdown/schema";
 
 export { Schedule } from "./compositions/schedule/Component";
+export { ScheduleImage } from "./compositions/schedule/Image";
 export {
   scheduleSchema,
   type ScheduleProps,

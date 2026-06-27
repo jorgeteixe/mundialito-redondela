@@ -2,6 +2,7 @@ import type { z } from "zod";
 import { PRESETS, type PresetName } from "./presets";
 import { countdownSchema } from "./compositions/countdown/schema";
 import { socialSchema } from "./compositions/dummy/schema";
+import { scheduleSchema } from "./compositions/schedule/schema";
 
 export type TemplateParameter = {
   name: string;
@@ -82,6 +83,139 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
     defaultProps: { daysLeft: 7 },
   }),
   defineTemplateDefinition({
+    id: "daily-schedule",
+    title: "Partidos del día (reel diario)",
+    kind: "video",
+    preset: "story",
+    schema: scheduleSchema,
+    parameters: [
+      {
+        name: "eyebrow",
+        label: "Etiqueta",
+        type: "text",
+        required: false,
+      },
+      {
+        name: "date",
+        label: "Fecha",
+        type: "text",
+        required: true,
+      },
+      {
+        name: "venue",
+        label: "Lugar",
+        type: "text",
+        required: false,
+      },
+    ],
+    defaultProps: {
+      eyebrow: "Partidos de hoy",
+      date: "Lunes 29 de junio",
+      venue: "Pista de A Xunqueira, Redondela",
+      matches: [
+        {
+          time: "10:00",
+          home: "A Xunqueira",
+          away: "Cesantes FC",
+          category: "senior",
+          categoryLabel: "Senior",
+          group: "Grupo A",
+        },
+        {
+          time: "11:00",
+          home: "Chapela",
+          away: "Vilar",
+          category: "cadet",
+          categoryLabel: "Cadete",
+          group: "Grupo B",
+        },
+        {
+          time: "12:00",
+          home: "Redondela",
+          away: "Cedeira",
+          category: "senior",
+          categoryLabel: "Senior",
+          group: "Grupo A",
+        },
+        {
+          time: "13:00",
+          home: "Saxamonde",
+          away: "Reboreda",
+          category: "cadet",
+          categoryLabel: "Cadete",
+          group: "Grupo C",
+        },
+      ],
+    },
+  }),
+  defineTemplateDefinition({
+    id: "daily-schedule-post",
+    title: "Partidos del día · Post (cuadrado)",
+    kind: "image",
+    preset: "square",
+    durationInFrames: 1,
+    schema: scheduleSchema,
+    parameters: [
+      {
+        name: "eyebrow",
+        label: "Etiqueta",
+        type: "text",
+        required: false,
+      },
+      {
+        name: "date",
+        label: "Fecha",
+        type: "text",
+        required: true,
+      },
+      {
+        name: "venue",
+        label: "Lugar",
+        type: "text",
+        required: false,
+      },
+    ],
+    defaultProps: {
+      eyebrow: "Partidos de hoy",
+      date: "Lunes 29 de junio",
+      venue: "Pista de A Xunqueira, Redondela",
+      matches: [
+        {
+          time: "10:00",
+          home: "A Xunqueira",
+          away: "Cesantes FC",
+          category: "senior",
+          categoryLabel: "Senior",
+          group: "Grupo A",
+        },
+        {
+          time: "11:00",
+          home: "Chapela",
+          away: "Vilar",
+          category: "cadet",
+          categoryLabel: "Cadete",
+          group: "Grupo B",
+        },
+        {
+          time: "12:00",
+          home: "Redondela",
+          away: "Cedeira",
+          category: "senior",
+          categoryLabel: "Senior",
+          group: "Grupo A",
+        },
+        {
+          time: "13:00",
+          home: "Saxamonde",
+          away: "Reboreda",
+          category: "cadet",
+          categoryLabel: "Cadete",
+          group: "Grupo C",
+        },
+      ],
+    },
+  }),
+  defineTemplateDefinition({
     id: "instagram-profile",
     title: "Instagram · Perfil (320×320)",
     kind: "image",
@@ -117,7 +251,7 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
     parameters: [],
     defaultProps: { variant: "light" },
   }),
-  // schedule / result / goal templates are built but parked for now.
+  // result / goal templates are built but parked for now.
   // Re-enable by adding template definitions here and matching Components in
   // registry.ts.
 ];
