@@ -52,14 +52,23 @@ import {
   TableHeader,
   TableRow,
 } from "@mr/ui";
-import { AddTeamForm } from "../add-team-form";
-import { deleteGroup, deleteGroupMatch, removeTeamFromGroup } from "../actions";
-import { groupAvatarStyle } from "../avatar-utils";
-import { GroupForm } from "../group-form";
-import { ScheduleMatchForm } from "../schedule-match-form";
-import { initials, teamAvatarUrl } from "../../teams/avatar-utils";
-import type { GroupDetail, GroupMatchSummary, GroupTeamSummary } from "../data";
+import { AddTeamForm } from "../../add-team-form";
+import {
+  deleteGroup,
+  deleteGroupMatch,
+  removeTeamFromGroup,
+} from "../../actions";
+import { groupAvatarStyle } from "../../avatar-utils";
+import { GroupForm } from "../../group-form";
+import { ScheduleMatchForm } from "../../schedule-match-form";
+import { initials, teamAvatarUrl } from "../../../teams/avatar-utils";
+import type {
+  GroupDetail,
+  GroupMatchSummary,
+  GroupTeamSummary,
+} from "../../data";
 import type { Category } from "@/lib/category";
+import { groupStageLabel } from "@/lib/group-stage";
 
 type GroupDetailViewProps = {
   group: GroupDetail;
@@ -91,6 +100,7 @@ export function GroupDetailView({
               <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                 <CategoryBadge category={group.category} />
                 <span>{group.teams.length} equipos</span>
+                <span>{groupStageLabel(group.stage)}</span>
               </div>
             </div>
           </div>
@@ -110,6 +120,7 @@ export function GroupDetailView({
                       mode="edit"
                       group={group}
                       category={category}
+                      stage={group.stage}
                       onSuccess={() => setEditGroupOpen(false)}
                     />
                   </div>
@@ -128,6 +139,9 @@ export function GroupDetailView({
           </TabsTrigger>
           <TabsTrigger value="schedule" className="flex-none">
             Calendario
+          </TabsTrigger>
+          <TabsTrigger value="standings" className="flex-none">
+            Clasificación
           </TabsTrigger>
         </TabsList>
       </header>
@@ -263,6 +277,7 @@ export function GroupDetailView({
                   <TableRow>
                     <TableHead>Fecha</TableHead>
                     <TableHead>Local</TableHead>
+                    <TableHead>Resultado</TableHead>
                     <TableHead>Visitante</TableHead>
                     {canWrite ? (
                       <TableHead className="w-12">
@@ -278,6 +293,7 @@ export function GroupDetailView({
                         {formatMatchDate(match.scheduledAt)}
                       </TableCell>
                       <TableCell>{match.homeTeamName}</TableCell>
+                      <TableCell>{formatScore(match)}</TableCell>
                       <TableCell>{match.awayTeamName}</TableCell>
                       {canWrite ? (
                         <TableCell>
@@ -294,6 +310,62 @@ export function GroupDetailView({
               </Table>
             </div>
           </>
+        )}
+      </TabsContent>
+      <TabsContent value="standings" className="flex flex-col gap-4 text-sm">
+        <div>
+          <h2 className="text-sm font-medium">Clasificación</h2>
+          <p className="text-xs text-muted-foreground">
+            Calculada con partidos finalizados de este grupo.
+          </p>
+        </div>
+        {group.standings.length === 0 ? (
+          <EmptyState
+            icon={<UserRoundPlus className="h-10 w-10" />}
+            title="Sin equipos"
+            description="Añade equipos al grupo para ver la clasificación."
+          />
+        ) : (
+          <div className="rounded-none border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Equipo</TableHead>
+                  <TableHead className="text-right">PJ</TableHead>
+                  <TableHead className="text-right">G</TableHead>
+                  <TableHead className="text-right">E</TableHead>
+                  <TableHead className="text-right">P</TableHead>
+                  <TableHead className="text-right">GF</TableHead>
+                  <TableHead className="text-right">GC</TableHead>
+                  <TableHead className="text-right">DG</TableHead>
+                  <TableHead className="text-right">Pts</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {group.standings.map((row) => (
+                  <TableRow key={row.teamId}>
+                    <TableCell className="font-medium">
+                      {row.teamName}
+                    </TableCell>
+                    <TableCell className="text-right">{row.played}</TableCell>
+                    <TableCell className="text-right">{row.wins}</TableCell>
+                    <TableCell className="text-right">{row.draws}</TableCell>
+                    <TableCell className="text-right">{row.losses}</TableCell>
+                    <TableCell className="text-right">{row.goalsFor}</TableCell>
+                    <TableCell className="text-right">
+                      {row.goalsAgainst}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {row.goalDifference}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {row.points}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </TabsContent>
     </Tabs>
@@ -316,7 +388,8 @@ function MatchCard({
       <CardHeader>
         <CardTitle>{formatMatchDate(match.scheduledAt)}</CardTitle>
         <CardDescription>
-          {match.homeTeamName} contra {match.awayTeamName}
+          {match.homeTeamName} contra {match.awayTeamName} ·{" "}
+          {formatScore(match)}
         </CardDescription>
         {canWrite ? (
           <CardAction>
@@ -412,6 +485,13 @@ function formatMatchDate(value: string) {
   }).format(new Date(value));
 }
 
+function formatScore(match: GroupMatchSummary) {
+  if (match.homeScore == null || match.awayScore == null) {
+    return match.status === "postponed" ? "Aplazado" : "-";
+  }
+  return `${match.homeScore}-${match.awayScore}`;
+}
+
 function GroupAvatar({ group }: { group: GroupDetail }) {
   return (
     <Avatar size="lg" className="flex-none">
@@ -471,7 +551,7 @@ function DeleteGroupButton({
             <input
               type="hidden"
               name="redirectTo"
-              value={`/${category}/groups`}
+              value={`/${category}/groups/${group.stage}`}
             />
             <AlertDialogAction type="submit" variant="destructive">
               Eliminar grupo

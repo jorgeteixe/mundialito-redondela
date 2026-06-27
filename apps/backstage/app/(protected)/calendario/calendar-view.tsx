@@ -27,24 +27,40 @@ export function CalendarView({
       categoryLabel: showCategory ? categoryLabel(match.category) : undefined,
       category: showCategory ? match.category : undefined,
       group: showGroup
-        ? {
-            name: match.groupName,
-            avatarLabel: match.groupAvatarLabel,
-            avatarStyle: groupAvatarStyle(match.groupId),
-            href: `/${match.category}/groups/${match.groupId}`,
-          }
+        ? match.groupId && match.groupName && match.groupAvatarLabel
+          ? {
+              name: match.groupName,
+              avatarLabel: match.groupAvatarLabel,
+              avatarStyle: groupAvatarStyle(match.groupId),
+              href: `/${match.category}/groups/${match.groupStage}/${match.groupId}`,
+            }
+          : {
+              name: "Eliminatorias",
+              avatarLabel: "E",
+            }
         : undefined,
+      status: match.status,
       home: {
-        id: match.homeTeamId,
+        id: match.homeTeamId ?? `${match.id}-home`,
         name: match.homeTeamName,
-        crestUrl: teamAvatarUrl(match.homeTeamId),
-        href: `/${match.category}/teams/${match.homeTeamId}`,
+        crestUrl: match.homeTeamId
+          ? teamAvatarUrl(match.homeTeamId)
+          : undefined,
+        href: match.homeTeamId
+          ? `/${match.category}/teams/${match.homeTeamId}`
+          : undefined,
+        score: match.homeScore ?? undefined,
       },
       away: {
-        id: match.awayTeamId,
+        id: match.awayTeamId ?? `${match.id}-away`,
         name: match.awayTeamName,
-        crestUrl: teamAvatarUrl(match.awayTeamId),
-        href: `/${match.category}/teams/${match.awayTeamId}`,
+        crestUrl: match.awayTeamId
+          ? teamAvatarUrl(match.awayTeamId)
+          : undefined,
+        href: match.awayTeamId
+          ? `/${match.category}/teams/${match.awayTeamId}`
+          : undefined,
+        score: match.awayScore ?? undefined,
       },
     })),
   }));

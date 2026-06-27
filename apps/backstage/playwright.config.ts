@@ -5,6 +5,7 @@ import path from "node:path";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+dotenv.config({ path: path.join(__dirname, "../../.env"), quiet: true });
 dotenv.config({ path: path.join(__dirname, ".env.test"), quiet: true });
 
 const port = 3099;
@@ -18,6 +19,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
+  timeout: 120_000,
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? "github" : "list",
   globalSetup: "./e2e/global-setup.ts",

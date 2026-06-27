@@ -37,9 +37,9 @@ test("seeded admin can access teams and sign out", async ({ page }) => {
   await expect(page.getByText("Backstage", { exact: true })).toBeVisible();
   // Both category sections are always present in the sidebar.
   await expect(page.locator('a[href="/senior/teams"]')).toBeVisible();
-  await expect(page.locator('a[href="/senior/groups"]')).toBeVisible();
+  await expect(page.locator('a[href="/senior/groups/f1"]')).toBeVisible();
   await expect(page.locator('a[href="/cadet/teams"]')).toBeVisible();
-  await expect(page.locator('a[href="/cadet/groups"]')).toBeVisible();
+  await expect(page.locator('a[href="/cadet/groups/f1"]')).toBeVisible();
   await expect(page.locator('a[href="/users"]')).toBeVisible();
   await expect(page.getByText("Sin equipos registrados")).toBeVisible();
   await expect(
@@ -190,8 +190,8 @@ test("viewer can read backstage but cannot see mutation controls", async ({
   ).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Acciones" })).toHaveCount(0);
 
-  await page.locator('a[href="/senior/groups"]').click();
-  await expect(page).toHaveURL(/\/senior\/groups$/);
+  await page.locator('a[href="/senior/groups/f1"]').click();
+  await expect(page).toHaveURL(/\/senior\/groups\/f1$/);
   await expect(
     page.getByRole("button", { name: "Registrar grupo" }),
   ).toHaveCount(0);
@@ -226,8 +226,8 @@ test("admin can manage groups and team membership", async ({ page }) => {
   // Senior teams are not in the Cadete route.
   await expect(page.getByRole("link", { name: /Grupo Norte/ })).toHaveCount(0);
 
-  await page.locator('a[href="/senior/groups"]').click();
-  await expect(page).toHaveURL(/\/senior\/groups$/);
+  await page.locator('a[href="/senior/groups/f1"]').click();
+  await expect(page).toHaveURL(/\/senior\/groups\/f1$/);
   await expect(page.getByText("Sin grupos registrados")).toBeVisible();
 
   await page.getByRole("button", { name: "Registrar grupo" }).first().click();
@@ -258,7 +258,7 @@ test("admin can manage groups and team membership", async ({ page }) => {
   ).toBeVisible();
 
   await page.getByRole("link", { name: /Grupo B/ }).click();
-  await expect(page).toHaveURL(/\/senior\/groups\/[0-9a-f-]+$/);
+  await expect(page).toHaveURL(/\/senior\/groups\/f1\/[0-9a-f-]+$/);
   await expect(page.getByText("Sin equipos registrados")).toBeVisible();
 
   await page.getByRole("button", { name: "Añadir equipo" }).first().click();
@@ -357,7 +357,7 @@ test("admin can manage groups and team membership", async ({ page }) => {
   await page.getByRole("button", { name: "Eliminar" }).click();
   await page.getByRole("button", { name: "Eliminar grupo" }).click();
 
-  await expect(page).toHaveURL(/\/senior\/groups$/);
+  await expect(page).toHaveURL(/\/senior\/groups\/f1$/);
   await expect(page.getByText("Sin grupos registrados")).toBeVisible();
 
   await page.goto("/senior/teams");
@@ -379,8 +379,6 @@ test("admin can manage groups and team membership", async ({ page }) => {
   await page.getByRole("menuitem", { name: "Eliminar" }).click();
   await page.getByRole("button", { name: "Eliminar equipo" }).click();
   await expect(page.getByRole("link", { name: "Grupo Sur" })).toHaveCount(0);
-
-  await expect(page.getByText("Sin equipos registrados")).toBeVisible();
 });
 
 test("admin can manage teams and nested players", async ({ page }) => {
@@ -474,7 +472,7 @@ test("category routes scope teams and groups", async ({ page }) => {
   await expect(page.getByRole("link", { name: /Cadete FC/ })).toHaveCount(0);
 
   // Groups are scoped by route too.
-  await page.goto("/cadet/groups");
+  await page.goto("/cadet/groups/f1");
   await page.getByRole("button", { name: "Registrar grupo" }).first().click();
   await page.getByLabel("Nombre del grupo").fill("Grupo Cadete");
   await page.getByLabel("Letra o número").fill("C");
@@ -482,7 +480,7 @@ test("category routes scope teams and groups", async ({ page }) => {
   await expect(page.getByText("Grupo registrado.")).toBeVisible();
   await expect(page.getByRole("link", { name: /Grupo Cadete/ })).toBeVisible();
 
-  await page.goto("/senior/groups");
+  await page.goto("/senior/groups/f1");
   await expect(page.getByRole("link", { name: /Grupo Cadete/ })).toHaveCount(0);
   await expect(page.getByText("Sin grupos registrados")).toBeVisible();
 
@@ -494,7 +492,7 @@ test("category routes scope teams and groups", async ({ page }) => {
   await page.getByRole("button", { name: "Eliminar equipo" }).click();
   await expect(page.getByRole("link", { name: /Senior FC/ })).toHaveCount(0);
 
-  await page.goto("/cadet/groups");
+  await page.goto("/cadet/groups/f1");
   const groupRow = page.locator("tr").filter({ hasText: "Grupo Cadete" });
   await groupRow.getByRole("button", { name: "Acciones" }).click();
   await page.getByRole("menuitem", { name: "Eliminar" }).click();

@@ -10,6 +10,7 @@ import {
   Image as ImageIcon,
   LogOut,
   Send,
+  Swords,
   Trophy,
   UserCog,
   Users,
@@ -39,7 +40,9 @@ const scopedSections: { label: string; category: Category }[] = [
 
 const scopedItems = [
   { title: "Equipos", path: "teams", icon: Users },
-  { title: "Grupos", path: "groups", icon: Trophy },
+  { title: "Grupos F1", path: "groups/f1", icon: Trophy },
+  { title: "Grupos F2", path: "groups/f2", icon: Trophy },
+  { title: "Eliminatorias", path: "eliminatorias", icon: Swords },
   { title: "Calendario", path: "calendario", icon: CalendarDays },
 ];
 

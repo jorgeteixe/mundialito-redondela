@@ -79,21 +79,39 @@ export async function listTeamMatches(
       groupId: match.groupId,
       groupName: tournamentGroup.name,
       groupAvatarLabel: tournamentGroup.avatarLabel,
-      category: tournamentGroup.category,
+      groupStage: tournamentGroup.stage,
+      category: match.category,
       homeTeamId: match.homeTeamId,
       homeTeamName: homeTeam.name,
+      homePlaceholder: match.homePlaceholder,
       awayTeamId: match.awayTeamId,
       awayTeamName: awayTeam.name,
+      awayPlaceholder: match.awayPlaceholder,
+      status: match.status,
+      homeScore: match.homeScore,
+      awayScore: match.awayScore,
     })
     .from(match)
-    .innerJoin(tournamentGroup, eq(tournamentGroup.id, match.groupId))
-    .innerJoin(homeTeam, eq(homeTeam.id, match.homeTeamId))
-    .innerJoin(awayTeam, eq(awayTeam.id, match.awayTeamId))
+    .leftJoin(tournamentGroup, eq(tournamentGroup.id, match.groupId))
+    .leftJoin(homeTeam, eq(homeTeam.id, match.homeTeamId))
+    .leftJoin(awayTeam, eq(awayTeam.id, match.awayTeamId))
     .where(or(eq(match.homeTeamId, teamId), eq(match.awayTeamId, teamId)))
     .orderBy(asc(match.scheduledAt));
 
   return rows.map((row) => ({
-    ...row,
+    id: row.id,
     scheduledAt: row.scheduledAt.toISOString(),
+    groupId: row.groupId,
+    groupName: row.groupName,
+    groupAvatarLabel: row.groupAvatarLabel,
+    groupStage: row.groupStage,
+    category: row.category,
+    homeTeamId: row.homeTeamId,
+    homeTeamName: row.homeTeamName ?? row.homePlaceholder ?? "Pendiente",
+    awayTeamId: row.awayTeamId,
+    awayTeamName: row.awayTeamName ?? row.awayPlaceholder ?? "Pendiente",
+    status: row.status,
+    homeScore: row.homeScore,
+    awayScore: row.awayScore,
   }));
 }

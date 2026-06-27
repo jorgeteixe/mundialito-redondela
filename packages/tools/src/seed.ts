@@ -161,7 +161,7 @@ async function seedCategory(
 ) {
   const groupCount = Math.ceil(TEAM_COUNT / TEAMS_PER_GROUP);
 
-  // Groups
+  // F1 groups
   const groupRows = await db
     .insert(schema.tournamentGroup)
     .values(
@@ -169,21 +169,38 @@ async function seedCategory(
         name: `Grupo ${groupLabel(i)}`,
         avatarLabel: groupLabel(i),
         category,
+        stage: "f1" as const,
       })),
     )
     .returning();
 
-  // Teams, assigned round-robin into groups
+  await db.insert(schema.tournamentGroup).values(
+    Array.from({ length: groupCount }, (_, i) => ({
+      name: `Grupo ${groupLabel(i)} F2`,
+      avatarLabel: groupLabel(i),
+      category,
+      stage: "f2" as const,
+    })),
+  );
+
+  // Teams
   const teamRows = await db
     .insert(schema.team)
     .values(
       Array.from({ length: TEAM_COUNT }, (_, i) => ({
         name: TEAM_NAMES[i] ?? `Equipo ${i + 1}`,
         category,
-        groupId: groupRows[i % groupCount]!.id,
       })),
     )
     .returning();
+
+  await db.insert(schema.tournamentGroupTeam).values(
+    teamRows.map((team, i) => ({
+      groupId: groupRows[i % groupCount]!.id,
+      teamId: team.id,
+      stage: "f1" as const,
+    })),
+  );
 
   // Players
   await db.insert(schema.player).values(
@@ -202,16 +219,20 @@ async function seedCategory(
     groupId: string;
     homeTeamId: string;
     awayTeamId: string;
+    category: Category;
   }> = [];
 
   for (const group of groupRows) {
-    const groupTeams = teamRows.filter((t) => t.groupId === group.id);
+    const groupTeams = teamRows.filter((_, i) => {
+      return groupRows[i % groupCount]!.id === group.id;
+    });
     for (const round of roundRobinRounds(groupTeams)) {
       for (const [home, away] of round) {
         pending.push({
           groupId: group.id,
           homeTeamId: home.id,
           awayTeamId: away.id,
+          category,
         });
       }
     }
@@ -225,6 +246,7 @@ async function seedCategory(
     groupId: string;
     homeTeamId: string;
     awayTeamId: string;
+    category: Category;
     scheduledAt: Date;
   }> = [];
 

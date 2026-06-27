@@ -61,6 +61,16 @@ const REAL_GROUPS: Record<Category, RealGroup[]> = {
 // --- Real fixture calendar (Fase 1) ---
 // date = local date, time = local time. Home team first.
 type Fixture = { date: string; time: string; home: string; away: string };
+type PlaceholderFixture = {
+  category: Category;
+  stage?: "f2";
+  groupLabel?: string;
+  kind?: "group" | "semifinal" | "third_place" | "final";
+  date: string;
+  time: string;
+  home: string;
+  away: string;
+};
 
 const FIXTURES: Fixture[] = [
   // LUNES 29 JUNIO
@@ -281,6 +291,268 @@ const FIXTURES: Fixture[] = [
   },
 ];
 
+const PLACEHOLDER_FIXTURES: PlaceholderFixture[] = [
+  // VIERNES 10 JULIO
+  {
+    category: "cadet",
+    stage: "f2",
+    groupLabel: "A",
+    date: "2026-07-10",
+    time: "20:00",
+    home: "1.º Grupo A",
+    away: "2.º Grupo B",
+  },
+  {
+    category: "cadet",
+    stage: "f2",
+    groupLabel: "B",
+    date: "2026-07-10",
+    time: "20:30",
+    home: "1.º Grupo B",
+    away: "3.º Grupo A",
+  },
+  {
+    category: "cadet",
+    stage: "f2",
+    groupLabel: "C",
+    date: "2026-07-10",
+    time: "21:00",
+    home: "1.º Grupo C",
+    away: "3.º Grupo B",
+  },
+  {
+    category: "senior",
+    stage: "f2",
+    groupLabel: "A",
+    date: "2026-07-10",
+    time: "21:30",
+    home: "1.º Grupo A",
+    away: "2.º Grupo B",
+  },
+  {
+    category: "senior",
+    stage: "f2",
+    groupLabel: "B",
+    date: "2026-07-10",
+    time: "22:00",
+    home: "1.º Grupo B",
+    away: "2.º Grupo D",
+  },
+  {
+    category: "senior",
+    stage: "f2",
+    groupLabel: "C",
+    date: "2026-07-10",
+    time: "22:30",
+    home: "1.º Grupo C",
+    away: "2.º Grupo A",
+  },
+  // MARTES 14 JULIO
+  {
+    category: "cadet",
+    stage: "f2",
+    groupLabel: "A",
+    date: "2026-07-14",
+    time: "20:00",
+    home: "1.º Grupo A",
+    away: "3.º Grupo C",
+  },
+  {
+    category: "cadet",
+    stage: "f2",
+    groupLabel: "B",
+    date: "2026-07-14",
+    time: "20:30",
+    home: "1.º Grupo B",
+    away: "2.º Grupo C",
+  },
+  {
+    category: "cadet",
+    stage: "f2",
+    groupLabel: "C",
+    date: "2026-07-14",
+    time: "21:00",
+    home: "1.º Grupo C",
+    away: "2.º Grupo A",
+  },
+  {
+    category: "senior",
+    stage: "f2",
+    groupLabel: "D",
+    date: "2026-07-14",
+    time: "21:30",
+    home: "1.º Grupo D",
+    away: "2.º Grupo C",
+  },
+  {
+    category: "senior",
+    stage: "f2",
+    groupLabel: "A",
+    date: "2026-07-14",
+    time: "22:00",
+    home: "1.º Grupo A",
+    away: "3.º Grupo C",
+  },
+  {
+    category: "senior",
+    stage: "f2",
+    groupLabel: "B",
+    date: "2026-07-14",
+    time: "22:30",
+    home: "1.º Grupo B",
+    away: "3.º Grupo A",
+  },
+  // MIÉRCOLES 15 JULIO
+  {
+    category: "cadet",
+    stage: "f2",
+    groupLabel: "A",
+    date: "2026-07-15",
+    time: "20:00",
+    home: "2.º Grupo B",
+    away: "3.º Grupo C",
+  },
+  {
+    category: "cadet",
+    stage: "f2",
+    groupLabel: "B",
+    date: "2026-07-15",
+    time: "20:30",
+    home: "3.º Grupo A",
+    away: "2.º Grupo C",
+  },
+  {
+    category: "cadet",
+    stage: "f2",
+    groupLabel: "C",
+    date: "2026-07-15",
+    time: "21:00",
+    home: "3.º Grupo B",
+    away: "2.º Grupo A",
+  },
+  {
+    category: "senior",
+    stage: "f2",
+    groupLabel: "C",
+    date: "2026-07-15",
+    time: "21:30",
+    home: "1.º Grupo C",
+    away: "3.º Grupo D",
+  },
+  {
+    category: "senior",
+    stage: "f2",
+    groupLabel: "D",
+    date: "2026-07-15",
+    time: "22:00",
+    home: "1.º Grupo D",
+    away: "3.º Grupo B",
+  },
+  {
+    category: "senior",
+    stage: "f2",
+    groupLabel: "A",
+    date: "2026-07-15",
+    time: "22:30",
+    home: "2.º Grupo B",
+    away: "3.º Grupo C",
+  },
+  // JUEVES 16 JULIO
+  {
+    category: "senior",
+    stage: "f2",
+    groupLabel: "B",
+    date: "2026-07-16",
+    time: "21:30",
+    home: "2.º Grupo D",
+    away: "3.º Grupo A",
+  },
+  {
+    category: "senior",
+    stage: "f2",
+    groupLabel: "C",
+    date: "2026-07-16",
+    time: "22:00",
+    home: "2.º Grupo A",
+    away: "3.º Grupo D",
+  },
+  {
+    category: "senior",
+    stage: "f2",
+    groupLabel: "D",
+    date: "2026-07-16",
+    time: "22:30",
+    home: "2.º Grupo C",
+    away: "3.º Grupo B",
+  },
+  // SEMIFINALES
+  {
+    category: "cadet",
+    kind: "semifinal",
+    date: "2026-07-20",
+    time: "20:00",
+    home: "Mejor 1.º Cadete F2",
+    away: "2.º mejor 1.º Cadete F2",
+  },
+  {
+    category: "cadet",
+    kind: "semifinal",
+    date: "2026-07-20",
+    time: "20:30",
+    home: "Peor 1.º Cadete F2",
+    away: "Mejor 2.º Cadete F2",
+  },
+  {
+    category: "senior",
+    kind: "semifinal",
+    date: "2026-07-20",
+    time: "21:30",
+    home: "1.º Grupo A Senior F2",
+    away: "1.º Grupo D Senior F2",
+  },
+  {
+    category: "senior",
+    kind: "semifinal",
+    date: "2026-07-20",
+    time: "22:00",
+    home: "1.º Grupo B Senior F2",
+    away: "1.º Grupo C Senior F2",
+  },
+  // FINAL
+  {
+    category: "cadet",
+    kind: "third_place",
+    date: "2026-07-24",
+    time: "20:00",
+    home: "Perdedor semifinal Cadete 1",
+    away: "Perdedor semifinal Cadete 2",
+  },
+  {
+    category: "senior",
+    kind: "third_place",
+    date: "2026-07-24",
+    time: "20:30",
+    home: "Perdedor semifinal Senior 1",
+    away: "Perdedor semifinal Senior 2",
+  },
+  {
+    category: "cadet",
+    kind: "final",
+    date: "2026-07-24",
+    time: "21:30",
+    home: "Ganador semifinal Cadete 1",
+    away: "Ganador semifinal Cadete 2",
+  },
+  {
+    category: "senior",
+    kind: "final",
+    date: "2026-07-24",
+    time: "22:00",
+    home: "Ganador semifinal Senior 1",
+    away: "Ganador semifinal Senior 2",
+  },
+];
+
 const CATEGORIES: Category[] = ["senior", "cadet"];
 
 /** Normalize a team name for matching across calendar/bracket spelling drift. */
@@ -319,6 +591,21 @@ async function seedTeams(
         name: `Grupo ${g.label}`,
         avatarLabel: g.label,
         category,
+        stage: "f1" as const,
+      })),
+    )
+    .returning();
+
+  const f2Labels =
+    category === "senior" ? ["A", "B", "C", "D"] : ["A", "B", "C"];
+  const f2GroupRows = await db
+    .insert(schema.tournamentGroup)
+    .values(
+      f2Labels.map((label) => ({
+        name: `Grupo ${label} F2`,
+        avatarLabel: label,
+        category,
+        stage: "f2" as const,
       })),
     )
     .returning();
@@ -326,21 +613,34 @@ async function seedTeams(
   const teamRows = await db
     .insert(schema.team)
     .values(
-      groups.flatMap((g, gi) =>
+      groups.flatMap((g) =>
         g.teams.map((name) => ({
           name,
           category,
-          groupId: groupRows[gi]!.id,
         })),
       ),
     )
     .returning();
 
-  console.log(
-    `  ${category}: ${groupRows.length} groups, ${teamRows.length} teams.`,
+  await db.insert(schema.tournamentGroupTeam).values(
+    groups.flatMap((g, gi) =>
+      g.teams.map((name) => {
+        const teamRow = teamRows.find((team) => team.name === name);
+        if (!teamRow) throw new Error(`Missing seeded team: ${name}`);
+        return {
+          groupId: groupRows[gi]!.id,
+          teamId: teamRow.id,
+          stage: "f1" as const,
+        };
+      }),
+    ),
   );
 
-  return teamRows;
+  console.log(
+    `  ${category}: ${groupRows.length} F1 groups, ${f2GroupRows.length} F2 groups, ${teamRows.length} teams.`,
+  );
+
+  return { teamRows, groupRows, f2GroupRows };
 }
 
 export async function seedReal(db: typeof DbType) {
@@ -349,11 +649,37 @@ export async function seedReal(db: typeof DbType) {
   console.log("Seeding real tournament data…");
 
   // Insert groups + teams, build a name → team lookup.
-  const teamByName = new Map<string, { id: string; groupId: string | null }>();
+  const teamByName = new Map<
+    string,
+    { id: string; groupId: string; category: Category }
+  >();
+  const f2GroupByCategoryAndLabel = new Map<string, string>();
   for (const category of CATEGORIES) {
-    const teamRows = await seedTeams(db, schema, category);
+    const { teamRows, groupRows, f2GroupRows } = await seedTeams(
+      db,
+      schema,
+      category,
+    );
+    const groupByTeamName = new Map<string, string>();
+    REAL_GROUPS[category].forEach((group, groupIndex) => {
+      for (const name of group.teams) {
+        groupByTeamName.set(name, groupRows[groupIndex]!.id);
+      }
+    });
     for (const t of teamRows) {
-      teamByName.set(normalizeName(t.name), { id: t.id, groupId: t.groupId });
+      const groupId = groupByTeamName.get(t.name);
+      if (!groupId) throw new Error(`Missing group for team: "${t.name}"`);
+      teamByName.set(normalizeName(t.name), {
+        id: t.id,
+        groupId,
+        category,
+      });
+    }
+    for (const group of f2GroupRows) {
+      f2GroupByCategoryAndLabel.set(
+        `${category}:${group.avatarLabel}`,
+        group.id,
+      );
     }
   }
 
@@ -374,6 +700,7 @@ export async function seedReal(db: typeof DbType) {
       );
     }
     return {
+      category: home.category,
       groupId: home.groupId,
       homeTeamId: home.id,
       awayTeamId: away.id,
@@ -383,7 +710,35 @@ export async function seedReal(db: typeof DbType) {
 
   await db.insert(schema.match).values(matchValues);
 
-  console.log(`  matches: ${matchValues.length} fixtures scheduled.`);
+  const placeholderValues = PLACEHOLDER_FIXTURES.map((fixture) => {
+    const groupId =
+      fixture.stage === "f2" && fixture.groupLabel
+        ? f2GroupByCategoryAndLabel.get(
+            `${fixture.category}:${fixture.groupLabel}`,
+          )
+        : null;
+
+    if (fixture.stage === "f2" && !groupId) {
+      throw new Error(
+        `Missing F2 group ${fixture.category} ${fixture.groupLabel}`,
+      );
+    }
+
+    return {
+      category: fixture.category,
+      groupId,
+      kind: fixture.kind ?? "group",
+      homePlaceholder: fixture.home,
+      awayPlaceholder: fixture.away,
+      scheduledAt: parseScheduledAt(fixture.date, fixture.time),
+    };
+  });
+
+  await db.insert(schema.match).values(placeholderValues);
+
+  console.log(
+    `  matches: ${matchValues.length} F1 fixtures, ${placeholderValues.length} F2/eliminatoria fixtures scheduled.`,
+  );
 }
 
 // Run standalone: `tsx src/seed-real.ts`

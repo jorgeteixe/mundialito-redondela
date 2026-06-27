@@ -5,14 +5,18 @@ const TIME_ZONE = "Europe/Madrid";
 export type CalendarMatch = {
   id: string;
   scheduledAt: string;
-  groupId: string;
-  groupName: string;
-  groupAvatarLabel: string;
+  groupId: string | null;
+  groupName: string | null;
+  groupAvatarLabel: string | null;
+  groupStage: "f1" | "f2" | null;
   category: TeamCategory;
-  homeTeamId: string;
+  homeTeamId: string | null;
   homeTeamName: string;
-  awayTeamId: string;
+  awayTeamId: string | null;
   awayTeamName: string;
+  status: "scheduled" | "live" | "finished" | "postponed";
+  homeScore: number | null;
+  awayScore: number | null;
 };
 
 export type CalendarDay = {

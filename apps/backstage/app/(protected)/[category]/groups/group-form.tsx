@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button, Input, Label } from "@mr/ui";
 import { createGroup, updateGroup, type FormState } from "./actions";
 import type { Category } from "@/lib/category";
+import type { GroupStage } from "@/lib/group-stage";
 
 const initialFormState: FormState = { status: "idle" };
 
@@ -16,6 +17,7 @@ type GroupFormAction = (
 type GroupFormProps = {
   mode: "create" | "edit";
   category: Category;
+  stage: GroupStage;
   group?: {
     id: string;
     name: string;
@@ -27,6 +29,7 @@ type GroupFormProps = {
 export function GroupForm({
   mode,
   category,
+  stage,
   group,
   onSuccess,
 }: GroupFormProps) {
@@ -55,6 +58,7 @@ export function GroupForm({
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <input type="hidden" name="category" value={category} />
+      <input type="hidden" name="stage" value={stage} />
       {group && <input type="hidden" name="id" value={group.id} />}
       <div className="flex flex-col gap-2">
         <Label htmlFor={`${mode}-group-name`}>Nombre del grupo</Label>

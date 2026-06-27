@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import {
   Button,
   DateTimePicker,
+  Input,
   Label,
   Select,
   SelectContent,
@@ -36,16 +37,21 @@ export function ScheduleMatchForm({
   const [state, formAction, pending] = useActionState(action, initialFormState);
   const [homeTeamId, setHomeTeamId] = useState(match?.homeTeamId ?? "");
   const [awayTeamId, setAwayTeamId] = useState(match?.awayTeamId ?? "");
+  const [homePlaceholder, setHomePlaceholder] = useState(
+    match?.homePlaceholder ?? "",
+  );
+  const [awayPlaceholder, setAwayPlaceholder] = useState(
+    match?.awayPlaceholder ?? "",
+  );
   const [scheduledAt, setScheduledAt] = useState<Date | undefined>(
     match ? madridWallTimeDate(match.scheduledAt) : undefined,
   );
-  const handledStateRef = useRef<string | null>(null);
-  const hasEnoughTeams = teams.length >= 2;
+  const [status, setStatus] = useState(match?.status ?? "scheduled");
+  const handledStateRef = useRef<FormState>(initialFormState);
   const sameTeamSelected = Boolean(homeTeamId && homeTeamId === awayTeamId);
   const canSubmit = Boolean(
-    hasEnoughTeams &&
-    homeTeamId &&
-    awayTeamId &&
+    (homeTeamId || homePlaceholder.trim()) &&
+    (awayTeamId || awayPlaceholder.trim()) &&
     scheduledAt &&
     !sameTeamSelected &&
     !pending,
@@ -54,18 +60,18 @@ export function ScheduleMatchForm({
 
   useEffect(() => {
     if (state.status === "idle") return;
-
-    const stateKey = `${state.status}:${state.message ?? ""}`;
-    if (handledStateRef.current === stateKey) return;
-
-    handledStateRef.current = stateKey;
+    if (handledStateRef.current === state) return;
+    handledStateRef.current = state;
 
     if (state.status === "success") {
       toast.success(state.message);
       if (mode === "create") {
         setHomeTeamId("");
         setAwayTeamId("");
+        setHomePlaceholder("");
+        setAwayPlaceholder("");
         setScheduledAt(undefined);
+        setStatus("scheduled");
       }
       onSuccess?.();
     }
@@ -86,8 +92,7 @@ export function ScheduleMatchForm({
           name="homeTeamId"
           value={homeTeamId}
           onValueChange={setHomeTeamId}
-          disabled={!hasEnoughTeams}
-          required
+          disabled={teams.length === 0}
         >
           <SelectTrigger
             id="schedule-home-team"
@@ -113,6 +118,18 @@ export function ScheduleMatchForm({
             {state.fieldErrors.homeTeamId}
           </p>
         ) : null}
+        <Input
+          name="homePlaceholder"
+          value={homePlaceholder}
+          onChange={(event) => setHomePlaceholder(event.target.value)}
+          placeholder="Texto si aún no hay equipo"
+          aria-invalid={Boolean(state.fieldErrors?.homePlaceholder)}
+        />
+        {state.fieldErrors?.homePlaceholder ? (
+          <p className="text-xs text-destructive">
+            {state.fieldErrors.homePlaceholder}
+          </p>
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-2">
@@ -121,8 +138,7 @@ export function ScheduleMatchForm({
           name="awayTeamId"
           value={awayTeamId}
           onValueChange={setAwayTeamId}
-          disabled={!hasEnoughTeams}
-          required
+          disabled={teams.length === 0}
         >
           <SelectTrigger
             id="schedule-away-team"
@@ -152,6 +168,18 @@ export function ScheduleMatchForm({
             El rival debe ser distinto.
           </p>
         ) : null}
+        <Input
+          name="awayPlaceholder"
+          value={awayPlaceholder}
+          onChange={(event) => setAwayPlaceholder(event.target.value)}
+          placeholder="Texto si aún no hay equipo"
+          aria-invalid={Boolean(state.fieldErrors?.awayPlaceholder)}
+        />
+        {state.fieldErrors?.awayPlaceholder ? (
+          <p className="text-xs text-destructive">
+            {state.fieldErrors.awayPlaceholder}
+          </p>
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-2">
@@ -160,18 +188,77 @@ export function ScheduleMatchForm({
           id="schedule-match-at"
           value={scheduledAt}
           onChange={setScheduledAt}
-          disabled={!hasEnoughTeams}
           aria-invalid={Boolean(state.fieldErrors?.scheduledAt)}
         />
         {state.fieldErrors?.scheduledAt ? (
           <p className="text-xs text-destructive">
             {state.fieldErrors.scheduledAt}
           </p>
-        ) : !hasEnoughTeams ? (
-          <p className="text-xs text-muted-foreground">
-            Añade al menos dos equipos al grupo.
-          </p>
         ) : null}
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="schedule-match-status">Estado</Label>
+          <Select
+            name="status"
+            value={status}
+            onValueChange={(value) => {
+              if (
+                value === "scheduled" ||
+                value === "live" ||
+                value === "finished" ||
+                value === "postponed"
+              ) {
+                setStatus(value);
+              }
+            }}
+          >
+            <SelectTrigger id="schedule-match-status" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="scheduled">Programado</SelectItem>
+              <SelectItem value="live">En directo</SelectItem>
+              <SelectItem value="finished">Finalizado</SelectItem>
+              <SelectItem value="postponed">Aplazado</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="schedule-home-score">Goles local</Label>
+          <Input
+            id="schedule-home-score"
+            name="homeScore"
+            type="number"
+            min={0}
+            max={99}
+            defaultValue={match?.homeScore ?? ""}
+            aria-invalid={Boolean(state.fieldErrors?.homeScore)}
+          />
+          {state.fieldErrors?.homeScore ? (
+            <p className="text-xs text-destructive">
+              {state.fieldErrors.homeScore}
+            </p>
+          ) : null}
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="schedule-away-score">Goles visitante</Label>
+          <Input
+            id="schedule-away-score"
+            name="awayScore"
+            type="number"
+            min={0}
+            max={99}
+            defaultValue={match?.awayScore ?? ""}
+            aria-invalid={Boolean(state.fieldErrors?.awayScore)}
+          />
+          {state.fieldErrors?.awayScore ? (
+            <p className="text-xs text-destructive">
+              {state.fieldErrors.awayScore}
+            </p>
+          ) : null}
+        </div>
       </div>
 
       <Button type="submit" disabled={!canSubmit}>

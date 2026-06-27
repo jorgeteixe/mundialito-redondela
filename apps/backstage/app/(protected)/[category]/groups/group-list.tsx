@@ -46,14 +46,21 @@ import { groupAvatarStyle } from "./avatar-utils";
 import { GroupForm } from "./group-form";
 import type { GroupSummary } from "./data";
 import type { Category } from "@/lib/category";
+import type { GroupStage } from "@/lib/group-stage";
 
 type GroupsListProps = {
   groups: GroupSummary[];
   category: Category;
+  stage: GroupStage;
   canWrite: boolean;
 };
 
-export function GroupsList({ groups, category, canWrite }: GroupsListProps) {
+export function GroupsList({
+  groups,
+  category,
+  stage,
+  canWrite,
+}: GroupsListProps) {
   const [search, setSearch] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -95,6 +102,7 @@ export function GroupsList({ groups, category, canWrite }: GroupsListProps) {
                 <GroupForm
                   mode="create"
                   category={category}
+                  stage={stage}
                   onSuccess={() => setCreateOpen(false)}
                 />
               </div>
@@ -133,6 +141,7 @@ export function GroupsList({ groups, category, canWrite }: GroupsListProps) {
             key={group.id}
             group={group}
             category={category}
+            stage={stage}
             canWrite={canWrite}
           />
         ))}
@@ -155,7 +164,7 @@ export function GroupsList({ groups, category, canWrite }: GroupsListProps) {
               <TableRow key={group.id}>
                 <TableCell>
                   <Link
-                    href={`/${category}/groups/${group.id}`}
+                    href={`/${category}/groups/${stage}/${group.id}`}
                     className="inline-flex max-w-full min-w-0 items-center gap-3 font-medium hover:underline"
                   >
                     <GroupAvatar group={group} />
@@ -165,7 +174,11 @@ export function GroupsList({ groups, category, canWrite }: GroupsListProps) {
                 <TableCell>{group.teamCount}</TableCell>
                 {canWrite ? (
                   <TableCell>
-                    <GroupActions group={group} category={category} />
+                    <GroupActions
+                      group={group}
+                      category={category}
+                      stage={stage}
+                    />
                   </TableCell>
                 ) : null}
               </TableRow>
@@ -180,10 +193,12 @@ export function GroupsList({ groups, category, canWrite }: GroupsListProps) {
 function GroupCard({
   group,
   category,
+  stage,
   canWrite,
 }: {
   group: GroupSummary;
   category: Category;
+  stage: GroupStage;
   canWrite: boolean;
 }) {
   return (
@@ -191,7 +206,7 @@ function GroupCard({
       <CardHeader>
         <CardTitle>
           <Link
-            href={`/${category}/groups/${group.id}`}
+            href={`/${category}/groups/${stage}/${group.id}`}
             className="flex min-w-0 items-center gap-3 hover:underline"
           >
             <GroupAvatar group={group} />
@@ -203,13 +218,13 @@ function GroupCard({
         </CardDescription>
         {canWrite ? (
           <CardAction>
-            <GroupActions group={group} category={category} />
+            <GroupActions group={group} category={category} stage={stage} />
           </CardAction>
         ) : null}
       </CardHeader>
       <CardContent>
         <Button asChild variant="outline" size="sm" className="w-full">
-          <Link href={`/${category}/groups/${group.id}`}>
+          <Link href={`/${category}/groups/${stage}/${group.id}`}>
             Gestionar equipos
           </Link>
         </Button>
@@ -234,9 +249,11 @@ function GroupAvatar({ group }: { group: GroupSummary }) {
 function GroupActions({
   group,
   category,
+  stage,
 }: {
   group: GroupSummary;
   category: Category;
+  stage: GroupStage;
 }) {
   const [editOpen, setEditOpen] = useState(false);
 
@@ -275,6 +292,7 @@ function GroupActions({
               mode="edit"
               group={group}
               category={category}
+              stage={stage}
               onSuccess={() => setEditOpen(false)}
             />
           </div>
@@ -290,6 +308,11 @@ function GroupActions({
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <form action={deleteGroup}>
               <input type="hidden" name="id" value={group.id} />
+              <input
+                type="hidden"
+                name="redirectTo"
+                value={`/${category}/groups/${stage}`}
+              />
               <AlertDialogAction type="submit" variant="destructive">
                 Eliminar grupo
               </AlertDialogAction>

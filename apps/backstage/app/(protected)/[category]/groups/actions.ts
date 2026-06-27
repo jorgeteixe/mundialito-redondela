@@ -2,19 +2,20 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq, gt, inArray, isNull, lt, ne } from "drizzle-orm";
+import { and, eq, gt, inArray, lt, ne } from "drizzle-orm";
 import { db, schema } from "@mr/db";
 import { requireAdminWrite } from "@/lib/authz";
 import { isCategory } from "@/lib/category";
+import { isGroupStage } from "@/lib/group-stage";
 import { conflictWindow } from "@/lib/match-schedule";
 
-const { match, team, tournamentGroup } = schema;
+const { match, team, tournamentGroup, tournamentGroupTeam } = schema;
 const tournamentTimeZone = "Europe/Madrid";
 
 // Dynamic-segment revalidation across every category variant of these routes.
 const TEAMS_PATH = "/[category]/teams";
 const GROUPS_PATH = "/[category]/groups";
-const GROUP_DETAIL_PATH = "/[category]/groups/[groupId]";
+const GROUP_DETAIL_PATH = "/[category]/groups/[stage]/[groupId]";
 
 export type FormState = {
   status: "idle" | "success" | "error";
@@ -26,7 +27,12 @@ export type FormState = {
     teamId?: string;
     homeTeamId?: string;
     awayTeamId?: string;
+    homePlaceholder?: string;
+    awayPlaceholder?: string;
     scheduledAt?: string;
+    status?: string;
+    homeScore?: string;
+    awayScore?: string;
   };
 };
 
@@ -73,6 +79,34 @@ function validateAvatarLabel(formData: FormData) {
   }
 
   return { avatarLabel };
+}
+
+function readNullableString(formData: FormData, key: string) {
+  const value = readString(formData, key);
+  return value ? value : null;
+}
+
+function readScore(formData: FormData, key: string) {
+  const raw = readString(formData, key);
+  if (!raw) return { value: null };
+  const value = Number.parseInt(raw, 10);
+  if (!Number.isInteger(value) || value < 0 || value > 99) {
+    return { value: null, error: "Usa un marcador válido." };
+  }
+  return { value };
+}
+
+function readStatus(formData: FormData) {
+  const status = readString(formData, "status");
+  if (
+    status === "scheduled" ||
+    status === "live" ||
+    status === "finished" ||
+    status === "postponed"
+  ) {
+    return status;
+  }
+  return "scheduled";
 }
 
 function parseMadridDateTime(value: string) {
@@ -203,8 +237,14 @@ export async function createGroup(
   const nameResult = validateName(formData);
   const avatarResult = validateAvatarLabel(formData);
   const category = readString(formData, "category");
+  const stage = readString(formData, "stage");
 
-  if (nameResult.error || avatarResult.error || !isCategory(category)) {
+  if (
+    nameResult.error ||
+    avatarResult.error ||
+    !isCategory(category) ||
+    !isGroupStage(stage)
+  ) {
     return {
       status: "error",
       message: "Revisa los campos marcados.",
@@ -219,6 +259,7 @@ export async function createGroup(
     name: nameResult.name,
     avatarLabel: avatarResult.avatarLabel,
     category,
+    stage,
   });
 
   revalidatePath(GROUPS_PATH, "page");
@@ -295,7 +336,10 @@ export async function addTeamToGroup(
   }
 
   const [group] = await db
-    .select({ category: tournamentGroup.category })
+    .select({
+      category: tournamentGroup.category,
+      stage: tournamentGroup.stage,
+    })
     .from(tournamentGroup)
     .where(eq(tournamentGroup.id, groupId))
     .limit(1);
@@ -310,19 +354,13 @@ export async function addTeamToGroup(
     };
   }
 
-  const [updatedTeam] = await db
-    .update(team)
-    .set({ groupId })
-    .where(
-      and(
-        eq(team.id, teamId),
-        eq(team.category, group.category),
-        isNull(team.groupId),
-      ),
-    )
-    .returning({ id: team.id });
+  const [selectedTeam] = await db
+    .select({ id: team.id })
+    .from(team)
+    .where(and(eq(team.id, teamId), eq(team.category, group.category)))
+    .limit(1);
 
-  if (!updatedTeam) {
+  if (!selectedTeam) {
     return {
       status: "error",
       message: "Selecciona un equipo disponible.",
@@ -332,9 +370,22 @@ export async function addTeamToGroup(
     };
   }
 
-  revalidatePath(GROUPS_PATH, "page");
-  revalidatePath(GROUP_DETAIL_PATH, "page");
-  revalidatePath(TEAMS_PATH, "page");
+  const [membership] = await db
+    .insert(tournamentGroupTeam)
+    .values({ groupId, teamId, stage: group.stage })
+    .onConflictDoNothing()
+    .returning({ teamId: tournamentGroupTeam.teamId });
+
+  if (!membership) {
+    return {
+      status: "error",
+      message: "El equipo ya está asignado en esta fase.",
+      fieldErrors: {
+        teamId: "El equipo ya pertenece a un grupo de esta fase.",
+      },
+    };
+  }
+
   return { status: "success", message: "Equipo añadido." };
 }
 
@@ -347,9 +398,13 @@ export async function removeTeamFromGroup(formData: FormData) {
   if (!groupId || !teamId) return;
 
   await db
-    .update(team)
-    .set({ groupId: null })
-    .where(and(eq(team.id, teamId), eq(team.groupId, groupId)));
+    .delete(tournamentGroupTeam)
+    .where(
+      and(
+        eq(tournamentGroupTeam.teamId, teamId),
+        eq(tournamentGroupTeam.groupId, groupId),
+      ),
+    );
 
   revalidatePath(GROUPS_PATH, "page");
   revalidatePath(GROUP_DETAIL_PATH, "page");
@@ -390,34 +445,49 @@ export async function createGroupMatch(
   await requireAdminWrite();
 
   const groupId = readString(formData, "groupId");
-  const homeTeamId = readString(formData, "homeTeamId");
-  const awayTeamId = readString(formData, "awayTeamId");
+  const homeTeamId = readNullableString(formData, "homeTeamId");
+  const awayTeamId = readNullableString(formData, "awayTeamId");
+  const homePlaceholder = readNullableString(formData, "homePlaceholder");
+  const awayPlaceholder = readNullableString(formData, "awayPlaceholder");
   const scheduledRaw = readString(formData, "scheduledAt");
   const scheduledAt = scheduledRaw ? parseMadridDateTime(scheduledRaw) : null;
+  const status = readStatus(formData);
+  const homeScore = readScore(formData, "homeScore");
+  const awayScore = readScore(formData, "awayScore");
 
   if (
     !groupId ||
-    !homeTeamId ||
-    !awayTeamId ||
+    (!homeTeamId && !homePlaceholder) ||
+    (!awayTeamId && !awayPlaceholder) ||
     !scheduledAt ||
-    Number.isNaN(scheduledAt.getTime())
+    Number.isNaN(scheduledAt.getTime()) ||
+    homeScore.error ||
+    awayScore.error
   ) {
     return {
       status: "error",
       message: "Revisa los campos marcados.",
       fieldErrors: {
         groupId: groupId ? undefined : "Falta el grupo.",
-        homeTeamId: homeTeamId ? undefined : "Selecciona un equipo.",
-        awayTeamId: awayTeamId ? undefined : "Selecciona un equipo.",
+        homeTeamId:
+          homeTeamId || homePlaceholder ? undefined : "Selecciona un equipo.",
+        awayTeamId:
+          awayTeamId || awayPlaceholder ? undefined : "Selecciona un equipo.",
+        homePlaceholder:
+          homeTeamId || homePlaceholder ? undefined : "Indica un equipo.",
+        awayPlaceholder:
+          awayTeamId || awayPlaceholder ? undefined : "Indica un equipo.",
         scheduledAt:
           scheduledAt && !Number.isNaN(scheduledAt.getTime())
             ? undefined
             : "Indica una fecha y hora válidas.",
+        homeScore: homeScore.error,
+        awayScore: awayScore.error,
       },
     };
   }
 
-  if (homeTeamId === awayTeamId) {
+  if (homeTeamId && awayTeamId && homeTeamId === awayTeamId) {
     return {
       status: "error",
       message: "Selecciona dos equipos distintos.",
@@ -427,17 +497,35 @@ export async function createGroupMatch(
     };
   }
 
-  const groupTeams = await db
-    .select({ id: team.id })
-    .from(team)
-    .where(
-      and(
-        eq(team.groupId, groupId),
-        inArray(team.id, [homeTeamId, awayTeamId]),
-      ),
-    );
+  const [group] = await db
+    .select({ category: tournamentGroup.category })
+    .from(tournamentGroup)
+    .where(eq(tournamentGroup.id, groupId))
+    .limit(1);
 
-  if (groupTeams.length !== 2) {
+  if (!group) {
+    return {
+      status: "error",
+      message: "El grupo no existe.",
+      fieldErrors: { groupId: "El grupo no existe." },
+    };
+  }
+
+  const selectedTeamIds = [homeTeamId, awayTeamId].filter(Boolean) as string[];
+  const groupTeams =
+    selectedTeamIds.length === 0
+      ? []
+      : await db
+          .select({ id: tournamentGroupTeam.teamId })
+          .from(tournamentGroupTeam)
+          .where(
+            and(
+              eq(tournamentGroupTeam.groupId, groupId),
+              inArray(tournamentGroupTeam.teamId, selectedTeamIds),
+            ),
+          );
+
+  if (groupTeams.length !== selectedTeamIds.length) {
     return {
       status: "error",
       message: "Selecciona equipos del grupo.",
@@ -453,9 +541,15 @@ export async function createGroupMatch(
   }
 
   await db.insert(match).values({
+    category: group.category,
     groupId,
     homeTeamId,
     awayTeamId,
+    homePlaceholder,
+    awayPlaceholder,
+    status,
+    homeScore: homeScore.value,
+    awayScore: awayScore.value,
     scheduledAt,
   });
 
@@ -471,35 +565,50 @@ export async function updateGroupMatch(
 
   const id = readString(formData, "id");
   const groupId = readString(formData, "groupId");
-  const homeTeamId = readString(formData, "homeTeamId");
-  const awayTeamId = readString(formData, "awayTeamId");
+  const homeTeamId = readNullableString(formData, "homeTeamId");
+  const awayTeamId = readNullableString(formData, "awayTeamId");
+  const homePlaceholder = readNullableString(formData, "homePlaceholder");
+  const awayPlaceholder = readNullableString(formData, "awayPlaceholder");
   const scheduledRaw = readString(formData, "scheduledAt");
   const scheduledAt = scheduledRaw ? parseMadridDateTime(scheduledRaw) : null;
+  const status = readStatus(formData);
+  const homeScore = readScore(formData, "homeScore");
+  const awayScore = readScore(formData, "awayScore");
 
   if (
     !id ||
     !groupId ||
-    !homeTeamId ||
-    !awayTeamId ||
+    (!homeTeamId && !homePlaceholder) ||
+    (!awayTeamId && !awayPlaceholder) ||
     !scheduledAt ||
-    Number.isNaN(scheduledAt.getTime())
+    Number.isNaN(scheduledAt.getTime()) ||
+    homeScore.error ||
+    awayScore.error
   ) {
     return {
       status: "error",
       message: "Revisa los campos marcados.",
       fieldErrors: {
         groupId: groupId ? undefined : "Falta el grupo.",
-        homeTeamId: homeTeamId ? undefined : "Selecciona un equipo.",
-        awayTeamId: awayTeamId ? undefined : "Selecciona un equipo.",
+        homeTeamId:
+          homeTeamId || homePlaceholder ? undefined : "Selecciona un equipo.",
+        awayTeamId:
+          awayTeamId || awayPlaceholder ? undefined : "Selecciona un equipo.",
+        homePlaceholder:
+          homeTeamId || homePlaceholder ? undefined : "Indica un equipo.",
+        awayPlaceholder:
+          awayTeamId || awayPlaceholder ? undefined : "Indica un equipo.",
         scheduledAt:
           scheduledAt && !Number.isNaN(scheduledAt.getTime())
             ? undefined
             : "Indica una fecha y hora válidas.",
+        homeScore: homeScore.error,
+        awayScore: awayScore.error,
       },
     };
   }
 
-  if (homeTeamId === awayTeamId) {
+  if (homeTeamId && awayTeamId && homeTeamId === awayTeamId) {
     return {
       status: "error",
       message: "Selecciona dos equipos distintos.",
@@ -509,17 +618,21 @@ export async function updateGroupMatch(
     };
   }
 
-  const groupTeams = await db
-    .select({ id: team.id })
-    .from(team)
-    .where(
-      and(
-        eq(team.groupId, groupId),
-        inArray(team.id, [homeTeamId, awayTeamId]),
-      ),
-    );
+  const selectedTeamIds = [homeTeamId, awayTeamId].filter(Boolean) as string[];
+  const groupTeams =
+    selectedTeamIds.length === 0
+      ? []
+      : await db
+          .select({ id: tournamentGroupTeam.teamId })
+          .from(tournamentGroupTeam)
+          .where(
+            and(
+              eq(tournamentGroupTeam.groupId, groupId),
+              inArray(tournamentGroupTeam.teamId, selectedTeamIds),
+            ),
+          );
 
-  if (groupTeams.length !== 2) {
+  if (groupTeams.length !== selectedTeamIds.length) {
     return {
       status: "error",
       message: "Selecciona equipos del grupo.",
@@ -539,6 +652,11 @@ export async function updateGroupMatch(
     .set({
       homeTeamId,
       awayTeamId,
+      homePlaceholder,
+      awayPlaceholder,
+      status,
+      homeScore: homeScore.value,
+      awayScore: awayScore.value,
       scheduledAt,
     })
     .where(and(eq(match.id, id), eq(match.groupId, groupId)))

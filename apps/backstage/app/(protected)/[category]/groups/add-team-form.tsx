@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Button,
@@ -11,10 +12,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@mr/ui";
-import { addTeamToGroup, type FormState } from "./actions";
 import { categoryLabel } from "../teams/avatar-utils";
 import type { TeamCategory } from "../teams/data";
 import type { GroupTeamSummary } from "./data";
+
+type FormState = {
+  status: "idle" | "success" | "error";
+  message?: string;
+  fieldErrors?: {
+    teamId?: string;
+  };
+};
 
 const initialFormState: FormState = { status: "idle" };
 
@@ -31,33 +39,47 @@ export function AddTeamForm({
   teams,
   onSuccess,
 }: AddTeamFormProps) {
-  const [state, formAction, pending] = useActionState(
-    addTeamToGroup,
-    initialFormState,
-  );
-  const handledStateRef = useRef<string | null>(null);
+  const router = useRouter();
+  const [state, setState] = useState<FormState>(initialFormState);
+  const [pending, setPending] = useState(false);
   const hasTeams = teams.length > 0;
 
-  useEffect(() => {
-    if (state.status === "idle") return;
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    const formData = new FormData(event.currentTarget);
+    const response = await fetch("/api/group-memberships", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        groupId,
+        teamId: formData.get("teamId"),
+      }),
+    });
+    const payload = (await response.json()) as { message?: string };
+    const result: FormState = response.ok
+      ? { status: "success", message: payload.message ?? "Equipo añadido." }
+      : {
+          status: "error",
+          message: payload.message ?? "No se pudo añadir el equipo.",
+          fieldErrors: { teamId: "Selecciona un equipo disponible." },
+        };
+    setState(result);
+    setPending(false);
 
-    const stateKey = `${state.status}:${state.message ?? ""}`;
-    if (handledStateRef.current === stateKey) return;
-
-    handledStateRef.current = stateKey;
-
-    if (state.status === "success") {
-      toast.success(state.message);
+    if (result.status === "success") {
+      toast.success(result.message);
+      router.refresh();
       onSuccess?.();
     }
 
-    if (state.status === "error" && state.message) {
-      toast.error(state.message);
+    if (result.status === "error" && result.message) {
+      toast.error(result.message);
     }
-  }, [onSuccess, state]);
+  }
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <input type="hidden" name="groupId" value={groupId} />
       <div className="flex flex-col gap-2">
         <Label htmlFor="add-group-team">Equipo</Label>
