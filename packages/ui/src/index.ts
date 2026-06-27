@@ -24,7 +24,6 @@ export {
   MatchScheduleSkeleton,
   type LinkComponent,
   type MatchSide,
-  type MatchStatus,
   type MatchScheduleProps,
   type MatchScheduleSkeletonProps,
   type ScheduleDay,

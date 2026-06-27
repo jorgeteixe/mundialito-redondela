@@ -32,7 +32,6 @@ export type GroupMatchSummary = {
   awayTeamName: string;
   awayPlaceholder: string | null;
   scheduledAt: string;
-  status: "scheduled" | "live" | "finished" | "postponed";
   homeScore: number | null;
   awayScore: number | null;
 };
@@ -116,7 +115,6 @@ export async function getGroupDetail(id: string): Promise<GroupDetail | null> {
       awayTeamName: awayTeam.name,
       awayPlaceholder: match.awayPlaceholder,
       scheduledAt: match.scheduledAt,
-      status: match.status,
       homeScore: match.homeScore,
       awayScore: match.awayScore,
     })

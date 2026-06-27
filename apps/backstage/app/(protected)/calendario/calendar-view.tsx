@@ -39,7 +39,6 @@ export function CalendarView({
               avatarLabel: knockoutAvatar(match.kind),
             }
         : undefined,
-      status: match.status,
       home: {
         id: match.homeTeamId ?? `${match.id}-home`,
         name: match.homeTeamName,

@@ -6,7 +6,6 @@ import type { Category } from "@/lib/category";
 const { match, team } = schema;
 
 export type KnockoutKind = "semifinal" | "third_place" | "final";
-export type MatchStatus = "scheduled" | "live" | "finished" | "postponed";
 
 export type EliminatoriaMatch = {
   id: string;
@@ -19,7 +18,6 @@ export type EliminatoriaMatch = {
   awayTeamId: string;
   awayTeamName: string;
   awayPlaceholder: string | null;
-  status: MatchStatus;
   homeScore: number | null;
   awayScore: number | null;
   homePenalties: number | null;
@@ -50,7 +48,6 @@ export async function listEliminatoriaMatches(
       awayTeamId: match.awayTeamId,
       awayTeamName: awayTeam.name,
       awayPlaceholder: match.awayPlaceholder,
-      status: match.status,
       homeScore: match.homeScore,
       awayScore: match.awayScore,
       homePenalties: match.homePenalties,

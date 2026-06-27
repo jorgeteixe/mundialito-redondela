@@ -8,19 +8,17 @@ const teams = [
 ];
 
 describe("calculateStandings", () => {
-  it("calculates points and goal totals from finished matches only", () => {
+  it("calculates points and goal totals from played matches only", () => {
     const rows = calculateStandings(teams, [
       {
         homeTeamId: "a",
         awayTeamId: "b",
-        status: "finished",
         homeScore: 3,
         awayScore: 1,
       },
       {
         homeTeamId: "a",
         awayTeamId: "c",
-        status: "scheduled",
         homeScore: null,
         awayScore: null,
       },
@@ -46,14 +44,12 @@ describe("calculateStandings", () => {
       {
         homeTeamId: "a",
         awayTeamId: "b",
-        status: "finished",
         homeScore: 2,
         awayScore: 0,
       },
       {
         homeTeamId: "c",
         awayTeamId: "b",
-        status: "finished",
         homeScore: 3,
         awayScore: 1,
       },

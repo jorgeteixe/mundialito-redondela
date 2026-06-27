@@ -20,7 +20,7 @@ const base: ScheduleMatch = {
 afterEach(cleanup);
 
 test("renders a score placeholder when a match has no result", () => {
-  render(<MatchSchedule matches={[{ ...base, status: "scheduled" }]} />);
+  render(<MatchSchedule matches={[base]} />);
 
   expect(screen.getByText("Chapela FC")).toBeInTheDocument();
   expect(screen.getByText("Cesantes Atl.")).toBeInTheDocument();
@@ -28,13 +28,12 @@ test("renders a score placeholder when a match has no result", () => {
   expect(screen.getByText("–")).toBeInTheDocument();
 });
 
-test("shows scores once a match is finished", () => {
+test("shows scores once both sides have a result", () => {
   render(
     <MatchSchedule
       matches={[
         {
           ...base,
-          status: "finished",
           home: { ...base.home, score: 3 },
           away: { ...base.away, score: 1 },
         },
@@ -44,18 +43,17 @@ test("shows scores once a match is finished", () => {
 
   expect(screen.getByText("3")).toBeInTheDocument();
   expect(screen.getByText("1")).toBeInTheDocument();
-  // Status renders in both the mobile and desktop slots.
+  // The "Final" chip renders once a result exists.
   expect(screen.getAllByText("Final").length).toBeGreaterThan(0);
   expect(screen.queryByText("–")).not.toBeInTheDocument();
 });
 
-test("emphasizes the winning side of a finished match", () => {
+test("emphasizes the winning side of a played match", () => {
   render(
     <MatchSchedule
       matches={[
         {
           ...base,
-          status: "finished",
           home: { ...base.home, score: 3 },
           away: { ...base.away, score: 1 },
         },
@@ -73,7 +71,6 @@ test("shows penalties and emphasizes the shootout winner on a level match", () =
       matches={[
         {
           ...base,
-          status: "finished",
           home: { ...base.home, score: 2, penaltyScore: 4 },
           away: { ...base.away, score: 2, penaltyScore: 5 },
         },
@@ -87,16 +84,6 @@ test("shows penalties and emphasizes the shootout winner on a level match", () =
   // The shootout winner is emphasized even though regular time was a draw.
   expect(screen.getByText("Cesantes Atl.")).toHaveClass("font-semibold");
   expect(screen.getByText("Chapela FC")).not.toHaveClass("font-semibold");
-});
-
-test("shows the live minute label for a live match", () => {
-  render(
-    <MatchSchedule
-      matches={[{ ...base, status: "live", minuteLabel: "42'" }]}
-    />,
-  );
-
-  expect(screen.getAllByText("42'").length).toBeGreaterThan(0);
 });
 
 test("only shows the category tag when showCategory is set", () => {

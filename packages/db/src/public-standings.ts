@@ -35,7 +35,6 @@ type StandingTeam = {
 type StandingMatch = {
   homeTeamId: string | null;
   awayTeamId: string | null;
-  status: "scheduled" | "live" | "finished" | "postponed";
   homeScore: number | null;
   awayScore: number | null;
 };
@@ -84,7 +83,6 @@ export async function listPublicGroupStandings(
       groupId: match.groupId,
       homeTeamId: match.homeTeamId,
       awayTeamId: match.awayTeamId,
-      status: match.status,
       homeScore: match.homeScore,
       awayScore: match.awayScore,
     })
@@ -192,7 +190,6 @@ function calculateStandings(
 
   for (const match of matches) {
     if (
-      match.status !== "finished" ||
       !match.homeTeamId ||
       !match.awayTeamId ||
       match.homeScore == null ||

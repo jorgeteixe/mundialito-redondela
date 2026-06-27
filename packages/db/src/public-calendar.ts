@@ -15,7 +15,6 @@ export type PublicCalendarMatch = {
   homeTeamName: string;
   awayTeamId: string | null;
   awayTeamName: string;
-  status: "scheduled" | "live" | "finished" | "postponed";
   homeScore: number | null;
   awayScore: number | null;
   homePenalties: number | null;
@@ -41,7 +40,6 @@ export async function listPublicMatches(): Promise<PublicCalendarMatch[]> {
       awayTeamId: match.awayTeamId,
       awayTeamName: awayTeam.name,
       awayPlaceholder: match.awayPlaceholder,
-      status: match.status,
       homeScore: match.homeScore,
       awayScore: match.awayScore,
       homePenalties: match.homePenalties,
@@ -65,7 +63,6 @@ export async function listPublicMatches(): Promise<PublicCalendarMatch[]> {
     homeTeamName: row.homeTeamName ?? row.homePlaceholder ?? "Pendiente",
     awayTeamId: row.awayTeamId,
     awayTeamName: row.awayTeamName ?? row.awayPlaceholder ?? "Pendiente",
-    status: row.status,
     homeScore: row.homeScore,
     awayScore: row.awayScore,
     homePenalties: row.homePenalties,

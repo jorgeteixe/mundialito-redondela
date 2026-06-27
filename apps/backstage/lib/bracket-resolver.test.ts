@@ -99,7 +99,6 @@ describe("resolveSlot — match outcome", () => {
     code: "sf-1",
     groupId: null,
     kind: "semifinal" as const,
-    status: "finished" as const,
     homeTeamId: "home",
     awayTeamId: "away",
     homeScore: 2,
@@ -172,10 +171,10 @@ describe("resolveSlot — match outcome", () => {
     ).toBeNull();
   });
 
-  it("returns null when the referenced match is not finished", () => {
+  it("returns null when the referenced match has no score yet", () => {
     const ctx = makeContext({
       matchByCode: new Map([
-        ["sf-1", { ...finished, status: "scheduled" as const }],
+        ["sf-1", { ...finished, homeScore: null, awayScore: null }],
       ]),
     });
     expect(

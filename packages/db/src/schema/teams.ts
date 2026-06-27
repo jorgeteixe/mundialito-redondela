@@ -19,13 +19,6 @@ export const matchKindEnum = pgEnum("match_kind", [
   "third_place",
   "final",
 ]);
-export const matchStatusEnum = pgEnum("match_status", [
-  "scheduled",
-  "live",
-  "finished",
-  "postponed",
-]);
-
 export const tournamentGroup = pgTable("tournament_group", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
@@ -102,7 +95,6 @@ export const match = pgTable(
       onDelete: "cascade",
     }),
     kind: matchKindEnum("kind").default("group").notNull(),
-    status: matchStatusEnum("status").default("scheduled").notNull(),
     homeTeamId: uuid("home_team_id").references(() => team.id, {
       onDelete: "set null",
     }),

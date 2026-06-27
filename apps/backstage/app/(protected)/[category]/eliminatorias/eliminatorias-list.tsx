@@ -246,7 +246,7 @@ function kindLabel(kind: EliminatoriaMatch["kind"]) {
 
 function formatScore(match: EliminatoriaMatch) {
   if (match.homeScore == null || match.awayScore == null) {
-    return match.status === "postponed" ? "Aplazado" : "-";
+    return "-";
   }
   const base = `${match.homeScore}-${match.awayScore}`;
   if (match.homePenalties != null && match.awayPenalties != null) {

@@ -19,7 +19,6 @@ function makeMatch(
     homeTeamName: "Local",
     awayTeamId: "away-1",
     awayTeamName: "Visitante",
-    status: "scheduled",
     homeScore: null,
     awayScore: null,
     homePenalties: null,

@@ -31,8 +31,6 @@ export interface MatchSide {
   href?: string;
 }
 
-export type MatchStatus = "scheduled" | "live" | "finished" | "postponed";
-
 export interface ScheduleGroup {
   name: string;
   /** Short label rendered inside the group avatar (e.g. "A"). */
@@ -47,10 +45,6 @@ export interface ScheduleMatch {
   id: string;
   /** Preformatted kickoff time, e.g. "10:00". */
   timeLabel: string;
-  /** Defaults to "scheduled" when omitted. */
-  status?: MatchStatus;
-  /** Live clock label, e.g. "42'". Only shown while `status` is "live". */
-  minuteLabel?: string;
   /** Category value, used to color the tag when `showCategory`. */
   category?: TournamentCategory;
   /** Preformatted category label; only shown when `showCategory`. */
@@ -120,12 +114,12 @@ function teamInitials(name: string) {
     .join("");
 }
 
-function hasResult(status: MatchStatus) {
-  return status === "live" || status === "finished";
+/** A match has a result once both sides have a recorded score. */
+function hasResult(match: ScheduleMatch) {
+  return match.home.score != null && match.away.score != null;
 }
 
-function isWinner(side: MatchSide, other: MatchSide, status: MatchStatus) {
-  if (status !== "finished") return false;
+function isWinner(side: MatchSide, other: MatchSide) {
   if (side.score == null || other.score == null) return false;
   if (side.score !== other.score) return side.score > other.score;
   // Regular time level — fall back to the penalty shootout when present.
@@ -197,15 +191,9 @@ function TeamSide({
 }
 
 function ScoreBox({ match }: { match: ScheduleMatch }) {
-  const status = match.status ?? "scheduled";
-
   // No result yet: a single, quiet placeholder reads far cleaner than two
   // dashes flanking a separator.
-  if (
-    !hasResult(status) ||
-    match.home.score == null ||
-    match.away.score == null
-  ) {
+  if (!hasResult(match)) {
     return (
       <span className="px-4 text-center text-base font-medium text-muted-foreground sm:px-6">
         {SCORE_PLACEHOLDER}
@@ -214,8 +202,8 @@ function ScoreBox({ match }: { match: ScheduleMatch }) {
   }
 
   // Loser dims, winner (and draws) stay solid.
-  const homeMuted = isWinner(match.away, match.home, status);
-  const awayMuted = isWinner(match.home, match.away, status);
+  const homeMuted = isWinner(match.away, match.home);
+  const awayMuted = isWinner(match.home, match.away);
 
   // Penalties only make sense as a pair; show them when both are recorded.
   const showPenalties =
@@ -263,37 +251,12 @@ function PenaltyMark({ value }: { value: number }) {
 }
 
 function StatusChip({ match }: { match: ScheduleMatch }) {
-  const status = match.status ?? "scheduled";
-
-  if (status === "live") {
-    return (
-      <Badge className="h-5 gap-1 px-1.5 text-[10px] font-medium">
-        <span
-          className="size-1.5 rounded-full bg-primary-foreground"
-          aria-hidden="true"
-        />
-        {match.minuteLabel ?? "En directo"}
-      </Badge>
-    );
-  }
-  if (status === "finished") {
-    return (
-      <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-medium">
-        Final
-      </Badge>
-    );
-  }
-  if (status === "postponed") {
-    return (
-      <Badge
-        variant="secondary"
-        className="h-5 bg-destructive/10 px-1.5 text-[10px] font-medium text-destructive ring-1 ring-destructive/20"
-      >
-        Aplazado
-      </Badge>
-    );
-  }
-  return null;
+  if (!hasResult(match)) return null;
+  return (
+    <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-medium">
+      Final
+    </Badge>
+  );
 }
 
 function GroupChip({
@@ -334,8 +297,6 @@ export function MatchRow({
   linkComponent?: LinkComponent;
   className?: string;
 }) {
-  const status = match.status ?? "scheduled";
-
   const category = showCategory ? match.category : undefined;
   const group = showGroup ? match.group : undefined;
 
@@ -375,14 +336,14 @@ export function MatchRow({
         <TeamSide
           team={match.home}
           align="home"
-          emphasize={isWinner(match.home, match.away, status)}
+          emphasize={isWinner(match.home, match.away)}
           linkComponent={linkComponent}
         />
         <ScoreBox match={match} />
         <TeamSide
           team={match.away}
           align="away"
-          emphasize={isWinner(match.away, match.home, status)}
+          emphasize={isWinner(match.away, match.home)}
           linkComponent={linkComponent}
         />
       </div>

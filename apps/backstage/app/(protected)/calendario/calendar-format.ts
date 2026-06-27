@@ -15,7 +15,6 @@ export type CalendarMatch = {
   homeTeamName: string;
   awayTeamId: string | null;
   awayTeamName: string;
-  status: "scheduled" | "live" | "finished" | "postponed";
   homeScore: number | null;
   awayScore: number | null;
   homePenalties: number | null;

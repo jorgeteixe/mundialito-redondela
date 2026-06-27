@@ -42,7 +42,6 @@ const angorino = team("angorino", "Angoriño CF");
 const scheduled: ScheduleMatch = {
   id: "scheduled",
   timeLabel: "10:00",
-  status: "scheduled",
   category: "senior",
   categoryLabel: "Senior",
   group: groupA,
@@ -50,11 +49,9 @@ const scheduled: ScheduleMatch = {
   away: cesantes,
 };
 
-const live: ScheduleMatch = {
-  id: "live",
+const played: ScheduleMatch = {
+  id: "played",
   timeLabel: "10:00",
-  status: "live",
-  minuteLabel: "42'",
   category: "senior",
   categoryLabel: "Senior",
   group: groupA,
@@ -65,7 +62,6 @@ const live: ScheduleMatch = {
 const finished: ScheduleMatch = {
   id: "finished",
   timeLabel: "11:30",
-  status: "finished",
   category: "cadet",
   categoryLabel: "Cadete",
   group: groupB,
@@ -78,7 +74,6 @@ const finished: ScheduleMatch = {
 const penaltyShootout: ScheduleMatch = {
   id: "penalties",
   timeLabel: "22:00",
-  status: "finished",
   category: "senior",
   categoryLabel: "Senior",
   group: { name: "Semifinal", avatarLabel: "SF" },
@@ -92,7 +87,7 @@ const days: ScheduleDay[] = [
     label: "sábado, 27 junio",
     matches: [
       scheduled,
-      { ...live, id: "d1-live" },
+      { ...played, id: "d1-played" },
       { ...finished, id: "d1-finished" },
     ],
   },
@@ -103,7 +98,6 @@ const days: ScheduleDay[] = [
       {
         id: "d2-1",
         timeLabel: "10:00",
-        status: "scheduled",
         category: "senior",
         categoryLabel: "Senior",
         group: groupA,
@@ -124,7 +118,6 @@ const dayNavigatorDays: ScheduleDay[] = [
       {
         id: "d3-1",
         timeLabel: "12:00",
-        status: "scheduled",
         category: "cadet",
         categoryLabel: "Cadete",
         group: groupB,
@@ -134,7 +127,6 @@ const dayNavigatorDays: ScheduleDay[] = [
       {
         id: "d3-2",
         timeLabel: "13:30",
-        status: "scheduled",
         category: "senior",
         categoryLabel: "Senior",
         group: { name: "Final", avatarLabel: "F" },
@@ -221,10 +213,6 @@ export const Scheduled: Story = {
   args: { matches: [scheduled], showCategory: true },
 };
 
-export const Live: Story = {
-  args: { matches: [live], showCategory: true },
-};
-
 export const Finished: Story = {
   args: { matches: [finished], showCategory: true },
 };
@@ -239,7 +227,7 @@ export const DayGrouped: Story = {
 
 export const SpareGames: Story = {
   args: {
-    matches: [scheduled, live, finished],
+    matches: [scheduled, played, finished],
     showCategory: true,
   },
 };

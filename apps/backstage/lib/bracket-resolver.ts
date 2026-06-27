@@ -20,7 +20,6 @@ type MatchRow = {
   code: string | null;
   groupId: string | null;
   kind: "group" | "semifinal" | "third_place" | "final";
-  status: "scheduled" | "live" | "finished" | "postponed";
   homeTeamId: string | null;
   awayTeamId: string | null;
   homeScore: number | null;
@@ -46,7 +45,7 @@ export type ResolveContext = {
  * Resolve a single slot to a team id, or null if not yet determined. A slot
  * only resolves once everything it depends on is final: the source group
  * complete, every group of a stage complete (for cross-group ranks), or the
- * referenced match finished with a decisive score.
+ * referenced match played with a decisive score.
  */
 export function resolveSlot(
   slot: BracketSlot,
@@ -68,7 +67,6 @@ export function resolveSlot(
   const ref = ctx.matchByCode.get(slot.code);
   if (
     !ref ||
-    ref.status !== "finished" ||
     ref.homeScore == null ||
     ref.awayScore == null ||
     !ref.homeTeamId ||
@@ -95,7 +93,10 @@ export function resolveSlot(
 }
 
 function isGroupComplete(matches: MatchRow[]): boolean {
-  return matches.length > 0 && matches.every((m) => m.status === "finished");
+  return (
+    matches.length > 0 &&
+    matches.every((m) => m.homeScore != null && m.awayScore != null)
+  );
 }
 
 function buildRankTables(
@@ -143,7 +144,6 @@ export async function resolveBracket(
       code: match.code,
       groupId: match.groupId,
       kind: match.kind,
-      status: match.status,
       homeTeamId: match.homeTeamId,
       awayTeamId: match.awayTeamId,
       homeScore: match.homeScore,

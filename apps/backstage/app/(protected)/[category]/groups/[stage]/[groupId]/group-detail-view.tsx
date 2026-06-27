@@ -466,7 +466,7 @@ function formatMatchDate(value: string) {
 
 function formatScore(match: GroupMatchSummary) {
   if (match.homeScore == null || match.awayScore == null) {
-    return match.status === "postponed" ? "Aplazado" : "-";
+    return "-";
   }
   return `${match.homeScore}-${match.awayScore}`;
 }

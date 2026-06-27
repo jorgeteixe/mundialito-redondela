@@ -118,7 +118,6 @@ function toScheduleMatch(match: PublicCalendarMatch): ScheduleMatch {
             name: knockoutLabel(match.kind),
             avatarLabel: knockoutAvatar(match.kind),
           },
-    status: match.status,
     home: {
       id: match.homeTeamId ?? `${match.id}-home`,
       name: match.homeTeamName,

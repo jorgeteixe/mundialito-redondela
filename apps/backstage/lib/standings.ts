@@ -6,7 +6,6 @@ export type StandingTeam = {
 export type StandingMatch = {
   homeTeamId: string | null;
   awayTeamId: string | null;
-  status: "scheduled" | "live" | "finished" | "postponed";
   homeScore: number | null;
   awayScore: number | null;
 };
@@ -47,7 +46,6 @@ export function calculateStandings(
 
   for (const match of matches) {
     if (
-      match.status !== "finished" ||
       !match.homeTeamId ||
       !match.awayTeamId ||
       match.homeScore == null ||
