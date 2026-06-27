@@ -44,5 +44,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Fail fast if the runtime Remotion bundle can't resolve a module from the
+      # deployed dependency graph (compositions are shipped as raw source and
+      # re-bundled at run time, so missing deps surface only when the task runs).
+      - name: Verify deploy bundle resolves
+        run: pnpm --filter @mr/jobs run verify:deploy
+
       - name: Deploy Trigger.dev jobs
         run: pnpm --filter @mr/jobs run deploy -- --local-build --skip-update-check
