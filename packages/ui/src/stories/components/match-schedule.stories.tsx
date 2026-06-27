@@ -1,10 +1,13 @@
+import * as React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   MatchSchedule,
   MatchScheduleSkeleton,
   type ScheduleDay,
   type ScheduleMatch,
 } from "../../components/match-schedule";
+import { Button } from "../../ui/button";
 
 const groupAStyle = {
   backgroundColor: "hsl(210 78% 90%)",
@@ -111,6 +114,100 @@ const days: ScheduleDay[] = [
   },
 ];
 
+const dayNavigatorDays: ScheduleDay[] = [
+  days[0]!,
+  days[1]!,
+  {
+    key: "2026-06-29",
+    label: "lunes, 29 jun",
+    matches: [
+      {
+        id: "d3-1",
+        timeLabel: "12:00",
+        status: "scheduled",
+        category: "cadet",
+        categoryLabel: "Cadete",
+        group: groupB,
+        home: reboreda,
+        away: chapela,
+      },
+      {
+        id: "d3-2",
+        timeLabel: "13:30",
+        status: "scheduled",
+        category: "senior",
+        categoryLabel: "Senior",
+        group: { name: "Final", avatarLabel: "F" },
+        home: cesantes,
+        away: angorino,
+      },
+    ],
+  },
+];
+
+function MatchScheduleDayNavigator({
+  days,
+  showCategory = false,
+}: {
+  days: ScheduleDay[];
+  showCategory?: boolean;
+}) {
+  const todayKey = "2026-06-27";
+  const todayIndex = Math.max(
+    0,
+    days.findIndex((day) => day.key === todayKey),
+  );
+  const [selectedIndex, setSelectedIndex] = React.useState(todayIndex);
+  const selectedDay = days[selectedIndex];
+
+  if (!selectedDay) return null;
+
+  const title = selectedDay.key === todayKey ? "Hoy" : selectedDay.label;
+
+  return (
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon-lg"
+          className="size-11 sm:size-9"
+          aria-label="Día anterior"
+          disabled={selectedIndex === 0}
+          onClick={() => setSelectedIndex((index) => Math.max(0, index - 1))}
+        >
+          <ChevronLeft />
+        </Button>
+        <div className="min-w-0 text-center">
+          <h3 className="truncate text-base font-semibold capitalize text-foreground">
+            {title}
+          </h3>
+          <p className="mt-0.5 truncate text-xs capitalize text-muted-foreground">
+            {selectedDay.label}
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon-lg"
+          className="size-11 sm:size-9"
+          aria-label="Día siguiente"
+          disabled={selectedIndex === days.length - 1}
+          onClick={() =>
+            setSelectedIndex((index) => Math.min(days.length - 1, index + 1))
+          }
+        >
+          <ChevronRight />
+        </Button>
+      </div>
+      <MatchSchedule
+        matches={selectedDay.matches}
+        showCategory={showCategory}
+      />
+    </div>
+  );
+}
+
 const meta = {
   title: "Components/MatchSchedule",
   component: MatchSchedule,
@@ -145,6 +242,16 @@ export const SpareGames: Story = {
     matches: [scheduled, live, finished],
     showCategory: true,
   },
+};
+
+export const DayNavigator: Story = {
+  args: { showCategory: true },
+  render: (args) => (
+    <MatchScheduleDayNavigator
+      days={dayNavigatorDays}
+      showCategory={args.showCategory}
+    />
+  ),
 };
 
 export const WithLinks: Story = {
