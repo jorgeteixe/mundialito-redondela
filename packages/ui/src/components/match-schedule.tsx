@@ -6,6 +6,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
 import { Skeleton } from "../ui/skeleton";
 import { CategoryBadge, type TournamentCategory } from "./category-badge";
+import { GroupBadge } from "./group-badge";
+
+/**
+ * Element used to render links. Defaults to a plain `<a>`; pass `next/link`
+ * (or any component accepting `href`) to get client-side navigation.
+ */
+export type LinkComponent = React.ElementType;
 
 export interface MatchSide {
   id: string;
@@ -14,6 +21,8 @@ export interface MatchSide {
   crestUrl?: string;
   /** Goals scored. Absent until results exist — renders a placeholder. */
   score?: number;
+  /** When set, the team (name + crest) links here. */
+  href?: string;
 }
 
 export type MatchStatus = "scheduled" | "live" | "finished" | "postponed";
@@ -24,6 +33,8 @@ export interface ScheduleGroup {
   avatarLabel?: string;
   /** Deterministic colors for the group avatar, computed by the caller. */
   avatarStyle?: React.CSSProperties;
+  /** When set, the group chip links here. */
+  href?: string;
 }
 
 export interface ScheduleMatch {
@@ -38,6 +49,8 @@ export interface ScheduleMatch {
   category?: TournamentCategory;
   /** Preformatted category label; only shown when `showCategory`. */
   categoryLabel?: string;
+  /** When set, the category chip links here. */
+  categoryHref?: string;
   group?: ScheduleGroup;
   home: MatchSide;
   away: MatchSide;
@@ -57,12 +70,34 @@ export interface MatchScheduleProps {
   matches?: ScheduleMatch[];
   showCategory?: boolean;
   showGroup?: boolean;
+  /** Used to render any links present on teams/category/group. */
+  linkComponent?: LinkComponent;
   /** Rendered when there are no matches. */
   emptyState?: React.ReactNode;
   className?: string;
 }
 
 const SCORE_PLACEHOLDER = "–";
+
+/** Wraps children in `as` (a link) when `href` is set; otherwise renders them as-is. */
+function MaybeLink({
+  href,
+  as: Comp = "a",
+  className,
+  children,
+}: {
+  href?: string;
+  as?: LinkComponent;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  if (!href) return <>{children}</>;
+  return (
+    <Comp href={href} className={className}>
+      {children}
+    </Comp>
+  );
+}
 
 function teamInitials(name: string) {
   return name
@@ -88,10 +123,12 @@ function TeamSide({
   team,
   align,
   emphasize,
+  linkComponent,
 }: {
   team: MatchSide;
   align: "home" | "away";
   emphasize: boolean;
+  linkComponent?: LinkComponent;
 }) {
   const avatar = (
     <Avatar size="sm" className="flex-none">
@@ -113,15 +150,26 @@ function TeamSide({
     </span>
   );
 
+  const className = cn(
+    "flex min-w-0 items-center gap-2.5",
+    align === "home" ? "flex-row justify-end" : "flex-row-reverse justify-end",
+  );
+
+  if (team.href) {
+    const Comp = linkComponent ?? "a";
+    return (
+      <Comp
+        href={team.href}
+        className={cn(className, "transition-colors hover:text-primary")}
+      >
+        {name}
+        {avatar}
+      </Comp>
+    );
+  }
+
   return (
-    <div
-      className={cn(
-        "flex min-w-0 items-center gap-2",
-        align === "home"
-          ? "flex-row justify-end"
-          : "flex-row-reverse justify-end",
-      )}
-    >
+    <div className={className}>
       {name}
       {avatar}
     </div>
@@ -130,36 +178,43 @@ function TeamSide({
 
 function ScoreBox({ match }: { match: ScheduleMatch }) {
   const status = match.status ?? "scheduled";
-  const showScore = hasResult(status);
-  const homeScore =
-    showScore && match.home.score != null
-      ? match.home.score
-      : SCORE_PLACEHOLDER;
-  const awayScore =
-    showScore && match.away.score != null
-      ? match.away.score
-      : SCORE_PLACEHOLDER;
+
+  // No result yet: a single, quiet placeholder reads far cleaner than two
+  // dashes flanking a separator.
+  if (
+    !hasResult(status) ||
+    match.home.score == null ||
+    match.away.score == null
+  ) {
+    return (
+      <span className="px-4 text-center text-base font-medium text-muted-foreground sm:px-6">
+        {SCORE_PLACEHOLDER}
+      </span>
+    );
+  }
+
+  // Loser dims, winner (and draws) stay solid.
+  const homeMuted = isWinner(match.away, match.home, status);
+  const awayMuted = isWinner(match.home, match.away, status);
 
   return (
-    <div className="flex items-center gap-1.5 tabular-nums">
+    <div className="flex items-center gap-2 px-2 text-lg font-semibold tabular-nums sm:px-3 sm:text-xl">
       <span
         className={cn(
-          "min-w-5 text-center text-lg font-semibold sm:text-xl",
-          isWinner(match.home, match.away, status) && "text-foreground",
-          !showScore && "text-muted-foreground",
+          "min-w-5 text-center",
+          homeMuted && "text-muted-foreground",
         )}
       >
-        {homeScore}
+        {match.home.score}
       </span>
       <span className="text-muted-foreground">-</span>
       <span
         className={cn(
-          "min-w-5 text-center text-lg font-semibold sm:text-xl",
-          isWinner(match.away, match.home, status) && "text-foreground",
-          !showScore && "text-muted-foreground",
+          "min-w-5 text-center",
+          awayMuted && "text-muted-foreground",
         )}
       >
-        {awayScore}
+        {match.away.score}
       </span>
     </div>
   );
@@ -199,19 +254,23 @@ function StatusChip({ match }: { match: ScheduleMatch }) {
   return null;
 }
 
-function GroupChip({ group }: { group: ScheduleGroup }) {
+function GroupChip({
+  group,
+  linkComponent,
+}: {
+  group: ScheduleGroup;
+  linkComponent?: LinkComponent;
+}) {
   return (
-    <span className="inline-flex min-w-0 items-center gap-1">
-      <Avatar size="sm" className="size-4 flex-none">
-        <AvatarFallback
-          className="border text-[9px] font-medium"
-          style={group.avatarStyle}
-        >
-          {group.avatarLabel}
-        </AvatarFallback>
-      </Avatar>
-      <span className="truncate">{group.name}</span>
-    </span>
+    <MaybeLink
+      href={group.href}
+      as={linkComponent}
+      className="inline-flex max-w-full transition-opacity hover:opacity-80"
+    >
+      <GroupBadge style={group.avatarStyle} className="px-1.5 text-[10px]">
+        {group.name}
+      </GroupBadge>
+    </MaybeLink>
   );
 }
 
@@ -224,60 +283,66 @@ export function MatchRow({
   match,
   showCategory = false,
   showGroup = true,
+  linkComponent,
   className,
 }: {
   match: ScheduleMatch;
   showCategory?: boolean;
   showGroup?: boolean;
+  linkComponent?: LinkComponent;
   className?: string;
 }) {
   const status = match.status ?? "scheduled";
 
+  const category = showCategory ? match.category : undefined;
+  const group = showGroup ? match.group : undefined;
+
   return (
-    <div
-      className={cn(
-        "py-3 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-4",
-        className,
-      )}
-    >
-      {/* Meta — centered above the scoreboard on mobile, left column on desktop.
-          Status moves to its own column on desktop, so it's only inline here on
-          small screens. */}
-      <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-muted-foreground sm:justify-start sm:gap-x-3">
+    <div className={cn("py-3.5", className)}>
+      {/* Header — time left, category + group centered, status right. */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-xs text-muted-foreground">
         <span className="font-medium tabular-nums text-foreground">
           {match.timeLabel}
         </span>
-        {showCategory && match.category ? (
-          <CategoryBadge
-            category={match.category}
-            label={match.categoryLabel}
-            className="h-5 px-1.5 text-[10px]"
-          />
-        ) : null}
-        {showGroup && match.group ? <GroupChip group={match.group} /> : null}
-        <span className="sm:hidden">
+        <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+          {category ? (
+            <MaybeLink
+              href={match.categoryHref}
+              as={linkComponent}
+              className="inline-flex transition-opacity hover:opacity-80"
+            >
+              <CategoryBadge
+                category={category}
+                label={match.categoryLabel}
+                className="h-5 px-1.5 text-[10px]"
+              />
+            </MaybeLink>
+          ) : null}
+          {group ? (
+            <GroupChip group={group} linkComponent={linkComponent} />
+          ) : null}
+        </div>
+        <div className="flex justify-end">
           <StatusChip match={match} />
-        </span>
+        </div>
       </div>
 
-      {/* Scoreboard — full width on mobile, fixed and centered on desktop so the
-          two side columns stay symmetric and the names get room to breathe. */}
-      <div className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:mt-0 sm:w-[22rem] sm:gap-4 lg:w-[26rem]">
+      {/* Scoreboard — full width on mobile, fixed and centered on larger
+          screens so the two teams meet symmetrically with room to breathe. */}
+      <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1.5 sm:mx-auto sm:w-[26rem] lg:w-[30rem]">
         <TeamSide
           team={match.home}
           align="home"
           emphasize={isWinner(match.home, match.away, status)}
+          linkComponent={linkComponent}
         />
         <ScoreBox match={match} />
         <TeamSide
           team={match.away}
           align="away"
           emphasize={isWinner(match.away, match.home, status)}
+          linkComponent={linkComponent}
         />
-      </div>
-
-      <div className="hidden sm:flex sm:justify-end">
-        <StatusChip match={match} />
       </div>
     </div>
   );
@@ -287,10 +352,12 @@ function MatchList({
   matches,
   showCategory,
   showGroup,
+  linkComponent,
 }: {
   matches: ScheduleMatch[];
   showCategory: boolean;
   showGroup: boolean;
+  linkComponent?: LinkComponent;
 }) {
   return (
     <div className="divide-y divide-border border bg-card px-3 sm:px-4">
@@ -300,6 +367,7 @@ function MatchList({
           match={match}
           showCategory={showCategory}
           showGroup={showGroup}
+          linkComponent={linkComponent}
         />
       ))}
     </div>
@@ -315,6 +383,7 @@ export function MatchSchedule({
   matches,
   showCategory = false,
   showGroup = true,
+  linkComponent,
   emptyState,
   className,
 }: MatchScheduleProps) {
@@ -328,6 +397,7 @@ export function MatchSchedule({
               matches={day.matches}
               showCategory={showCategory}
               showGroup={showGroup}
+              linkComponent={linkComponent}
             />
           </section>
         ))}
@@ -342,6 +412,7 @@ export function MatchSchedule({
           matches={matches}
           showCategory={showCategory}
           showGroup={showGroup}
+          linkComponent={linkComponent}
         />
       </div>
     );
@@ -373,14 +444,13 @@ export function MatchScheduleSkeleton({
           <Skeleton className="h-4 w-32" />
           <div className="divide-y divide-border border bg-card px-3 sm:px-4">
             {Array.from({ length: rows }).map((_, rowIndex) => (
-              <div
-                key={rowIndex}
-                className="py-3 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-4"
-              >
-                <div className="flex justify-center sm:justify-start">
-                  <Skeleton className="h-4 w-24" />
+              <div key={rowIndex} className="py-3.5">
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                  <Skeleton className="h-4 w-12" />
+                  <Skeleton className="h-5 w-24 justify-self-center rounded-full" />
+                  <Skeleton className="h-5 w-12 justify-self-end rounded-full" />
                 </div>
-                <div className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:mt-0 sm:w-[22rem] sm:gap-4 lg:w-[26rem]">
+                <div className="mt-2.5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1.5 sm:mx-auto sm:w-[26rem] lg:w-[30rem]">
                   <div className="flex items-center justify-end gap-2">
                     <Skeleton className="h-4 w-20" />
                     <Skeleton className="size-6 flex-none rounded-full" />

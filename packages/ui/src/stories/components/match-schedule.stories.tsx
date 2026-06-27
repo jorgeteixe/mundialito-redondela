@@ -130,6 +130,22 @@ export const SpareGames: Story = {
   },
 };
 
+export const WithLinks: Story = {
+  args: {
+    showCategory: true,
+    matches: [
+      {
+        ...scheduled,
+        id: "linked",
+        categoryHref: "#category",
+        group: { ...groupA, href: "#group" },
+        home: { ...chapela, href: "#home" },
+        away: { ...cesantes, href: "#away" },
+      },
+    ],
+  },
+};
+
 export const Empty: Story = {
   args: {
     days: [],

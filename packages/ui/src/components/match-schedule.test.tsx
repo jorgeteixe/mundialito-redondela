@@ -24,8 +24,8 @@ test("renders a score placeholder when a match has no result", () => {
 
   expect(screen.getByText("Chapela FC")).toBeInTheDocument();
   expect(screen.getByText("Cesantes Atl.")).toBeInTheDocument();
-  // Two placeholder dashes, one per side.
-  expect(screen.getAllByText("–")).toHaveLength(2);
+  // A single, quiet placeholder stands in for the missing result.
+  expect(screen.getByText("–")).toBeInTheDocument();
 });
 
 test("shows scores once a match is finished", () => {
@@ -107,6 +107,25 @@ test("renders a flat list of spare games without day headings", () => {
 
   expect(container.querySelector("h3")).toBeNull();
   expect(within(container).getAllByText("Chapela FC")).toHaveLength(2);
+});
+
+test("links a team when an href is provided", () => {
+  render(
+    <MatchSchedule
+      matches={[
+        { ...base, home: { ...base.home, href: "/senior/teams/chapela" } },
+      ]}
+    />,
+  );
+
+  const link = screen.getByRole("link", { name: /Chapela FC/ });
+  expect(link).toHaveAttribute("href", "/senior/teams/chapela");
+});
+
+test("renders no links when no hrefs are provided", () => {
+  render(<MatchSchedule matches={[base]} showCategory showGroup />);
+
+  expect(screen.queryByRole("link")).not.toBeInTheDocument();
 });
 
 test("renders the empty state when there are no matches", () => {

@@ -7,6 +7,11 @@ export {
   type CategoryBadgeProps,
   type TournamentCategory,
 } from "./components/category-badge";
+export {
+  GroupBadge,
+  groupTint,
+  type GroupBadgeProps,
+} from "./components/group-badge";
 export { DashboardPage } from "./components/dashboard-page";
 export {
   DateTimePicker,
@@ -17,6 +22,7 @@ export {
   MatchRow,
   MatchSchedule,
   MatchScheduleSkeleton,
+  type LinkComponent,
   type MatchSide,
   type MatchStatus,
   type MatchScheduleProps,
