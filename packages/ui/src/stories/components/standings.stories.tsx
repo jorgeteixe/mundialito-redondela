@@ -80,6 +80,14 @@ export const WithQualifyZone: Story = {
   args: { rows, qualifyCount: 2 },
 };
 
+export const QualifyingTeams: Story = {
+  args: { rows, qualifyingTeamIds: ["chapela", "reboreda"] },
+};
+
+export const FullColumns: Story = {
+  args: { rows, fullColumns: true, qualifyCount: 2 },
+};
+
 export const Empty: Story = {
   args: {
     rows: [],

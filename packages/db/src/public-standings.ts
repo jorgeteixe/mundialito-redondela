@@ -3,6 +3,7 @@ import { db } from "./client";
 import { match, team, tournamentGroup, tournamentGroupTeam } from "./schema";
 
 export type PublicCategory = "senior" | "cadet";
+export type PublicStage = "f1" | "f2";
 
 export type PublicStandingRow = {
   teamId: string;
@@ -22,6 +23,7 @@ export type PublicGroupStanding = {
   name: string;
   avatarLabel: string;
   category: PublicCategory;
+  stage: PublicStage;
   standings: PublicStandingRow[];
 };
 
@@ -38,18 +40,23 @@ type StandingMatch = {
   awayScore: number | null;
 };
 
-export async function listPublicF1GroupStandings(): Promise<
-  PublicGroupStanding[]
-> {
+export function listPublicF1GroupStandings(): Promise<PublicGroupStanding[]> {
+  return listPublicGroupStandings("f1");
+}
+
+export async function listPublicGroupStandings(
+  stage: PublicStage,
+): Promise<PublicGroupStanding[]> {
   const groups = await db
     .select({
       id: tournamentGroup.id,
       name: tournamentGroup.name,
       avatarLabel: tournamentGroup.avatarLabel,
       category: tournamentGroup.category,
+      stage: tournamentGroup.stage,
     })
     .from(tournamentGroup)
-    .where(eq(tournamentGroup.stage, "f1"))
+    .where(eq(tournamentGroup.stage, stage))
     .orderBy(asc(tournamentGroup.category), asc(tournamentGroup.name));
 
   if (groups.length === 0) return [];
@@ -66,7 +73,7 @@ export async function listPublicF1GroupStandings(): Promise<
     .innerJoin(team, eq(team.id, tournamentGroupTeam.teamId))
     .where(
       and(
-        eq(tournamentGroupTeam.stage, "f1"),
+        eq(tournamentGroupTeam.stage, stage),
         inArray(tournamentGroupTeam.groupId, groupIds),
       ),
     )
@@ -107,6 +114,59 @@ export async function listPublicF1GroupStandings(): Promise<
       matchesByGroup.get(group.id) ?? [],
     ),
   }));
+}
+
+/**
+ * Team ids that advance to the next round, given every group of a single stage
+ * (both categories). Mirrors the hardcoded bracket (see @mr/db/bracket):
+ *
+ * - F1 (both categories): the top 3 of each group reach F2.
+ * - F2 senior: only the winner of each group reaches the knockout stage.
+ * - F2 cadet: the three group winners plus the single best runner-up across
+ *   the groups — a cross-group ranking, not a fixed position per group.
+ *
+ * Returned as a set so callers can highlight the qualifying rows regardless of
+ * which group is on screen.
+ */
+export function qualifyingTeamIds(
+  stageGroups: PublicGroupStanding[],
+): Set<string> {
+  const ids = new Set<string>();
+  const byCategory = new Map<PublicCategory, PublicGroupStanding[]>();
+
+  for (const group of stageGroups) {
+    const list = byCategory.get(group.category) ?? [];
+    list.push(group);
+    byCategory.set(group.category, list);
+  }
+
+  for (const groups of byCategory.values()) {
+    const stage = groups[0]?.stage;
+
+    if (stage === "f1") {
+      for (const group of groups) {
+        for (const row of group.standings.slice(0, 3)) ids.add(row.teamId);
+      }
+      continue;
+    }
+
+    // F2: every group winner advances.
+    const runnersUp: PublicStandingRow[] = [];
+    for (const group of groups) {
+      const [first, second] = group.standings;
+      if (first) ids.add(first.teamId);
+      if (second) runnersUp.push(second);
+    }
+
+    // Cadet F2 grants one extra spot to the best second-placed team across the
+    // groups; senior F2 does not.
+    if (groups[0]?.category === "cadet") {
+      const bestRunnerUp = [...runnersUp].sort(compareStandingRows)[0];
+      if (bestRunnerUp) ids.add(bestRunnerUp.teamId);
+    }
+  }
+
+  return ids;
 }
 
 function calculateStandings(

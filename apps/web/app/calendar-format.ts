@@ -112,6 +112,7 @@ function toScheduleMatch(match: PublicCalendarMatch): ScheduleMatch {
             name: match.groupName,
             avatarLabel: match.groupAvatarLabel,
             avatarStyle: groupTint(match.groupId),
+            href: `/grupos/${match.groupId}`,
           }
         : {
             name: knockoutLabel(match.kind),

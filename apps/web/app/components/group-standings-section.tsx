@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  Badge,
   EmptyState,
   GroupBadge,
   Standings,
@@ -24,19 +25,34 @@ const CATEGORY_LABELS: Record<PublicCategory, string> = {
   cadet: "Cadete",
 };
 
+const STAGE_LABELS = {
+  f1: "Fase 1",
+  f2: "Fase 2",
+} as const;
+
 const CATEGORIES: PublicCategory[] = ["senior", "cadet"];
+
+// Top 3 of every F1 group advance to F2 (see @mr/db/bracket). This overview
+// only renders F1 groups, so a fixed count is enough here.
+const F1_QUALIFY_COUNT = 3;
 
 export function GroupStandingsSection({
   groups,
   highlightedTeamId,
 }: GroupStandingsSectionProps) {
+  // This overview only renders one stage at a time; label it from the groups.
+  const stageLabel = STAGE_LABELS[groups[0]?.stage ?? "f1"];
+
   return (
     <section className="mx-auto w-full max-w-3xl px-4 pb-10 sm:px-6">
       <Tabs defaultValue="senior" className="gap-4">
         <header className="border bg-card px-4 pt-3">
-          <h2 className="flex items-center justify-between gap-2 text-xl font-semibold tracking-tight text-foreground">
+          <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight text-foreground">
             Grupos
-            <ListOrdered className="size-5 text-muted-foreground" />
+            <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
+              {stageLabel}
+            </Badge>
+            <ListOrdered className="ml-auto size-5 text-muted-foreground" />
           </h2>
           <TabsList
             className="mt-1 h-10 w-full justify-start gap-5 overflow-x-auto p-0"
@@ -74,16 +90,22 @@ export function GroupStandingsSection({
                 .map((group) => (
                   <section key={group.id} className="flex flex-col gap-3">
                     <header className="flex items-center gap-2">
-                      <GroupBadge
-                        seed={group.id}
-                        className="px-1.5 text-[10px]"
+                      <Link
+                        href={`/grupos/${group.id}`}
+                        className="inline-flex max-w-full transition-opacity hover:opacity-80"
                       >
-                        {group.name}
-                      </GroupBadge>
+                        <GroupBadge
+                          seed={group.id}
+                          className="px-1.5 text-[10px]"
+                        >
+                          {group.name}
+                        </GroupBadge>
+                      </Link>
                     </header>
                     <Standings
                       rows={toStandingsRows(group)}
                       highlightedTeamId={highlightedTeamId}
+                      qualifyCount={F1_QUALIFY_COUNT}
                       linkComponent={Link}
                       emptyState={
                         <EmptyState

@@ -39,6 +39,10 @@ export {
   type StandingsSkeletonProps,
   type StandingsTeam,
 } from "./components/standings";
+export {
+  SocialCallout,
+  type SocialCalloutProps,
+} from "./components/social-callout";
 
 // shadcn primitives — src/ui/* — never edit manually
 export { Button, buttonVariants } from "./ui/button";

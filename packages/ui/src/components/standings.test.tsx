@@ -57,6 +57,18 @@ test("marks the top N rows as qualifying", () => {
   expect(bodyRows[1]).not.toHaveClass("bg-muted/40");
 });
 
+test("marks specific teams as qualifying regardless of position", () => {
+  render(<Standings rows={rows} qualifyingTeamIds={["cesantes"]} />);
+
+  expect(
+    screen.getByText("Clasifican a la siguiente fase"),
+  ).toBeInTheDocument();
+
+  const bodyRows = screen.getAllByRole("row").slice(1);
+  expect(bodyRows[0]).not.toHaveClass("bg-muted/40");
+  expect(bodyRows[1]).toHaveClass("bg-muted/40");
+});
+
 test("highlights the requested team row", () => {
   render(<Standings rows={rows} highlightedTeamId="cesantes" />);
 
@@ -64,6 +76,19 @@ test("highlights the requested team row", () => {
   expect(bodyRows[0]).not.toHaveClass("bg-primary/10");
   expect(bodyRows[1]).toHaveClass("bg-primary/10");
   expect(bodyRows[1]).toHaveAttribute("aria-current", "true");
+});
+
+test("collapses secondary columns by default", () => {
+  render(<Standings rows={rows} />);
+
+  // "G" (wins) is a secondary column, hidden on small screens.
+  expect(screen.getByText("G").closest("th")).toHaveClass("hidden");
+});
+
+test("keeps every column visible with fullColumns", () => {
+  render(<Standings rows={rows} fullColumns />);
+
+  expect(screen.getByText("G").closest("th")).not.toHaveClass("hidden");
 });
 
 test("renders the empty state when there are no rows", () => {

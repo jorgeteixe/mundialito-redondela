@@ -37,8 +37,20 @@ export interface StandingsProps {
    * omitted; also renders a short legend under the table.
    */
   qualifyCount?: number;
+  /**
+   * Highlight specific team rows as advancing, for stages where qualification
+   * isn't a fixed position (e.g. a best-runner-up across groups). Combined with
+   * `qualifyCount`; either one marks a row as qualifying and shows the legend.
+   */
+  qualifyingTeamIds?: readonly string[];
   /** Used to render team links. Defaults to a plain `<a>`. */
   linkComponent?: LinkComponent;
+  /**
+   * Keep every stat column visible and let the table scroll horizontally,
+   * instead of collapsing secondary columns on small screens. Use on detail
+   * views where the full breakdown matters; leave off for compact overviews.
+   */
+  fullColumns?: boolean;
   /** Rendered when there are no rows. */
   emptyState?: React.ReactNode;
   className?: string;
@@ -125,16 +137,37 @@ export function Standings({
   rows,
   highlightedTeamId,
   qualifyCount,
+  qualifyingTeamIds,
+  fullColumns = false,
   linkComponent,
   emptyState,
   className,
 }: StandingsProps) {
   if (rows.length === 0) return <>{emptyState ?? null}</>;
 
+  const qualifyingIds = qualifyingTeamIds
+    ? new Set(qualifyingTeamIds)
+    : undefined;
+  const showLegend = qualifyCount != null || qualifyingIds != null;
+
   return (
     <div className={cn("text-sm", className)}>
-      <div className="overflow-hidden border bg-card">
-        <table className="w-full tabular-nums">
+      <div
+        className={cn(
+          "border bg-card",
+          fullColumns ? "overflow-x-auto" : "overflow-hidden",
+        )}
+      >
+        <table
+          className={cn(
+            "w-full tabular-nums",
+            // Fixed layout keeps every stat column at its small set width and
+            // lets the team column absorb the slack, instead of stretching all
+            // columns to fill. The min-width forces a horizontal scroll only
+            // once the full set no longer fits.
+            fullColumns && "min-w-[30rem] table-fixed",
+          )}
+        >
           <thead>
             <tr className="border-b border-border text-xs text-muted-foreground">
               <th className="w-9 py-2.5 pl-3 text-left font-medium sm:pl-4">
@@ -148,7 +181,7 @@ export function Standings({
                   aria-label={col.label}
                   className={cn(
                     "w-9 py-2.5 text-center font-medium",
-                    col.secondary && "hidden sm:table-cell",
+                    col.secondary && !fullColumns && "hidden sm:table-cell",
                     col.emphasize && "pr-3 text-foreground sm:pr-4",
                   )}
                 >
@@ -159,7 +192,9 @@ export function Standings({
           </thead>
           <tbody>
             {rows.map((row, index) => {
-              const qualifies = qualifyCount != null && index < qualifyCount;
+              const qualifies =
+                (qualifyCount != null && index < qualifyCount) ||
+                (qualifyingIds?.has(row.team.id) ?? false);
               const highlighted = row.team.id === highlightedTeamId;
 
               return (
@@ -191,7 +226,7 @@ export function Standings({
                       key={col.key}
                       className={cn(
                         "py-2.5 text-center text-muted-foreground",
-                        col.secondary && "hidden sm:table-cell",
+                        col.secondary && !fullColumns && "hidden sm:table-cell",
                         col.emphasize &&
                           "pr-3 font-semibold text-foreground sm:pr-4",
                       )}
@@ -205,7 +240,7 @@ export function Standings({
           </tbody>
         </table>
       </div>
-      {qualifyCount != null ? (
+      {showLegend ? (
         <p className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
           <span className="h-3 w-0.5 flex-none bg-primary" aria-hidden="true" />
           Clasifican a la siguiente fase
