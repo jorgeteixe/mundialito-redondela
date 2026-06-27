@@ -94,28 +94,28 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
-          {process.env.NODE_ENV === "production" && (
-            <>
-              <Script
-                src="https://umami.teixe.es/script.js"
-                data-website-id="59196bbe-1cba-4b74-b026-46d1254ab62d"
-                strategy="afterInteractive"
-              />
-              <Script id="umami-outbound-links" strategy="afterInteractive">
-                {`
-                document.addEventListener('click', function(event) {
-                  var a = event.target.closest('a');
-                  if (a && a.href && a.hostname && a.hostname !== window.location.hostname) {
-                    if (typeof window.umami !== 'undefined') {
-                      window.umami.track('outbound-link-click', { url: a.href });
-                    }
-                  }
-                }, { capture: true });
-              `}
-              </Script>
-            </>
-          )}
         </ThemeProvider>
+        {process.env.NODE_ENV === "production" && (
+          <>
+            <Script
+              src="https://umami.teixe.es/script.js"
+              data-website-id="59196bbe-1cba-4b74-b026-46d1254ab62d"
+              strategy="afterInteractive"
+            />
+            <Script id="umami-outbound-links" strategy="afterInteractive">
+              {`
+              document.addEventListener('click', function(event) {
+                var a = event.target.closest('a');
+                if (a && a.href && a.hostname && a.hostname !== window.location.hostname) {
+                  if (typeof window.umami !== 'undefined') {
+                    window.umami.track('outbound-link-click', { url: a.href });
+                  }
+                }
+              }, { capture: true });
+            `}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   );

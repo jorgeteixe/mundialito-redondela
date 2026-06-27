@@ -42,15 +42,15 @@ export function SocialLinks({
   return (
     <div className={cn("flex flex-wrap justify-center gap-3", className)}>
       <Button variant="outline" asChild>
-        <a href={facebook} target="_blank" rel="noopener noreferrer">
-          <FacebookIcon className="size-4" />
-          Facebook
-        </a>
-      </Button>
-      <Button variant="outline" asChild>
         <a href={instagram} target="_blank" rel="noopener noreferrer">
           <InstagramIcon className="size-4" />
           Instagram
+        </a>
+      </Button>
+      <Button variant="outline" asChild>
+        <a href={facebook} target="_blank" rel="noopener noreferrer">
+          <FacebookIcon className="size-4" />
+          Facebook
         </a>
       </Button>
     </div>

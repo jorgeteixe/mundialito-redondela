@@ -19,7 +19,7 @@ export function Hero({
   return (
     <section
       className={cn(
-        "flex flex-col items-center gap-6 px-6 py-16 text-center sm:py-24",
+        "flex flex-col items-center gap-4 px-6 py-10 text-center sm:gap-5 sm:py-16",
         className,
       )}
     >
@@ -33,9 +33,7 @@ export function Hero({
         </div>
       )}
       {actions && (
-        <div className="flex flex-wrap justify-center gap-3 pt-2">
-          {actions}
-        </div>
+        <div className="flex flex-wrap justify-center gap-3">{actions}</div>
       )}
     </section>
   );
