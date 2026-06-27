@@ -19,6 +19,11 @@ export interface SocialCalloutProps {
   title?: string;
   /** Supporting copy. Defaults to a Spanish call to action. */
   description?: string;
+  /**
+   * Render as a slim single-row bar instead of the full card. Drops the
+   * description and shrinks the follow links to icon buttons.
+   */
+  compact?: boolean;
   className?: string;
 }
 
@@ -64,8 +69,61 @@ export function SocialCallout({
   facebook,
   title = DEFAULT_TITLE,
   description = DEFAULT_DESCRIPTION,
+  compact,
   className,
 }: SocialCalloutProps) {
+  if (compact) {
+    return (
+      <div
+        className={cn(
+          "flex items-center justify-between gap-3 border border-primary/20 bg-primary/10 px-4 py-2.5",
+          className,
+        )}
+      >
+        <p className="flex min-w-0 items-center gap-2 text-sm font-semibold text-primary">
+          <Megaphone className="size-4 flex-none" />
+          <span className="truncate">{title}</span>
+        </p>
+        <div className="flex flex-none items-center gap-1">
+          {instagram ? (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="text-primary hover:bg-primary/15 hover:text-primary"
+              asChild
+            >
+              <a
+                href={instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+              >
+                <InstagramIcon className="size-4" />
+              </a>
+            </Button>
+          ) : null}
+          {facebook ? (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="text-primary hover:bg-primary/15 hover:text-primary"
+              asChild
+            >
+              <a
+                href={facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+              >
+                <FacebookIcon className="size-4" />
+              </a>
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Card className={cn("bg-card", className)}>
       <CardHeader>

@@ -33,13 +33,15 @@ export default async function Home() {
         actions={<ModeToggle />}
       />
       <main className="flex flex-1 flex-col">
-        <DayCalendar days={days} todayKey={todayKey()} />
-        <section className="mx-auto w-full max-w-3xl px-4 pb-6 sm:px-6">
+        <section className="mx-auto w-full max-w-3xl px-4 pt-3 sm:px-6">
           <SocialCallout
+            compact
+            title="¡Síguenos en redes!"
             instagram={SOCIAL_LINKS.instagram}
             facebook={SOCIAL_LINKS.facebook}
           />
         </section>
+        <DayCalendar days={days} todayKey={todayKey()} />
         <GroupStandingsSection groups={groupStandings} />
       </main>
       <Footer
