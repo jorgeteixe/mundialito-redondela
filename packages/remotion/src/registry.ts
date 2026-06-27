@@ -4,6 +4,8 @@ import { Countdown } from "./compositions/countdown/Component";
 import { CountdownImage } from "./compositions/countdown/Image";
 import { DailyResults } from "./compositions/day-results/Component";
 import { DailyResultsImage } from "./compositions/day-results/Image";
+import { GroupStandingsImage } from "./compositions/group-standings/Image";
+import { MatchResultStory } from "./compositions/match-result-story/Component";
 import { Schedule } from "./compositions/schedule/Component";
 import { ScheduleImage } from "./compositions/schedule/Image";
 import { InstagramProfile } from "./compositions/dummy/InstagramProfile";
@@ -88,6 +90,18 @@ export const TEMPLATES: Template[] = [
   defineTemplate({
     ...getTemplateDefinition("daily-results-post"),
     Component: DailyResultsImage as unknown as ComponentType<
+      Record<string, unknown>
+    >,
+  }),
+  defineTemplate({
+    ...getTemplateDefinition("group-standings-post"),
+    Component: GroupStandingsImage as unknown as ComponentType<
+      Record<string, unknown>
+    >,
+  }),
+  defineTemplate({
+    ...getTemplateDefinition("match-result-story"),
+    Component: MatchResultStory as unknown as ComponentType<
       Record<string, unknown>
     >,
   }),

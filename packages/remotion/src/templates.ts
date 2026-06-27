@@ -3,6 +3,8 @@ import { PRESETS, type PresetName } from "./presets";
 import { countdownSchema } from "./compositions/countdown/schema";
 import { dailyResultsSchema } from "./compositions/day-results/schema";
 import { socialSchema } from "./compositions/dummy/schema";
+import { groupStandingsSchema } from "./compositions/group-standings/schema";
+import { matchResultStorySchema } from "./compositions/match-result-story/schema";
 import { scheduleSchema } from "./compositions/schedule/schema";
 
 export type TemplateParameter = {
@@ -367,6 +369,169 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
           group: "Grupo C",
         },
       ],
+    },
+  }),
+  defineTemplateDefinition({
+    id: "group-standings-post",
+    title: "Clasificación de grupo · Post (cuadrado)",
+    kind: "image",
+    preset: "square",
+    durationInFrames: 1,
+    schema: groupStandingsSchema,
+    parameters: [
+      {
+        name: "eyebrow",
+        label: "Etiqueta",
+        type: "text",
+        required: false,
+      },
+      {
+        name: "groupName",
+        label: "Grupo",
+        type: "text",
+        required: true,
+      },
+      {
+        name: "phase",
+        label: "Fase",
+        type: "text",
+        required: false,
+      },
+      {
+        name: "categoryLabel",
+        label: "Categoría",
+        type: "text",
+        required: false,
+      },
+      {
+        name: "venue",
+        label: "Lugar",
+        type: "text",
+        required: false,
+      },
+      {
+        name: "qualifyCount",
+        label: "Clasificados",
+        type: "integer",
+        required: false,
+        min: 0,
+        max: 8,
+      },
+    ],
+    defaultProps: {
+      eyebrow: "Clasificación",
+      groupName: "Grupo A",
+      phase: "Fase 1",
+      category: "senior",
+      categoryLabel: "Senior",
+      venue: "Pista de A Xunqueira, Redondela",
+      qualifyCount: 2,
+      rows: [
+        {
+          teamId: "chapela",
+          teamName: "Chapela FC",
+          played: 3,
+          wins: 3,
+          draws: 0,
+          losses: 0,
+          goalsFor: 8,
+          goalsAgainst: 2,
+          goalDifference: 6,
+          points: 9,
+        },
+        {
+          teamId: "cesantes",
+          teamName: "Cesantes Atlético",
+          played: 3,
+          wins: 1,
+          draws: 1,
+          losses: 1,
+          goalsFor: 5,
+          goalsAgainst: 4,
+          goalDifference: 1,
+          points: 4,
+        },
+        {
+          teamId: "reboreda",
+          teamName: "Reboreda",
+          played: 3,
+          wins: 1,
+          draws: 1,
+          losses: 1,
+          goalsFor: 3,
+          goalsAgainst: 4,
+          goalDifference: -1,
+          points: 4,
+        },
+        {
+          teamId: "angorino",
+          teamName: "Angoriño CF",
+          played: 3,
+          wins: 0,
+          draws: 0,
+          losses: 3,
+          goalsFor: 1,
+          goalsAgainst: 7,
+          goalDifference: -6,
+          points: 0,
+        },
+      ],
+    },
+  }),
+  defineTemplateDefinition({
+    id: "match-result-story",
+    title: "Resultado de partido (story)",
+    kind: "video",
+    preset: "story",
+    schema: matchResultStorySchema,
+    parameters: [
+      {
+        name: "eyebrow",
+        label: "Etiqueta",
+        type: "text",
+        required: false,
+      },
+      {
+        name: "phase",
+        label: "Fase",
+        type: "text",
+        required: false,
+      },
+      {
+        name: "group",
+        label: "Grupo",
+        type: "text",
+        required: false,
+      },
+      {
+        name: "note",
+        label: "Nota",
+        type: "text",
+        required: false,
+      },
+      {
+        name: "venue",
+        label: "Lugar",
+        type: "text",
+        required: false,
+      },
+    ],
+    defaultProps: {
+      eyebrow: "Resultado final",
+      home: {
+        name: "Chapela",
+        score: 2,
+      },
+      away: {
+        name: "Cesantes FC",
+        score: 1,
+      },
+      category: "senior",
+      categoryLabel: "Senior",
+      phase: "Fase 1",
+      group: "Grupo A",
+      note: "Partidazo en A Xunqueira",
+      venue: "Pista de A Xunqueira, Redondela",
     },
   }),
   defineTemplateDefinition({

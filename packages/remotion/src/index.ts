@@ -29,6 +29,18 @@ export {
   type DailyResultsProps,
 } from "./compositions/day-results/schema";
 
+export { GroupStandingsImage } from "./compositions/group-standings/Image";
+export {
+  groupStandingsSchema,
+  type GroupStandingsProps,
+} from "./compositions/group-standings/schema";
+
+export { MatchResultStory } from "./compositions/match-result-story/Component";
+export {
+  matchResultStorySchema,
+  type MatchResultStoryProps,
+} from "./compositions/match-result-story/schema";
+
 export { Result } from "./compositions/result/Component";
 export { resultSchema, type ResultProps } from "./compositions/result/schema";
 
