@@ -7,17 +7,11 @@ interface FooterLink {
 
 interface FooterProps {
   copyright: string;
-  email?: string;
   legalLinks?: FooterLink[];
   className?: string;
 }
 
-export function Footer({
-  copyright,
-  email,
-  legalLinks,
-  className,
-}: FooterProps) {
+export function Footer({ copyright, legalLinks, className }: FooterProps) {
   return (
     <footer className={cn("w-full", className)}>
       <Separator />
@@ -35,14 +29,6 @@ export function Footer({
               </a>
             ))}
           </nav>
-        )}
-        {email && (
-          <a
-            href={`mailto:${email}`}
-            className="transition-colors hover:text-foreground sm:text-right"
-          >
-            {email}
-          </a>
         )}
       </div>
     </footer>

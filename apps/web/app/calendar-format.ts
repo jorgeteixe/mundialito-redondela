@@ -84,6 +84,12 @@ export function buildScheduleDays(
   return [...days.values()];
 }
 
+export function buildScheduleMatches(
+  matches: PublicCalendarMatch[],
+): ScheduleMatch[] {
+  return matches.map(toScheduleMatch);
+}
+
 function dateFromDayKey(key: string) {
   const [year, month, day] = key.split("-").map(Number);
 
@@ -116,6 +122,7 @@ function toScheduleMatch(match: PublicCalendarMatch): ScheduleMatch {
       id: match.homeTeamId ?? `${match.id}-home`,
       name: match.homeTeamName,
       crestUrl: match.homeTeamId ? teamAvatarUrl(match.homeTeamId) : undefined,
+      href: match.homeTeamId ? `/equipos/${match.homeTeamId}` : undefined,
       score: match.homeScore ?? undefined,
       penaltyScore: match.homePenalties ?? undefined,
     },
@@ -123,6 +130,7 @@ function toScheduleMatch(match: PublicCalendarMatch): ScheduleMatch {
       id: match.awayTeamId ?? `${match.id}-away`,
       name: match.awayTeamName,
       crestUrl: match.awayTeamId ? teamAvatarUrl(match.awayTeamId) : undefined,
+      href: match.awayTeamId ? `/equipos/${match.awayTeamId}` : undefined,
       score: match.awayScore ?? undefined,
       penaltyScore: match.awayPenalties ?? undefined,
     },
@@ -133,7 +141,7 @@ function categoryLabel(category: PublicCalendarMatch["category"]) {
   return category === "senior" ? "Senior" : "Cadete";
 }
 
-function teamAvatarUrl(id: string) {
+export function teamAvatarUrl(id: string) {
   return `https://api.dicebear.com/10.x/shapes/svg?seed=${encodeURIComponent(id)}`;
 }
 

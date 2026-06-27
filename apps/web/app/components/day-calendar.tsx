@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import {
   Button,
   EmptyState,
@@ -149,6 +150,7 @@ export function DayCalendar({ days, todayKey }: DayCalendarProps) {
             <MatchSchedule
               matches={selectedMatches}
               showCategory={selectedCategory === "all"}
+              linkComponent={Link}
               emptyState={
                 <EmptyState
                   icon={<CalendarDays className="h-10 w-10" />}

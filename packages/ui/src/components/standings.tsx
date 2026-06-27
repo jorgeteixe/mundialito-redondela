@@ -30,6 +30,8 @@ export interface StandingsRow {
 export interface StandingsProps {
   /** Rows in final order — the caller sorts them. */
   rows: StandingsRow[];
+  /** Highlight one team row, usually on a team detail page. */
+  highlightedTeamId?: string;
   /**
    * Highlight the top N positions as advancing to the next stage. Off when
    * omitted; also renders a short legend under the table.
@@ -121,6 +123,7 @@ function TeamCell({
  */
 export function Standings({
   rows,
+  highlightedTeamId,
   qualifyCount,
   linkComponent,
   emptyState,
@@ -157,6 +160,7 @@ export function Standings({
           <tbody>
             {rows.map((row, index) => {
               const qualifies = qualifyCount != null && index < qualifyCount;
+              const highlighted = row.team.id === highlightedTeamId;
 
               return (
                 <tr
@@ -164,12 +168,16 @@ export function Standings({
                   className={cn(
                     "border-b border-border last:border-b-0",
                     qualifies && "bg-muted/40",
+                    highlighted && "bg-primary/10",
                   )}
+                  aria-current={highlighted ? "true" : undefined}
                 >
                   <td
                     className={cn(
                       "py-2.5 pl-3 text-left font-medium text-muted-foreground sm:pl-4",
                       qualifies &&
+                        "border-l-2 border-primary pl-[10px] text-foreground sm:pl-[14px]",
+                      highlighted &&
                         "border-l-2 border-primary pl-[10px] text-foreground sm:pl-[14px]",
                     )}
                   >

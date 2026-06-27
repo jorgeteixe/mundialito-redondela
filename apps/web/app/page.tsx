@@ -32,7 +32,6 @@ export default async function Home() {
       </main>
       <Footer
         copyright="© 2026 Mundialito Redondela · Sitio no oficial"
-        email="contacto@mundialitoredondela.com"
         legalLinks={LEGAL_LINKS}
       />
     </div>

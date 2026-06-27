@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   EmptyState,
   GroupBadge,
@@ -15,6 +16,7 @@ import type { PublicCategory, PublicGroupStanding } from "@mr/db";
 
 type GroupStandingsSectionProps = {
   groups: PublicGroupStanding[];
+  highlightedTeamId?: string;
 };
 
 const CATEGORY_LABELS: Record<PublicCategory, string> = {
@@ -24,7 +26,10 @@ const CATEGORY_LABELS: Record<PublicCategory, string> = {
 
 const CATEGORIES: PublicCategory[] = ["senior", "cadet"];
 
-export function GroupStandingsSection({ groups }: GroupStandingsSectionProps) {
+export function GroupStandingsSection({
+  groups,
+  highlightedTeamId,
+}: GroupStandingsSectionProps) {
   return (
     <section className="mx-auto w-full max-w-3xl px-4 pb-10 sm:px-6">
       <Tabs defaultValue="senior" className="gap-4">
@@ -78,6 +83,8 @@ export function GroupStandingsSection({ groups }: GroupStandingsSectionProps) {
                     </header>
                     <Standings
                       rows={toStandingsRows(group)}
+                      highlightedTeamId={highlightedTeamId}
+                      linkComponent={Link}
                       emptyState={
                         <EmptyState
                           icon={<Trophy className="h-10 w-10" />}
@@ -103,6 +110,7 @@ function toStandingsRows(group: PublicGroupStanding): StandingsRow[] {
       id: row.teamId,
       name: row.teamName,
       crestUrl: teamAvatarUrl(row.teamId),
+      href: `/equipos/${row.teamId}`,
     },
     played: row.played,
     wins: row.wins,

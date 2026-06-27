@@ -57,6 +57,15 @@ test("marks the top N rows as qualifying", () => {
   expect(bodyRows[1]).not.toHaveClass("bg-muted/40");
 });
 
+test("highlights the requested team row", () => {
+  render(<Standings rows={rows} highlightedTeamId="cesantes" />);
+
+  const bodyRows = screen.getAllByRole("row").slice(1);
+  expect(bodyRows[0]).not.toHaveClass("bg-primary/10");
+  expect(bodyRows[1]).toHaveClass("bg-primary/10");
+  expect(bodyRows[1]).toHaveAttribute("aria-current", "true");
+});
+
 test("renders the empty state when there are no rows", () => {
   render(<Standings rows={[]} emptyState={<p>Sin equipos</p>} />);
 
