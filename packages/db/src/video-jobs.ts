@@ -231,6 +231,10 @@ export async function retryVideoGenerationJob(id: string) {
     .update(videoGenerationJob)
     .set({
       status: "queued",
+      // Reset the attempt counter: startVideoGenerationJob only claims jobs
+      // with attempts < maxAttempts, so without this a fully-failed job stays
+      // un-renderable even after being re-queued.
+      attempts: 0,
       lockedAt: null,
       lockedBy: null,
       failedAt: null,

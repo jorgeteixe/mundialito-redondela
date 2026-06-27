@@ -37,6 +37,12 @@ export const publicationPublish = task({
         );
       }
 
+      if (!result.publicPath) {
+        throw new Error(
+          `Render for post ${post.id} produced no media (skipped=${result.skipped ?? false}).`,
+        );
+      }
+
       mediaUrl = result.publicPath;
       await setSocialPostMediaUrl(post.id, result.publicPath);
     }

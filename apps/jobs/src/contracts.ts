@@ -16,7 +16,12 @@ export type RenderMediaOutput = {
   jobId: string | null;
   templateId: string;
   kind: "video" | "image";
-  publicPath: string;
+  // Null only when the run skipped rendering (a duplicate/replay for a job
+  // another run is already handling and which has no output yet).
+  publicPath: string | null;
+  // True when this run did not render: the job was already done (cached output
+  // returned) or is being handled by another run.
+  skipped?: boolean;
 };
 
 export type SocialPublishPayload = {

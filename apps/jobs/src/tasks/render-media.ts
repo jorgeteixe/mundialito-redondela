@@ -40,18 +40,38 @@ export const renderMedia = task({
       throw new Error(`Unknown template: ${source.templateId}`);
     }
 
-    if (existingJob?.status === "succeeded" && existingJob.outputPath) {
+    // A trigger arrived for a job this run could not claim (dbJob is null):
+    // it's a duplicate/replay while another run owns it, or it already finished.
+    // Return idempotently instead of failing the run.
+    if (payload.jobId && !dbJob) {
+      if (!existingJob) {
+        throw new Error(`Media job ${payload.jobId} not found.`);
+      }
+
+      if (existingJob.status === "succeeded" && existingJob.outputPath) {
+        return {
+          id: renderId,
+          jobId: existingJob.id,
+          templateId: existingJob.templateId,
+          kind: existingJob.kind,
+          publicPath: existingJob.outputPath,
+          skipped: true,
+        };
+      }
+
+      logger.info("Trigger.dev media render skipped: job not renderable", {
+        renderId,
+        jobId: payload.jobId,
+        status: existingJob.status,
+      });
       return {
         id: renderId,
         jobId: existingJob.id,
         templateId: existingJob.templateId,
         kind: existingJob.kind,
-        publicPath: existingJob.outputPath,
+        publicPath: existingJob.outputPath ?? null,
+        skipped: true,
       };
-    }
-
-    if (payload.jobId && !dbJob) {
-      throw new Error(`Media job ${payload.jobId} is not renderable.`);
     }
 
     logger.info("Trigger.dev media render started", {
