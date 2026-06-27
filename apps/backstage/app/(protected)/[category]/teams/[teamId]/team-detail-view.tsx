@@ -49,18 +49,22 @@ import { initials, playerAvatarUrl, teamAvatarUrl } from "../avatar-utils";
 import { PlayerForm } from "../player-form";
 import { TeamForm } from "../team-form";
 import type { PlayerSummary, TeamDetail } from "../data";
+import { CalendarView } from "../../../calendario/calendar-view";
+import type { CalendarDay } from "../../../calendario/calendar-format";
 import type { Category } from "@/lib/category";
 
 type TeamDetailViewProps = {
   team: TeamDetail;
   category: Category;
   canWrite: boolean;
+  matchDays: CalendarDay[];
 };
 
 export function TeamDetailView({
   team,
   category,
   canWrite,
+  matchDays,
 }: TeamDetailViewProps) {
   const [editTeamOpen, setEditTeamOpen] = useState(false);
   const [createPlayerOpen, setCreatePlayerOpen] = useState(false);
@@ -121,8 +125,8 @@ export function TeamDetailView({
           <TabsTrigger value="players" className="flex-none">
             Plantilla
           </TabsTrigger>
-          <TabsTrigger value="empty" className="flex-none">
-            Vacío
+          <TabsTrigger value="calendar" className="flex-none">
+            Calendario
           </TabsTrigger>
         </TabsList>
       </header>
@@ -189,7 +193,15 @@ export function TeamDetailView({
           </div>
         )}
       </TabsContent>
-      <TabsContent value="empty" className="min-h-24" />
+      <TabsContent value="calendar" className="flex flex-col gap-4 text-sm">
+        <div>
+          <h2 className="text-sm font-medium">Calendario</h2>
+          <p className="text-xs text-muted-foreground">
+            Partidos de {team.name}.
+          </p>
+        </div>
+        <CalendarView days={matchDays} showCategory={false} />
+      </TabsContent>
     </Tabs>
   );
 }

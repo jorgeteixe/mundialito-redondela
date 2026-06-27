@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import { requireSession } from "@/lib/authz";
 import { canWriteBackstage } from "@/lib/roles";
 import { parseCategoryParam } from "@/lib/category.server";
-import { getTeamDetail } from "../data";
+import { groupByDay } from "../../../calendario/calendar-format";
+import { getTeamDetail, listTeamMatches } from "../data";
 import { TeamDetailView } from "./team-detail-view";
 
 type TeamDetailPageProps = {
@@ -19,12 +20,15 @@ export default async function TeamDetailPage({ params }: TeamDetailPageProps) {
 
   if (!team) notFound();
 
+  const matchDays = groupByDay(await listTeamMatches(teamId));
+
   return (
     <main className="flex flex-col gap-4 p-4 sm:p-6">
       <TeamDetailView
         team={team}
         category={parseCategoryParam(category)}
         canWrite={canWriteBackstage(session.user.role)}
+        matchDays={matchDays}
       />
     </main>
   );

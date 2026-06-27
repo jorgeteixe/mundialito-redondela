@@ -1,8 +1,10 @@
-import { asc, eq, sql } from "drizzle-orm";
+import { asc, eq, or, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { db, schema } from "@mr/db";
 import type { Category } from "@/lib/category";
+import type { CalendarMatch } from "../../calendario/calendar-format";
 
-const { player, team } = schema;
+const { match, player, team, tournamentGroup } = schema;
 
 export type TeamCategory = Category;
 
@@ -62,4 +64,36 @@ export async function getTeamDetail(id: string): Promise<TeamDetail | null> {
   });
 
   return result ?? null;
+}
+
+export async function listTeamMatches(
+  teamId: string,
+): Promise<CalendarMatch[]> {
+  const homeTeam = alias(team, "home_team");
+  const awayTeam = alias(team, "away_team");
+
+  const rows = await db
+    .select({
+      id: match.id,
+      scheduledAt: match.scheduledAt,
+      groupId: match.groupId,
+      groupName: tournamentGroup.name,
+      groupAvatarLabel: tournamentGroup.avatarLabel,
+      category: tournamentGroup.category,
+      homeTeamId: match.homeTeamId,
+      homeTeamName: homeTeam.name,
+      awayTeamId: match.awayTeamId,
+      awayTeamName: awayTeam.name,
+    })
+    .from(match)
+    .innerJoin(tournamentGroup, eq(tournamentGroup.id, match.groupId))
+    .innerJoin(homeTeam, eq(homeTeam.id, match.homeTeamId))
+    .innerJoin(awayTeam, eq(awayTeam.id, match.awayTeamId))
+    .where(or(eq(match.homeTeamId, teamId), eq(match.awayTeamId, teamId)))
+    .orderBy(asc(match.scheduledAt));
+
+  return rows.map((row) => ({
+    ...row,
+    scheduledAt: row.scheduledAt.toISOString(),
+  }));
 }
