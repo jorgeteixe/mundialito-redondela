@@ -13,7 +13,12 @@ import {
   type ScheduleDay,
 } from "@mr/ui";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
-import { addDaysToKey, clampDayKey, labelForDayKey } from "../calendar-format";
+import {
+  addDaysToKey,
+  clampDayKey,
+  labelForDayKey,
+  todayKey as clientTodayKey,
+} from "../calendar-format";
 
 const TOURNAMENT_START_KEY = "2026-06-29";
 const TOURNAMENT_END_KEY = "2026-07-24";
@@ -40,6 +45,25 @@ export function DayCalendar({ days, todayKey }: DayCalendarProps) {
     TOURNAMENT_END_KEY,
   );
   const [selectedKey, setSelectedKey] = React.useState(initialKey);
+  const [today, setToday] = React.useState(todayKey);
+
+  // `todayKey` is computed on the server. A cached or bfcache-restored document
+  // can be stale relative to the visitor's real "today", which would park the
+  // calendar on the wrong day. Re-sync from the client clock once on mount —
+  // this runs after hydration, so it can never cause a mismatch — and only move
+  // the selection if the user hasn't navigated away from the server default.
+  React.useEffect(() => {
+    const clientToday = clientTodayKey();
+    if (clientToday === todayKey) return;
+    setToday(clientToday);
+    setSelectedKey((current) =>
+      current === initialKey
+        ? clampDayKey(clientToday, TOURNAMENT_START_KEY, TOURNAMENT_END_KEY)
+        : current,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const daysByKey = React.useMemo(
     () => new Map(days.map((day) => [day.key, day])),
     [days],
@@ -52,7 +76,7 @@ export function DayCalendar({ days, todayKey }: DayCalendarProps) {
     selectedCategory,
   );
   const selectedLabel = selectedDay?.label ?? labelForDayKey(selectedKey);
-  const isToday = selectedKey === todayKey;
+  const isToday = selectedKey === today;
   const title = isToday ? "Hoy" : selectedLabel;
   const matchCount = selectedMatches.length;
   const matchCountLabel =
