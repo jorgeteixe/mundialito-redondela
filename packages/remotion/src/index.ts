@@ -22,6 +22,13 @@ export {
   type ScheduleProps,
 } from "./compositions/schedule/schema";
 
+export { DailyResults } from "./compositions/day-results/Component";
+export { DailyResultsImage } from "./compositions/day-results/Image";
+export {
+  dailyResultsSchema,
+  type DailyResultsProps,
+} from "./compositions/day-results/schema";
+
 export { Result } from "./compositions/result/Component";
 export { resultSchema, type ResultProps } from "./compositions/result/schema";
 
