@@ -3,6 +3,7 @@
 const RENDER_MEDIA_TASK_ID = "media.render";
 const PUBLICATION_PUBLISH_TASK_ID = "publication.publish";
 const SOCIAL_PUBLISH_TASK_ID = "social.publish";
+const RESULTS_PUBLISH_AFTER_SAVE_TASK_ID = "results.publish-after-save";
 
 export type RenderMediaPayload = {
   id?: string;
@@ -22,6 +23,10 @@ export type PublicationPublishPayload = {
 
 export type SocialPublishPayload = {
   targetId: string;
+};
+
+export type ResultsPublishAfterSavePayload = {
+  matchId: string;
 };
 
 type TriggerRunHandle = {
@@ -77,4 +82,10 @@ export async function triggerPublicationPublish(
 
 export async function triggerSocialPublish(payload: SocialPublishPayload) {
   return triggerTask(SOCIAL_PUBLISH_TASK_ID, payload);
+}
+
+export async function triggerResultsPublishAfterSave(
+  payload: ResultsPublishAfterSavePayload,
+) {
+  return triggerTask(RESULTS_PUBLISH_AFTER_SAVE_TASK_ID, payload);
 }

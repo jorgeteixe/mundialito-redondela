@@ -70,7 +70,11 @@ export async function listPublications(): Promise<PublicationSummary[]> {
       createdAt: post.createdAt.toISOString(),
       // Media not yet renderable: a referenced job that hasn't succeeded.
       mediaPending: hasVideoJob && !jobSucceeded,
-      mediaUrl: post.mediaUrl ?? post.videoJob?.outputPath ?? null,
+      mediaUrl:
+        post.mediaUrl ??
+        post.mediaUrls?.[0] ??
+        post.videoJob?.outputPath ??
+        null,
       targets: post.targets.map((target) => ({
         id: target.id,
         platform: target.platform,

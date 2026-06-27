@@ -143,15 +143,16 @@ function filenameFromUrl(url: string, kind: PublishInput["media"]["kind"]) {
 
 // Postiz publishes from media it hosts, so download the public asset and upload
 // the bytes to Postiz rather than handing it a URL.
-async function uploadMedia(
+async function uploadMediaUrl(
   fetchImpl: FetchImpl,
   postiz: PostizConfig,
   input: PublishInput,
+  url: string,
 ): Promise<PostizUpload> {
-  const download = await fetchImpl(input.media.url);
+  const download = await fetchImpl(url);
   if (!download.ok) {
     throw new PostizApiError(
-      `Failed to download media ${input.media.url}: HTTP ${download.status.toString()}`,
+      `Failed to download media ${url}: HTTP ${download.status.toString()}`,
       retriableFromStatus(download.status),
     );
   }
@@ -165,7 +166,7 @@ async function uploadMedia(
   form.append(
     "file",
     new Blob([buffer], { type: contentType }),
-    filenameFromUrl(input.media.url, input.media.kind),
+    filenameFromUrl(url, input.media.kind),
   );
 
   const response = await fetchImpl(`${postiz.apiUrl}/upload`, {
@@ -186,6 +187,18 @@ async function uploadMedia(
     );
   }
   return { id: json.id, path: json.path };
+}
+
+async function uploadMedia(
+  fetchImpl: FetchImpl,
+  postiz: PostizConfig,
+  input: PublishInput,
+): Promise<PostizUpload[]> {
+  const uploads: PostizUpload[] = [];
+  for (const url of input.media.urls) {
+    uploads.push(await uploadMediaUrl(fetchImpl, postiz, input, url));
+  }
+  return uploads;
 }
 
 // Map our post type to Postiz's per-platform `settings.post_type`.
@@ -239,7 +252,7 @@ async function publish(
 
   const media = await uploadMedia(fetchImpl, postiz, input);
   // The uploaded media id is the closest thing to an intermediate container.
-  await ctx.setContainerId(media.id);
+  await ctx.setContainerId(media.map((item) => item.id).join(","));
 
   // A future scheduledAt is delegated to Postiz's own scheduler (type
   // "schedule"); anything due now publishes immediately (type "now", date
@@ -259,7 +272,7 @@ async function publish(
         value: [
           {
             content: input.post.caption,
-            image: [{ id: media.id, path: media.path }],
+            image: media.map((item) => ({ id: item.id, path: item.path })),
           },
         ],
         settings: buildSettings(platform, input.post.postType),

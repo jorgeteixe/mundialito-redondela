@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { db, schema } from "@mr/db";
 import { requireAdminWrite } from "@/lib/authz";
 import { resolveBracket } from "@/lib/bracket-resolver";
+import { triggerResultsPublishAfterSave } from "@/lib/trigger";
 import { resolveScorePair } from "./result-score";
 
 const { match } = schema;
@@ -117,6 +118,11 @@ export async function saveMatchResult(
   // A saved result can change standings and knockout faces, so re-resolve the
   // bracket and refresh every view that renders this match.
   await resolveBracket(row.category);
+  try {
+    await triggerResultsPublishAfterSave({ matchId: id });
+  } catch (error) {
+    console.error("Failed to trigger result publication workflow", error);
+  }
   revalidatePath(RESULTADOS_PATH, "page");
   revalidatePath(CALENDARIO_PATH, "page");
   revalidatePath(CATEGORY_CALENDARIO_PATH, "page");

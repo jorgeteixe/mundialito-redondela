@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import {
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -47,6 +48,8 @@ export const socialPost = pgTable("social_post", {
     onDelete: "set null",
   }),
   mediaUrl: text("media_url"),
+  // Multiple public media URLs for carousel-style image posts.
+  mediaUrls: jsonb("media_urls").$type<string[]>(),
   scheduledAt: timestamp("scheduled_at").notNull(),
   createdByUserId: text("created_by_user_id").references(() => user.id, {
     onDelete: "set null",

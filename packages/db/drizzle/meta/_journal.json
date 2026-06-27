@@ -36,6 +36,13 @@
       "when": 1782588263518,
       "tag": "0004_noisy_magneto",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1782595879906,
+      "tag": "0005_keen_black_tom",
+      "breakpoints": true
     }
   ]
 }

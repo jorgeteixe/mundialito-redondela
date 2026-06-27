@@ -24,6 +24,7 @@ export type CreateSocialPostInput = {
   platforms: SocialPlatform[];
   videoJobId?: string | null;
   mediaUrl?: string | null;
+  mediaUrls?: string[] | null;
   createdByUserId?: string | null;
   maxAttempts?: number;
 };
@@ -39,6 +40,7 @@ export async function createSocialPost(input: CreateSocialPostInput) {
         scheduledAt: input.scheduledAt,
         videoJobId: input.videoJobId ?? null,
         mediaUrl: input.mediaUrl ?? null,
+        mediaUrls: input.mediaUrls ?? null,
         createdByUserId: input.createdByUserId ?? null,
       })
       .returning();
@@ -105,6 +107,16 @@ export async function setSocialPostMediaUrl(id: string, mediaUrl: string) {
   const [post] = await db
     .update(socialPost)
     .set({ mediaUrl })
+    .where(eq(socialPost.id, id))
+    .returning();
+
+  return post ?? null;
+}
+
+export async function setSocialPostMediaUrls(id: string, mediaUrls: string[]) {
+  const [post] = await db
+    .update(socialPost)
+    .set({ mediaUrls })
     .where(eq(socialPost.id, id))
     .returning();
 

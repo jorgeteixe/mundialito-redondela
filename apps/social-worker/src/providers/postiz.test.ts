@@ -135,6 +135,7 @@ function makePost(overrides: Partial<SocialPost>): SocialPost {
     caption: "Hola",
     videoJobId: null,
     mediaUrl: null,
+    mediaUrls: null,
     scheduledAt: new Date(),
     createdByUserId: null,
     createdAt: new Date(),
@@ -161,6 +162,7 @@ function input(
 
 const image: ResolvedMedia = {
   url: "https://media.example.com/a.png",
+  urls: ["https://media.example.com/a.png"],
   kind: "image",
 };
 
@@ -207,6 +209,36 @@ describe("createPostizProvider — instagram", () => {
     expect(call(2).body).toMatchObject({ type: "now" });
   });
 
+  it("uploads every carousel image into a single post payload", async () => {
+    const { fetchImpl, call } = sequencedFetch([
+      mediaResponse("image/png"),
+      jsonResponse({ id: "img-1", path: "https://uploads.postiz.com/a.png" }),
+      mediaResponse("image/png"),
+      jsonResponse({ id: "img-2", path: "https://uploads.postiz.com/b.png" }),
+      jsonResponse([{ id: "postiz-post-carousel" }]),
+    ]);
+    const { ctx, setContainerId } = makeCtx();
+    const provider = createPostizProvider({ fetchImpl });
+
+    await provider.publish(
+      input("instagram", makePost({ postType: "feed", mediaKind: "image" }), {
+        url: "https://media.example.com/a.png",
+        urls: [
+          "https://media.example.com/a.png",
+          "https://media.example.com/b.png",
+        ],
+        kind: "image",
+      }),
+      ctx,
+    );
+
+    expect(setContainerId).toHaveBeenCalledWith("img-1,img-2");
+    expect(firstPost(call(4)).value[0]?.image).toEqual([
+      { id: "img-1", path: "https://uploads.postiz.com/a.png" },
+      { id: "img-2", path: "https://uploads.postiz.com/b.png" },
+    ]);
+  });
+
   it("sets post_type story for stories", async () => {
     const { fetchImpl, call } = sequencedFetch([
       mediaResponse("image/png"),
@@ -243,6 +275,7 @@ describe("createPostizProvider — instagram", () => {
     await provider.publish(
       input("instagram", makePost({ postType: "reel", mediaKind: "video" }), {
         url: "https://media.example.com/a.mp4",
+        urls: ["https://media.example.com/a.mp4"],
         kind: "video",
       }),
       ctx,
@@ -289,6 +322,7 @@ describe("createPostizProvider — facebook", () => {
     await provider.publish(
       input("facebook", makePost({ postType: "story", mediaKind: "video" }), {
         url: "https://media.example.com/s.mp4",
+        urls: ["https://media.example.com/s.mp4"],
         kind: "video",
       }),
       ctx,

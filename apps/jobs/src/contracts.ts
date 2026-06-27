@@ -3,6 +3,7 @@ export const SOCIAL_PUBLISH_TASK_ID = "social.publish";
 export const SOCIAL_RECONCILE_PERMALINKS_TASK_ID =
   "social.reconcile-permalinks";
 export const PUBLICATION_PUBLISH_TASK_ID = "publication.publish";
+export const RESULTS_PUBLISH_AFTER_SAVE_TASK_ID = "results.publish-after-save";
 
 export type RenderMediaPayload = {
   id?: string;
@@ -51,4 +52,16 @@ export type PublicationPublishOutput = {
   postId: string;
   mediaUrl: string | null;
   targetCount: number;
+};
+
+export type ResultsPublishAfterSavePayload = {
+  matchId: string;
+};
+
+export type ResultsPublishAfterSaveOutput = {
+  matchId: string;
+  storyPostId: string | null;
+  dayPostId: string | null;
+  dayComplete: boolean;
+  renderedImageCount: number;
 };

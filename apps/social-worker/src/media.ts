@@ -1,6 +1,7 @@
 import type { SocialMediaKind, SocialPost } from "@mr/db";
 
 export type ResolvedMedia = {
+  urls: string[];
   url: string;
   kind: SocialMediaKind;
 };
@@ -38,15 +39,19 @@ export function resolveMedia(
   videoOutputPath: string | null,
   publicBaseUrl: string,
 ): ResolvedMedia {
-  let url: string;
+  let urls: string[];
   if (post.mediaUrl) {
-    url = post.mediaUrl;
+    urls = [post.mediaUrl];
+  } else if (post.mediaUrls && post.mediaUrls.length > 0) {
+    urls = post.mediaUrls;
   } else if (videoOutputPath) {
-    url = toPublicUrl(videoOutputPath, publicBaseUrl);
+    urls = [toPublicUrl(videoOutputPath, publicBaseUrl)];
   } else {
-    throw new Error("Publication has no media source (mediaUrl or videoJob).");
+    throw new Error(
+      "Publication has no media source (mediaUrl, mediaUrls or videoJob).",
+    );
   }
 
-  assertPublicUrl(url);
-  return { url, kind: post.mediaKind };
+  for (const url of urls) assertPublicUrl(url);
+  return { url: urls[0]!, urls, kind: post.mediaKind };
 }
