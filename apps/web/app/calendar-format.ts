@@ -1,4 +1,4 @@
-import type { ScheduleMatch } from "@mr/ui";
+import { groupTint, type ScheduleMatch } from "@mr/ui";
 import type { PublicCalendarMatch } from "@mr/db";
 
 const TIME_ZONE = "Europe/Madrid";
@@ -105,6 +105,7 @@ function toScheduleMatch(match: PublicCalendarMatch): ScheduleMatch {
         ? {
             name: match.groupName,
             avatarLabel: match.groupAvatarLabel,
+            avatarStyle: groupTint(match.groupId),
           }
         : {
             name: knockoutLabel(match.kind),
