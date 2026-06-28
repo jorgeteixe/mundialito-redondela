@@ -119,6 +119,18 @@ function resultStoryProps(match: MatchRow) {
   };
 }
 
+function dayResultsCaption(label: string) {
+  return [
+    `📊 ¡Resultados del ${label}! 🏆⚽`,
+    "",
+    "Otro día de fútbol en el Mundialito da Xunqueira. Desliza para ver todos los marcadores y la clasificación actualizada. 👇🏻",
+    "",
+    `📍 ${VENUE}`,
+    "",
+    "#MundialitoDaXunqueira #Redondela",
+  ].join("\n");
+}
+
 function dayResultsProps(matches: MatchRow[], label: string) {
   return {
     eyebrow: "Resultados de hoy",
@@ -227,7 +239,7 @@ async function createDayCarouselPost(matches: MatchRow[], label: string) {
   const { post, targets } = await createSocialPost({
     postType: "feed",
     mediaKind: "image",
-    caption: `Resultados ${label}`,
+    caption: dayResultsCaption(label),
     scheduledAt: new Date(),
     platforms,
     mediaUrls: urls,
