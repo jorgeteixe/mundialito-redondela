@@ -1,5 +1,9 @@
 // Load env before anything that reads process.env at import time (@mr/db).
 import "./load-env";
+import {
+  configureResultApprovalChat,
+  registerResultApprovalActions,
+} from "./approval";
 import { buildMastra } from "./mastra";
 
 async function main() {
@@ -17,6 +21,11 @@ async function main() {
   // `telegram:<chatId>`. Subscriptions persist in Postgres across restarts.
   const groupThreadId = `telegram:${env.telegramGroupId}`;
   for (const channel of Object.values(channels)) {
+    if (channel.sdk) {
+      configureResultApprovalChat(channel.sdk);
+      registerResultApprovalActions(channel.sdk);
+    }
+
     try {
       await channel.sdk?.thread(groupThreadId).subscribe();
     } catch (error) {

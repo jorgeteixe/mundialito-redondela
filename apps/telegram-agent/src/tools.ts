@@ -1,7 +1,6 @@
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 import { listPublicMatches } from "@mr/db";
-import { applyMatchResult } from "@mr/tournament";
 import {
   isPlayed,
   madridDayKey,
@@ -9,6 +8,7 @@ import {
   madridTime,
   resolveMatch,
 } from "./match-resolver";
+import { requestResultApproval } from "./approval";
 
 const scoreField = z.number().int().min(0).max(99);
 
@@ -180,16 +180,27 @@ export const resolveMatchForResult = createTool({
   },
 });
 
+type ToolExecutionContext = {
+  requestContext?: {
+    get?: (key: string) => unknown;
+  };
+};
+
+function channelThreadId(context?: ToolExecutionContext): string | undefined {
+  const channel = context?.requestContext?.get?.("channel");
+  if (typeof channel !== "object" || channel === null) return undefined;
+  const threadId = (channel as { threadId?: unknown }).threadId;
+  return typeof threadId === "string" ? threadId : undefined;
+}
+
 /**
- * The only write tool. Gated by requireApproval so Mastra renders a native
- * Approve/Deny card in Telegram; the result is persisted (and the bracket
- * re-resolved + publishing fired) ONLY after a human taps approve.
+ * The only write path. It posts a Telegram approval card and returns without
+ * mutating the DB; the action handler persists only after a human taps approve.
  */
 export const submitMatchResult = createTool({
   id: "submitMatchResult",
   description:
     "Guarda el resultado de un partido. Requiere aprobación humana en el chat. Úsalo solo con los valores exactos devueltos por resolveMatchForResult.",
-  requireApproval: true,
   inputSchema: z.object({
     matchId: z
       .string()
@@ -213,37 +224,34 @@ export const submitMatchResult = createTool({
       .optional()
       .describe("Hora devuelta por resolveMatchForResult."),
   }),
-  execute: async (input: {
-    matchId: string;
-    homeName: string;
-    awayName: string;
-    homeScore: number;
-    awayScore: number;
-    homePenalties?: number;
-    awayPenalties?: number;
-    category?: string;
-    dateLabel?: string;
-    time?: string;
-  }) => {
-    const outcome = await applyMatchResult({
-      matchId: input.matchId,
-      homeScore: input.homeScore,
-      awayScore: input.awayScore,
-      homePenalties: input.homePenalties ?? null,
-      awayPenalties: input.awayPenalties ?? null,
-    });
-
-    if (!outcome.ok) {
-      return { ok: false as const, message: outcome.message };
+  execute: async (
+    input: {
+      matchId: string;
+      homeName: string;
+      awayName: string;
+      homeScore: number;
+      awayScore: number;
+      homePenalties?: number;
+      awayPenalties?: number;
+      category?: string;
+      dateLabel?: string;
+      time?: string;
+    },
+    context?: ToolExecutionContext,
+  ) => {
+    const threadId = channelThreadId(context);
+    if (!threadId) {
+      return {
+        ok: false as const,
+        message: "No puedo mostrar la aprobación porque falta el chat.",
+      };
     }
 
-    const penalties =
-      outcome.homePenalties !== null && outcome.awayPenalties !== null
-        ? ` (penaltis ${outcome.homePenalties}-${outcome.awayPenalties})`
-        : "";
+    const approval = await requestResultApproval(threadId, input);
     return {
-      ok: true as const,
-      message: `✅ Resultado guardado: ${outcome.homeName} ${outcome.homeScore}-${outcome.awayScore} ${outcome.awayName}${penalties}.`,
+      ...approval,
+      message:
+        "Aprobación enviada. No escribas más texto; espera a que pulsen Aprobar o Denegar.",
     };
   },
 });

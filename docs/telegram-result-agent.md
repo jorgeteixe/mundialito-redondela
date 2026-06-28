@@ -12,9 +12,9 @@ Telegram adapter, using **Google Gemini 2.5 Flash**.
 - **Results**: someone writes a result in natural language ("Barça 2 Madrid 1").
   The agent resolves it to the exact fixture, orients the score to home/away and
   replies with a confirmation using the **full team names**.
-- **Approval gate**: saving is a tool with `requireApproval: true`, so Mastra
-  renders a native **Aprobar / Denegar** card in the chat. The result is written
-  **only** after a human taps Aprobar.
+- **Approval gate**: `submitMatchResult` posts a Telegram **Aprobar / Denegar**
+  card and returns without writing. The result is written **only** from the
+  action handler after a human taps Aprobar.
 - **On approval** it runs the exact same path as the backstage form — it calls
   `applyMatchResult()` from `@mr/tournament`, which updates the match,
   re-resolves the bracket/standings and fires the Trigger.dev publishing
@@ -89,8 +89,9 @@ Conversation memory + Chat SDK state live in the existing Postgres database
 - `src/mastra.ts` — Mastra instance with `PostgresStore`.
 - `src/agent.ts` — the agent: Spanish instructions, Gemini model, tools, memory,
   Telegram channel + the group-id guard.
+- `src/approval.ts` — Telegram approval card state + button handlers.
 - `src/tools.ts` — `getToday`, `getSchedule`, `resolveMatchForResult`
-  (read-only), `submitMatchResult` (`requireApproval`).
+  (read-only), `submitMatchResult` (posts approval card).
 - `src/match-resolver.ts` — pure fixture-resolution + penalty validation + the
   channel guard (unit-tested in `match-resolver.test.ts`).
 

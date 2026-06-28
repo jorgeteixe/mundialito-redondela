@@ -1,9 +1,8 @@
 import { Agent } from "@mastra/core/agent";
 import { Memory } from "@mastra/memory";
 import type { MastraCompositeStore } from "@mastra/core/storage";
-import type { ChannelHandler, ToolDisplayFn } from "@mastra/core/channels";
+import type { ChannelHandler } from "@mastra/core/channels";
 import { createTelegramAdapter } from "@chat-adapter/telegram";
-import { Actions, Button, Card, CardText } from "chat";
 import { isAllowedChannel } from "./match-resolver";
 import { tools } from "./tools";
 
@@ -36,113 +35,18 @@ CONSULTAR HORARIO
 REGISTRAR UN RESULTADO
 1. Cuando alguien escriba un resultado (p. ej. "Barça 2 Madrid 1", o incluso solo "el barrio ganó 2-1"), identifica los dos equipos. Si necesitas interpretar "hoy", "mañana" o deducir el partido del día actual, llama primero a getToday. Si solo nombran a uno, deduce el rival mirando el horario de ese día con getSchedule.
 2. Llama a resolveMatchForResult con los equipos y goles. NO escribe nada; solo identifica el partido y orienta el marcador a local/visitante. Según su salida:
-   - ok=true: NO escribas ningún resumen ni ningún mensaje tipo "Pulsa Aprobar". Tu SIGUIENTE acción debe ser llamar a submitMatchResult con los valores EXACTOS devueltos (matchId, homeName, awayName, homeScore, awayScore, category, dateLabel, time y penaltis si los hay). Esa herramienta muestra el resumen y los botones Aprobar/Denegar: ESOS botones son la confirmación. No los simules ni esperes a que el usuario escriba "sí".
+   - ok=true: NO escribas ningún resumen ni ningún mensaje tipo "Pulsa Aprobar". Tu SIGUIENTE acción debe ser llamar a submitMatchResult con los valores EXACTOS devueltos (matchId, homeName, awayName, homeScore, awayScore, category, dateLabel, time y penaltis si los hay). Esa herramienta muestra el resumen y los botones Aprobar/Denegar: ESOS botones son la confirmación. Después de llamar a submitMatchResult, no escribas más texto.
    - warning="needs-penalties": es eliminatoria y quedó en empate. Pide el resultado de los PENALTIS por separado y, cuando lo tengas, vuelve a llamar a resolveMatchForResult con penaltisA y penaltisB.
    - warning="ambiguous": hay varios partidos posibles; muéstralos y pregunta a cuál se refiere (por día u hora).
    - warning="not-found": pide que revisen los nombres con getSchedule.
    - warning="penalties-not-allowed": los partidos de grupo no llevan penaltis; pide solo los goles.
    - warning="penalties-not-level": los penaltis solo valen si el reglamentario acabó empatado.
    - alreadyHadResult=true: avisa de que ese partido YA tenía resultado y de que se sobrescribirá.
-3. Cuando submitMatchResult termine (tras pulsar Aprobar), confirma en una frase corta que quedó guardado. Si la persona pulsa Denegar, no se guarda nada.
+3. El botón Aprobar guardará el resultado y publicará la confirmación. Si la persona pulsa Denegar, no se guarda nada.
 
 REGLAS DE PENALTIS (importantes)
 - Partidos de grupo: NUNCA penaltis, solo goles.
 - Eliminatorias (semifinal, tercer puesto, final): los goles del tiempo reglamentario y los penaltis son cosas SEPARADAS. Solo hay penaltis si el reglamentario acabó en empate, y debes confirmarlos por separado. Muéstralo claro, por ejemplo: "Reglamentario 2–2 · Penaltis 4–3".`;
-
-function formatScoreLine(input: {
-  homeName: string;
-  awayName: string;
-  homeScore: number;
-  awayScore: number;
-  homePenalties?: number;
-  awayPenalties?: number;
-}): string {
-  const penalties =
-    typeof input.homePenalties === "number" &&
-    typeof input.awayPenalties === "number"
-      ? ` · Penaltis ${input.homePenalties}-${input.awayPenalties}`
-      : "";
-
-  return `${input.homeName} ${input.homeScore}-${input.awayScore} ${input.awayName}${penalties}`;
-}
-
-function formatApprovalLines(args: unknown): string[] {
-  if (typeof args !== "object" || args === null) {
-    return ["Revisa los datos antes de guardar."];
-  }
-
-  const input = args as Partial<{
-    homeName: string;
-    awayName: string;
-    homeScore: number;
-    awayScore: number;
-    homePenalties: number;
-    awayPenalties: number;
-    category: string;
-    dateLabel: string;
-    time: string;
-  }>;
-
-  if (
-    typeof input.homeName !== "string" ||
-    typeof input.awayName !== "string" ||
-    typeof input.homeScore !== "number" ||
-    typeof input.awayScore !== "number"
-  ) {
-    return ["Revisa los datos antes de guardar."];
-  }
-
-  const lines = [
-    formatScoreLine({
-      homeName: input.homeName,
-      awayName: input.awayName,
-      homeScore: input.homeScore,
-      awayScore: input.awayScore,
-      homePenalties: input.homePenalties,
-      awayPenalties: input.awayPenalties,
-    }),
-  ];
-
-  if (typeof input.category === "string" && input.category.length > 0) {
-    lines.push(`🏆 ${input.category}`);
-  }
-
-  const dateTime = [input.dateLabel, input.time]
-    .filter(
-      (value): value is string => typeof value === "string" && value.length > 0,
-    )
-    .join(" · ");
-
-  if (dateTime) lines.push(`📅 ${dateTime}`);
-  lines.push("Pulsa Aprobar para guardar.");
-  return lines;
-}
-
-export const telegramToolDisplay: ToolDisplayFn = (event) => {
-  if (event.kind !== "approval") return undefined;
-
-  return {
-    kind: "post",
-    message: Card({
-      children: [
-        CardText("📝 Resultado detectado"),
-        ...formatApprovalLines(event.args).map((line) => CardText(line)),
-        Actions([
-          Button({
-            id: `tool_approve:${event.toolCallId}`,
-            label: "Aprobar",
-            style: "primary",
-          }),
-          Button({
-            id: `tool_deny:${event.toolCallId}`,
-            label: "Denegar",
-            style: "danger",
-          }),
-        ]),
-      ],
-    }),
-  };
-};
 
 export function buildResultAgent(opts: {
   storage: MastraCompositeStore;
@@ -175,9 +79,10 @@ export function buildResultAgent(opts: {
       adapters: {
         telegram: {
           adapter: createTelegramAdapter({ mode: "polling" }),
-          // Hide read-only tool lifecycle noise, but render approval cards.
+          // Tool output is handled by the agent text or by explicit Telegram
+          // approval cards from submitMatchResult.
           streaming: false,
-          toolDisplay: telegramToolDisplay,
+          toolDisplay: "hidden",
           // Log the failure and tell the user instead of silently swallowing it.
           formatError: (error: Error) => {
             console.error("[telegram-agent] channel error", error);
