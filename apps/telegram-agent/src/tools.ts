@@ -5,15 +5,77 @@ import { applyMatchResult } from "@mr/tournament";
 import {
   isPlayed,
   madridDayKey,
+  madridDateLabel,
   madridTime,
   resolveMatch,
 } from "./match-resolver";
 
 const scoreField = z.number().int().min(0).max(99);
 
+function madridDayOffset(day: string, offset: number): string {
+  const [year, month, date] = day.split("-").map(Number);
+  return madridDayKey(
+    new Date(Date.UTC(year!, month! - 1, date! + offset, 12)).toISOString(),
+  );
+}
+
+function madridLabelForDay(day: string): string {
+  return madridDateLabel(`${day}T12:00:00.000Z`);
+}
+
 function todayMadridKey(): string {
   return madridDayKey(new Date().toISOString());
 }
+
+export function getMadridDateContext(now = new Date()): {
+  timezone: "Europe/Madrid";
+  today: string;
+  todayLabel: string;
+  tomorrow: string;
+  tomorrowLabel: string;
+  upcomingDays: { day: string; label: string }[];
+} {
+  const today = madridDayKey(now.toISOString());
+  const tomorrow = madridDayOffset(today, 1);
+  const upcomingDays = Array.from({ length: 14 }, (_, index) => {
+    const day = madridDayOffset(today, index);
+    return { day, label: madridLabelForDay(day) };
+  });
+
+  return {
+    timezone: "Europe/Madrid",
+    today,
+    todayLabel: madridLabelForDay(today),
+    tomorrow,
+    tomorrowLabel: madridLabelForDay(tomorrow),
+    upcomingDays,
+  };
+}
+
+/**
+ * Read-only. Gives the current Madrid calendar date so the model does not
+ * infer "hoy", "mañana" or weekday names from stale model context.
+ */
+export const getToday = createTool({
+  id: "getToday",
+  description:
+    "Devuelve la fecha actual y la fecha de mañana en Europe/Madrid. Úsalo siempre antes de interpretar 'hoy', 'mañana' o días relativos.",
+  inputSchema: z.object({}),
+  outputSchema: z.object({
+    timezone: z.literal("Europe/Madrid"),
+    today: z.string(),
+    todayLabel: z.string(),
+    tomorrow: z.string(),
+    tomorrowLabel: z.string(),
+    upcomingDays: z.array(
+      z.object({
+        day: z.string(),
+        label: z.string(),
+      }),
+    ),
+  }),
+  execute: async () => getMadridDateContext(),
+});
 
 /**
  * Read-only. Lists the fixtures of a given day (default: today, Europe/Madrid)
@@ -33,6 +95,7 @@ export const getSchedule = createTool({
   }),
   outputSchema: z.object({
     day: z.string(),
+    dateLabel: z.string(),
     count: z.number(),
     matches: z.array(
       z.object({
@@ -67,7 +130,12 @@ export const getSchedule = createTool({
           score: played ? `${m.homeScore}-${m.awayScore}${penalties}` : null,
         };
       });
-    return { day, count: matches.length, matches };
+    return {
+      day,
+      dateLabel: madridLabelForDay(day),
+      count: matches.length,
+      matches,
+    };
   },
 });
 
@@ -166,6 +234,7 @@ export const submitMatchResult = createTool({
 });
 
 export const tools = {
+  getToday,
   getSchedule,
   resolveMatchForResult,
   submitMatchResult,

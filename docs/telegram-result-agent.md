@@ -20,9 +20,9 @@ Telegram adapter, using **Google Gemini 2.5 Flash**.
   re-resolves the bracket/standings and fires the Trigger.dev publishing
   pipeline (Instagram story + day-results carousel).
 
-The LLM is **read-only** (`getSchedule`, `resolveMatchForResult`). The only write
-path is the approved `submitMatchResult` tool, so the model can never persist a
-result on its own.
+The LLM is **read-only** (`getToday`, `getSchedule`,
+`resolveMatchForResult`). The only write path is the approved
+`submitMatchResult` tool, so the model can never persist a result on its own.
 
 ## Penalty rules
 
@@ -89,8 +89,8 @@ Conversation memory + Chat SDK state live in the existing Postgres database
 - `src/mastra.ts` — Mastra instance with `PostgresStore`.
 - `src/agent.ts` — the agent: Spanish instructions, Gemini model, tools, memory,
   Telegram channel + the group-id guard.
-- `src/tools.ts` — `getSchedule`, `resolveMatchForResult` (read-only),
-  `submitMatchResult` (`requireApproval`).
+- `src/tools.ts` — `getToday`, `getSchedule`, `resolveMatchForResult`
+  (read-only), `submitMatchResult` (`requireApproval`).
 - `src/match-resolver.ts` — pure fixture-resolution + penalty validation + the
   channel guard (unit-tested in `match-resolver.test.ts`).
 

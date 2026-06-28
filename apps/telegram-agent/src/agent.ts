@@ -1,8 +1,9 @@
 import { Agent } from "@mastra/core/agent";
 import { Memory } from "@mastra/memory";
 import type { MastraCompositeStore } from "@mastra/core/storage";
-import type { ChannelHandler } from "@mastra/core/channels";
+import type { ChannelHandler, ToolDisplayFn } from "@mastra/core/channels";
 import { createTelegramAdapter } from "@chat-adapter/telegram";
+import { Actions, Button, Card, CardText } from "chat";
 import { isAllowedChannel } from "./match-resolver";
 import { tools } from "./tools";
 
@@ -16,8 +17,10 @@ FORMATO DE LOS MENSAJES
 - No muestres ids, JSON ni nombres de herramientas.
 
 CONSULTAR HORARIO
-- Usa getSchedule para decir qué partidos hay un día. Por defecto, hoy. Si piden otro día, pásalo en formato YYYY-MM-DD.
+- Si preguntan por "hoy", "mañana", "pasado", un día relativo o un weekday, llama primero a getToday. La zona horaria oficial es Europe/Madrid. No calcules fechas relativas ni nombres de días de memoria; elige el día desde getToday.upcomingDays.
+- Usa getSchedule para decir qué partidos hay un día. Si piden "hoy", usa getToday.today. Si piden "mañana", usa getToday.tomorrow. Si piden otro día, pásalo en formato YYYY-MM-DD.
 - Sirve para que la gente sepa los nombres exactos de los equipos antes de mandar un resultado.
+- Para nombrar el día en la respuesta, usa dateLabel devuelto por getSchedule (o todayLabel/tomorrowLabel de getToday), no lo inventes.
 - Formato (texto plano + emojis), por ejemplo:
   📅 Lunes 29 de junio
 
@@ -31,7 +34,7 @@ CONSULTAR HORARIO
   - Si no hay partidos ese día, dilo en una frase corta y amable.
 
 REGISTRAR UN RESULTADO
-1. Cuando alguien escriba un resultado (p. ej. "Barça 2 Madrid 1", o incluso solo "el barrio ganó 2-1"), identifica los dos equipos. Si solo nombran a uno, deduce el rival mirando el horario de ese día con getSchedule.
+1. Cuando alguien escriba un resultado (p. ej. "Barça 2 Madrid 1", o incluso solo "el barrio ganó 2-1"), identifica los dos equipos. Si necesitas interpretar "hoy", "mañana" o deducir el partido del día actual, llama primero a getToday. Si solo nombran a uno, deduce el rival mirando el horario de ese día con getSchedule.
 2. Llama a resolveMatchForResult con los equipos y goles. NO escribe nada; solo identifica el partido y orienta el marcador a local/visitante. Según su salida:
    - ok=true: NO pidas confirmación por texto. Publica UNA línea de resumen con el día, la hora, la categoría, los nombres completos y el marcador, por ejemplo:
        "📝 Vas a registrar — El Barrio F.S 2–1 Chata F.S · Cadete · lunes 29 de junio, 20:30. Pulsa Aprobar para guardar."
@@ -47,6 +50,64 @@ REGISTRAR UN RESULTADO
 REGLAS DE PENALTIS (importantes)
 - Partidos de grupo: NUNCA penaltis, solo goles.
 - Eliminatorias (semifinal, tercer puesto, final): los goles del tiempo reglamentario y los penaltis son cosas SEPARADAS. Solo hay penaltis si el reglamentario acabó en empate, y debes confirmarlos por separado. Muéstralo claro, por ejemplo: "Reglamentario 2–2 · Penaltis 4–3".`;
+
+function formatApprovalSummary(args: unknown): string {
+  if (typeof args !== "object" || args === null) {
+    return "Revisa los datos antes de guardar.";
+  }
+
+  const input = args as Partial<{
+    homeName: string;
+    awayName: string;
+    homeScore: number;
+    awayScore: number;
+    homePenalties: number;
+    awayPenalties: number;
+  }>;
+
+  if (
+    typeof input.homeName !== "string" ||
+    typeof input.awayName !== "string" ||
+    typeof input.homeScore !== "number" ||
+    typeof input.awayScore !== "number"
+  ) {
+    return "Revisa los datos antes de guardar.";
+  }
+
+  const penalties =
+    typeof input.homePenalties === "number" &&
+    typeof input.awayPenalties === "number"
+      ? ` · Penaltis ${input.homePenalties}-${input.awayPenalties}`
+      : "";
+
+  return `${input.homeName} ${input.homeScore}-${input.awayScore} ${input.awayName}${penalties}`;
+}
+
+export const telegramToolDisplay: ToolDisplayFn = (event) => {
+  if (event.kind !== "approval") return undefined;
+
+  return {
+    kind: "post",
+    message: Card({
+      children: [
+        CardText("📝 Confirmar resultado"),
+        CardText(formatApprovalSummary(event.args)),
+        Actions([
+          Button({
+            id: `tool_approve:${event.toolCallId}`,
+            label: "Aprobar",
+            style: "primary",
+          }),
+          Button({
+            id: `tool_deny:${event.toolCallId}`,
+            label: "Denegar",
+            style: "danger",
+          }),
+        ]),
+      ],
+    }),
+  };
+};
 
 export function buildResultAgent(opts: {
   storage: MastraCompositeStore;
@@ -79,12 +140,9 @@ export function buildResultAgent(opts: {
       adapters: {
         telegram: {
           adapter: createTelegramAdapter({ mode: "polling" }),
-          // Static driver + hidden tool display: don't surface the read-only
-          // tool calls/results in chat (just the agent's messages). The native
-          // approval card is posted directly by the static driver, so it still
-          // shows for submitMatchResult.
+          // Hide read-only tool lifecycle noise, but render approval cards.
           streaming: false,
-          toolDisplay: "hidden",
+          toolDisplay: telegramToolDisplay,
           // Log the failure and tell the user instead of silently swallowing it.
           formatError: (error: Error) => {
             console.error("[telegram-agent] channel error", error);
