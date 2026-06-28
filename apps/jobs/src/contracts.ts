@@ -4,6 +4,7 @@ export const SOCIAL_RECONCILE_PERMALINKS_TASK_ID =
   "social.reconcile-permalinks";
 export const PUBLICATION_PUBLISH_TASK_ID = "publication.publish";
 export const RESULTS_PUBLISH_AFTER_SAVE_TASK_ID = "results.publish-after-save";
+export const SCHEDULE_PUBLISH_MORNING_TASK_ID = "schedule.publish-morning";
 
 export type RenderMediaPayload = {
   id?: string;
@@ -64,4 +65,12 @@ export type ResultsPublishAfterSaveOutput = {
   dayPostId: string | null;
   dayComplete: boolean;
   renderedImageCount: number;
+};
+
+export type SchedulePublishMorningOutput = {
+  date: string;
+  hasMatches: boolean;
+  storyPostId: string | null;
+  postId: string | null;
+  matchCount: number;
 };
