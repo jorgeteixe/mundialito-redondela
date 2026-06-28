@@ -20,6 +20,12 @@ const DEFAULT_OUTPUT_DIR = "/tmp/mr-trigger-media-renders";
 
 export const renderMedia = task({
   id: RENDER_MEDIA_TASK_ID,
+  // Remotion render = runtime webpack bundle + headless Chromium + ffmpeg.
+  // The default small-1x preset (0.5 GB) OOM-kills the process mid-render.
+  machine: "large-1x",
+  // Bundling at runtime is slow; give the render more headroom than the
+  // global 60s default so a cold bundle + render doesn't trip the timeout.
+  maxDuration: 300,
   run: async (payload: RenderMediaPayload): Promise<RenderMediaOutput> => {
     const renderId = payload.id ?? payload.jobId ?? randomUUID();
     const outputDir = DEFAULT_OUTPUT_DIR;
