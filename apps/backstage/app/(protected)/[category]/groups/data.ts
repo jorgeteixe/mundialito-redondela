@@ -2,7 +2,7 @@ import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db, schema } from "@mr/db";
 import type { GroupStage } from "@/lib/group-stage";
-import { calculateStandings, type StandingRow } from "@/lib/standings";
+import { calculateStandings, type StandingRow } from "@mr/tournament";
 import type { TeamCategory } from "../teams/data";
 
 const { match, team, tournamentGroup, tournamentGroupTeam } = schema;

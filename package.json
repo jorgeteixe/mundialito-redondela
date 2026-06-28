@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev --filter @mr/web --filter @mr/backstage --filter @mr/jobs",
+    "dev": "turbo run dev --filter @mr/web --filter @mr/backstage --filter @mr/jobs --filter @mr/telegram-agent",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css,mjs}\"",
     "typecheck": "turbo run typecheck",
@@ -20,6 +20,8 @@
     "db:seed": "pnpm --filter @mr/tools db:seed",
     "db:seed-real": "pnpm --filter @mr/tools db:seed-real",
     "db:seed-admin": "pnpm --filter @mr/tools db:seed-admin",
+    "telegram:dev": "turbo run dev --filter @mr/telegram-agent",
+    "telegram:start": "pnpm --filter @mr/telegram-agent start",
     "jobs:dev": "turbo run dev --filter @mr/jobs",
     "jobs:deploy": "turbo run deploy --filter @mr/jobs",
     "jobs:media": "pnpm --filter @mr/jobs trigger:media",

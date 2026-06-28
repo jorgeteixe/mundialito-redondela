@@ -70,6 +70,7 @@ Detailed workflows, guidelines, and visual assets automation instructions are st
 - **[UI Components](file:///Users/teixe/dev/mundialito-redondela/docs/ui-components.md)**: shadcn/ui setup, how to add components, theming, and Storybook conventions.
 - **[Backstage E2E Testing](docs/backstage-e2e-testing.md)**: Playwright setup for backstage auth and user workflows.
 - **[Testing Strategy](docs/testing-strategy.md)**: Unit, component, visual, and E2E testing conventions.
+- **[Telegram Result Agent](docs/telegram-result-agent.md)**: Chat-based Mastra/Gemini agent for entering match results from Telegram.
 
 ---
 

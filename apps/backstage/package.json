@@ -16,6 +16,7 @@
   "dependencies": {
     "@mr/db": "workspace:*",
     "@mr/remotion": "workspace:*",
+    "@mr/tournament": "workspace:*",
     "@mr/ui": "workspace:*",
     "better-auth": "^1.6.18",
     "lucide-react": "^1.18.0",

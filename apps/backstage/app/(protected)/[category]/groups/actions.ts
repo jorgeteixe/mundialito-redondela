@@ -8,7 +8,7 @@ import { requireAdminWrite } from "@/lib/authz";
 import { isCategory } from "@/lib/category";
 import { isGroupStage } from "@/lib/group-stage";
 import { conflictWindow } from "@/lib/match-schedule";
-import { resolveBracket } from "@/lib/bracket-resolver";
+import { resolveBracket } from "@mr/tournament";
 
 const { match, team, tournamentGroup, tournamentGroupTeam } = schema;
 const tournamentTimeZone = "Europe/Madrid";

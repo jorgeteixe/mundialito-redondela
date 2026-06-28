@@ -6,7 +6,7 @@ import { db, schema } from "@mr/db";
 import { requireAdminWrite } from "@/lib/authz";
 import { isCategory, type Category } from "@/lib/category";
 import { conflictWindow } from "@/lib/match-schedule";
-import { resolveBracket } from "@/lib/bracket-resolver";
+import { resolveBracket } from "@mr/tournament";
 import type { KnockoutKind } from "./data";
 
 const { match, team } = schema;

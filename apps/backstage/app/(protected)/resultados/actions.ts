@@ -1,14 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
-import { db, schema } from "@mr/db";
+import { applyMatchResult, resolveScorePair } from "@mr/tournament";
 import { requireAdminWrite } from "@/lib/authz";
-import { resolveBracket } from "@/lib/bracket-resolver";
-import { triggerResultsPublishAfterSave } from "@/lib/trigger";
-import { resolveScorePair } from "./result-score";
-
-const { match } = schema;
 
 const RESULTADOS_PATH = "/resultados";
 const CALENDARIO_PATH = "/calendario";
@@ -44,35 +38,19 @@ export async function saveMatchResult(
     return { status: "error", message: "El partido no existe." };
   }
 
-  const [row] = await db
-    .select({ category: match.category, kind: match.kind })
-    .from(match)
-    .where(eq(match.id, id))
-    .limit(1);
-
-  if (!row) {
-    return { status: "error", message: "El partido no existe." };
-  }
-
-  const isKnockout = row.kind !== "group";
-
+  // Parse the score/penalty pairs here so the form can surface per-field errors
+  // ("fill both", "use an integer"); the cross-cutting rules (penalties only on
+  // a level knockout, etc.) live in applyMatchResult.
   const score = resolveScorePair(
     readString(formData, "homeScore"),
     readString(formData, "awayScore"),
     "Rellena ambos resultados.",
   );
-  const penalties = isKnockout
-    ? resolveScorePair(
-        readString(formData, "homePenalties"),
-        readString(formData, "awayPenalties"),
-        "Rellena ambos penaltis.",
-      )
-    : {
-        homeValue: null,
-        awayValue: null,
-        fieldErrors: {} as { home?: string; away?: string },
-        hasError: false,
-      };
+  const penalties = resolveScorePair(
+    readString(formData, "homePenalties"),
+    readString(formData, "awayPenalties"),
+    "Rellena ambos penaltis.",
+  );
 
   if (score.hasError || penalties.hasError) {
     return {
@@ -87,42 +65,30 @@ export async function saveMatchResult(
     };
   }
 
-  // Penalties only make sense once regular time ends level.
-  if (
-    isKnockout &&
-    penalties.homeValue !== null &&
-    score.homeValue !== null &&
-    score.homeValue !== score.awayValue
-  ) {
-    return {
-      status: "error",
-      message:
-        "Los penaltis solo se registran cuando el partido acaba en empate.",
-      fieldErrors: {
-        homePenalties: "El resultado no está empatado.",
-        awayPenalties: "El resultado no está empatado.",
-      },
-    };
+  const outcome = await applyMatchResult({
+    matchId: id,
+    homeScore: score.homeValue,
+    awayScore: score.awayValue,
+    homePenalties: penalties.homeValue,
+    awayPenalties: penalties.awayValue,
+  });
+
+  if (!outcome.ok) {
+    if (outcome.code === "penalties-not-level") {
+      return {
+        status: "error",
+        message: outcome.message,
+        fieldErrors: {
+          homePenalties: "El resultado no está empatado.",
+          awayPenalties: "El resultado no está empatado.",
+        },
+      };
+    }
+    return { status: "error", message: outcome.message };
   }
 
-  await db
-    .update(match)
-    .set({
-      homeScore: score.homeValue,
-      awayScore: score.awayValue,
-      homePenalties: penalties.homeValue,
-      awayPenalties: penalties.awayValue,
-    })
-    .where(eq(match.id, id));
-
-  // A saved result can change standings and knockout faces, so re-resolve the
-  // bracket and refresh every view that renders this match.
-  await resolveBracket(row.category);
-  try {
-    await triggerResultsPublishAfterSave({ matchId: id });
-  } catch (error) {
-    console.error("Failed to trigger result publication workflow", error);
-  }
+  // A saved result can change standings and knockout faces, so refresh every
+  // view that renders this match.
   revalidatePath(RESULTADOS_PATH, "page");
   revalidatePath(CALENDARIO_PATH, "page");
   revalidatePath(CATEGORY_CALENDARIO_PATH, "page");

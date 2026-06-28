@@ -1,0 +1,34 @@
+{
+  "name": "@mr/telegram-agent",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^4.0.2",
+    "@chat-adapter/telegram": "^4.31.0",
+    "@mastra/core": "^1.47.0",
+    "@mastra/memory": "^1.21.2",
+    "@mastra/pg": "^1.14.2",
+    "@mr/db": "workspace:*",
+    "@mr/tournament": "workspace:*",
+    "chat": "^4.31.0",
+    "dotenv": "^17.4.2",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@mr/eslint-config": "workspace:*",
+    "@mr/typescript-config": "workspace:*",
+    "@types/node": "^22.15.3",
+    "eslint": "^9.39.1",
+    "tsx": "^4.22.4",
+    "typescript": "5.9.2",
+    "vitest": "^4.1.8"
+  }
+}

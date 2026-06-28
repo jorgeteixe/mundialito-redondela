@@ -11,13 +11,15 @@
 - Trigger jobs: `apps/jobs`, `@mr/jobs`, renders media and publishes to Instagram/Facebook through self-hosted Trigger.dev.
 - Media rendering helpers: `apps/video-worker`, `@mr/video-worker`, shared by Trigger jobs.
 - Social publishing helpers: `apps/social-worker`, `@mr/social-worker`, shared by Trigger jobs (see `docs/social-publishing-queue.md`).
+- Telegram result agent: `apps/telegram-agent`, `@mr/telegram-agent`, a Mastra + Gemini chat agent that enters match results from a Telegram group via long polling (see `docs/telegram-result-agent.md`).
+- Tournament core: `packages/tournament`, `@mr/tournament`, shared result application (`applyMatchResult`), bracket resolution and standings used by backstage and the Telegram agent.
 - Shared tooling: `packages/tools`, CLI utilities exported as `@mr/tools`.
 - Shared config: `@mr/eslint-config` and `@mr/typescript-config`.
 
 ## Commands
 
 - Install: `pnpm install`
-- Develop app + backstage + local Trigger worker: `pnpm dev`
+- Develop app + backstage + local Trigger worker + Telegram agent: `pnpm dev`
 - Develop web only: `pnpm --filter @mr/web dev`
 - Develop backstage only: `pnpm --filter @mr/backstage dev`
 - Storybook: `pnpm --filter @mr/ui storybook`
@@ -38,6 +40,8 @@
 - Seed admin user: `pnpm db:seed-admin`
 - Run Trigger dev worker: `pnpm jobs:dev`
 - Deploy Trigger jobs: `pnpm jobs:deploy`
+- Run Telegram result agent (dev, watch): `pnpm telegram:dev`
+- Run Telegram result agent (prod worker): `pnpm telegram:start`
 
 ## UI Component Structure
 
