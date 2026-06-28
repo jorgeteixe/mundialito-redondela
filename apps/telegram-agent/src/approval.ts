@@ -10,7 +10,9 @@ type ApprovalInput = {
   awayScore: number;
   homePenalties?: number;
   awayPenalties?: number;
+  kind?: string;
   category?: string;
+  groupName?: string | null;
   dateLabel?: string;
   time?: string;
 };
@@ -32,33 +34,74 @@ function scoreLine(input: ApprovalInput): string {
   const penalties =
     typeof input.homePenalties === "number" &&
     typeof input.awayPenalties === "number"
-      ? ` · Penaltis ${input.homePenalties}-${input.awayPenalties}`
+      ? ` · Penaltis ${input.homePenalties} - ${input.awayPenalties}`
       : "";
 
-  return `${input.homeName} ${input.homeScore}-${input.awayScore} ${input.awayName}${penalties}`;
+  return `${input.homeName} ${input.homeScore} - ${input.awayScore} ${input.awayName}${penalties}`;
 }
 
-function approvalLines(input: ApprovalInput): string[] {
-  const lines = [scoreLine(input)];
+function categoryLabel(category?: string): string | undefined {
+  if (category === "cadet") return "Cadete";
+  if (category === "senior") return "Senior";
+  return category;
+}
 
-  if (input.category) {
-    lines.push(`🏆 ${input.category}`);
+function groupStageLabel(groupName?: string | null): string | undefined {
+  if (!groupName) return undefined;
+  const isPhaseTwo = /\s+F2$/i.test(groupName);
+  const name = groupName.replace(/\s+F2$/i, "");
+  return `${name} (${isPhaseTwo ? "Fase 2" : "Fase 1"})`;
+}
+
+function kindLabel(kind?: string): string | undefined {
+  switch (kind) {
+    case "semifinal":
+      return "Semifinal";
+    case "third_place":
+      return "Tercer puesto";
+    case "final":
+      return "Final";
+    default:
+      return undefined;
   }
+}
+
+function competitionLine(input: ApprovalInput): string | undefined {
+  const parts = [
+    categoryLabel(input.category),
+    groupStageLabel(input.groupName) ?? kindLabel(input.kind),
+  ].filter(Boolean);
+
+  return parts.length > 0 ? `🏆 ${parts.join(" - ")}` : undefined;
+}
+
+function approvalLines(
+  input: ApprovalInput,
+  options: { includeInstruction: boolean },
+): string[] {
+  const lines = ["📝 Resultado detectado", " ", scoreLine(input), " "];
+
+  const competition = competitionLine(input);
+  if (competition) lines.push(competition);
 
   const dateTime = [input.dateLabel, input.time].filter(Boolean).join(" · ");
   if (dateTime) {
     lines.push(`📅 ${dateTime}`);
   }
 
-  lines.push("Pulsa Aprobar para guardar.");
+  if (options.includeInstruction) {
+    lines.push(" ", "Pulsa Aprobar para guardar.");
+  }
+
   return lines;
 }
 
 export function createResultApprovalCard(id: string, input: ApprovalInput) {
   return Card({
     children: [
-      CardText("📝 Resultado detectado"),
-      ...approvalLines(input).map((line) => CardText(line)),
+      ...approvalLines(input, { includeInstruction: true }).map((line) =>
+        CardText(line),
+      ),
       Actions([
         Button({
           id: `mr_result_ok:${id}`,
@@ -78,10 +121,10 @@ export function createResultApprovalCard(id: string, input: ApprovalInput) {
 function finalCard(input: ApprovalInput, status: string) {
   return Card({
     children: [
-      CardText("📝 Resultado detectado"),
-      ...approvalLines(input)
-        .filter((line) => line !== "Pulsa Aprobar para guardar.")
-        .map((line) => CardText(line)),
+      ...approvalLines(input, { includeInstruction: false }).map((line) =>
+        CardText(line),
+      ),
+      CardText(" "),
       CardText(status),
     ],
   });
@@ -154,7 +197,7 @@ export function registerResultApprovalActions(nextChat: Chat): void {
 
     const penalties =
       outcome.homePenalties !== null && outcome.awayPenalties !== null
-        ? ` (penaltis ${outcome.homePenalties}-${outcome.awayPenalties})`
+        ? ` (penaltis ${outcome.homePenalties} - ${outcome.awayPenalties})`
         : "";
     await event.adapter.editMessage(
       pending.threadId,
@@ -162,7 +205,7 @@ export function registerResultApprovalActions(nextChat: Chat): void {
       finalCard(pending.input, "✅ Aprobado y guardado."),
     );
     await event.thread?.post(
-      `✅ Resultado guardado: ${outcome.homeName} ${outcome.homeScore}-${outcome.awayScore} ${outcome.awayName}${penalties}.`,
+      `✅ Resultado guardado: ${outcome.homeName} ${outcome.homeScore} - ${outcome.awayScore} ${outcome.awayName}${penalties}.`,
     );
   });
 }

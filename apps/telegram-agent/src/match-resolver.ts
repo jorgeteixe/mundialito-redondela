@@ -141,6 +141,7 @@ export type ResolvedCandidate = {
   matchId: string;
   kind: PublicCalendarMatch["kind"];
   category: PublicCalendarMatch["category"];
+  groupName: string | null;
   homeName: string;
   awayName: string;
   scheduledAt: string;
@@ -155,6 +156,7 @@ export type ResolveOutcome =
       matchId: string;
       kind: PublicCalendarMatch["kind"];
       category: PublicCalendarMatch["category"];
+      groupName: string | null;
       homeName: string;
       awayName: string;
       time: string;
@@ -204,6 +206,7 @@ export function resolveMatch(
       matchId: match.id,
       kind: match.kind,
       category: match.category,
+      groupName: match.groupName,
       homeName: match.homeTeamName,
       awayName: match.awayTeamName,
       scheduledAt: match.scheduledAt,
@@ -293,6 +296,7 @@ export function resolveMatch(
     matchId: top.matchId,
     kind: top.kind,
     category: top.category,
+    groupName: top.groupName,
     homeName: top.homeName,
     awayName: top.awayName,
     time: madridTime(top.scheduledAt),

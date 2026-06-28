@@ -51,6 +51,19 @@ describe("resolveMatch — orientation", () => {
     });
     expect(result.ok).toBe(true);
   });
+
+  it("returns group context for approval display", () => {
+    const result = resolveMatch([match({ groupName: "Grupo B F2" })], {
+      teamA: "madrid",
+      scoreA: 2,
+      teamB: "barca",
+      scoreB: 0,
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      groupName: "Grupo B F2",
+    });
+  });
 });
 
 describe("resolveMatch — disambiguation", () => {

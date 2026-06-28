@@ -211,10 +211,19 @@ export const submitMatchResult = createTool({
     awayScore: scoreField,
     homePenalties: scoreField.optional(),
     awayPenalties: scoreField.optional(),
+    kind: z
+      .string()
+      .optional()
+      .describe("Tipo devuelto por resolveMatchForResult."),
     category: z
       .string()
       .optional()
       .describe("Categoría devuelta por resolveMatchForResult."),
+    groupName: z
+      .string()
+      .nullable()
+      .optional()
+      .describe("Grupo devuelto por resolveMatchForResult, si existe."),
     dateLabel: z
       .string()
       .optional()
@@ -233,7 +242,9 @@ export const submitMatchResult = createTool({
       awayScore: number;
       homePenalties?: number;
       awayPenalties?: number;
+      kind?: string;
       category?: string;
+      groupName?: string | null;
       dateLabel?: string;
       time?: string;
     },

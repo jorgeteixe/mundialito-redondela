@@ -9,7 +9,9 @@ describe("createResultApprovalCard", () => {
       awayName: "Chata F.S",
       homeScore: 2,
       awayScore: 1,
-      category: "Cadete",
+      kind: "group",
+      category: "cadet",
+      groupName: "Grupo A",
       dateLabel: "lunes 29 de junio",
       time: "20:00",
     });
@@ -18,9 +20,12 @@ describe("createResultApprovalCard", () => {
       type: "card",
       children: [
         { type: "text", content: "📝 Resultado detectado" },
-        { type: "text", content: "El Barrio F.S 2-1 Chata F.S" },
-        { type: "text", content: "🏆 Cadete" },
+        { type: "text", content: " " },
+        { type: "text", content: "El Barrio F.S 2 - 1 Chata F.S" },
+        { type: "text", content: " " },
+        { type: "text", content: "🏆 Cadete - Grupo A (Fase 1)" },
         { type: "text", content: "📅 lunes 29 de junio · 20:00" },
+        { type: "text", content: " " },
         { type: "text", content: "Pulsa Aprobar para guardar." },
         {
           type: "actions",
