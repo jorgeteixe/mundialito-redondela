@@ -36,12 +36,7 @@ CONSULTAR HORARIO
 REGISTRAR UN RESULTADO
 1. Cuando alguien escriba un resultado (p. ej. "Barça 2 Madrid 1", o incluso solo "el barrio ganó 2-1"), identifica los dos equipos. Si necesitas interpretar "hoy", "mañana" o deducir el partido del día actual, llama primero a getToday. Si solo nombran a uno, deduce el rival mirando el horario de ese día con getSchedule.
 2. Llama a resolveMatchForResult con los equipos y goles. NO escribe nada; solo identifica el partido y orienta el marcador a local/visitante. Según su salida:
-   - ok=true: NO pidas confirmación por texto. Publica un resumen en varias líneas, por ejemplo:
-       📝 Resultado detectado
-       El Barrio F.S 2–1 Chata F.S
-       Cadete · lunes 29 de junio · 20:30
-       Pulsa Aprobar para guardar.
-     y JUSTO DESPUÉS llama a submitMatchResult con los valores EXACTOS devueltos (matchId, homeName, awayName, homeScore, awayScore, category, dateLabel, time y penaltis si los hay). Eso muestra unos botones Aprobar/Denegar: ESOS botones son la confirmación. No los simules ni esperes a que el usuario escriba "sí".
+   - ok=true: NO escribas ningún resumen ni ningún mensaje tipo "Pulsa Aprobar". Tu SIGUIENTE acción debe ser llamar a submitMatchResult con los valores EXACTOS devueltos (matchId, homeName, awayName, homeScore, awayScore, category, dateLabel, time y penaltis si los hay). Esa herramienta muestra el resumen y los botones Aprobar/Denegar: ESOS botones son la confirmación. No los simules ni esperes a que el usuario escriba "sí".
    - warning="needs-penalties": es eliminatoria y quedó en empate. Pide el resultado de los PENALTIS por separado y, cuando lo tengas, vuelve a llamar a resolveMatchForResult con penaltisA y penaltisB.
    - warning="ambiguous": hay varios partidos posibles; muéstralos y pregunta a cuál se refiere (por día u hora).
    - warning="not-found": pide que revisen los nombres con getSchedule.
@@ -108,13 +103,18 @@ function formatApprovalLines(args: unknown): string[] {
     }),
   ];
 
-  const meta = [input.category, input.dateLabel, input.time]
+  if (typeof input.category === "string" && input.category.length > 0) {
+    lines.push(`🏆 ${input.category}`);
+  }
+
+  const dateTime = [input.dateLabel, input.time]
     .filter(
       (value): value is string => typeof value === "string" && value.length > 0,
     )
     .join(" · ");
 
-  if (meta) lines.push(meta);
+  if (dateTime) lines.push(`📅 ${dateTime}`);
+  lines.push("Pulsa Aprobar para guardar.");
   return lines;
 }
 
@@ -125,7 +125,7 @@ export const telegramToolDisplay: ToolDisplayFn = (event) => {
     kind: "post",
     message: Card({
       children: [
-        CardText("📝 Confirmar resultado"),
+        CardText("📝 Resultado detectado"),
         ...formatApprovalLines(event.args).map((line) => CardText(line)),
         Actions([
           Button({
