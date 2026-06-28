@@ -1,6 +1,7 @@
 import {
   additionalFiles,
   additionalPackages,
+  aptGet,
 } from "@trigger.dev/build/extensions/core";
 import { defineConfig } from "@trigger.dev/sdk";
 
@@ -16,6 +17,28 @@ export default defineConfig({
   },
   build: {
     extensions: [
+      // Remotion downloads Chrome Headless Shell at runtime, but the slim
+      // deploy image lacks the system shared libraries Chromium links against
+      // (libnspr4.so etc.). Install Remotion's Linux dependency set so the
+      // browser process can launch.
+      aptGet({
+        packages: [
+          "libnss3",
+          "libdbus-1-3",
+          "libatk1.0-0",
+          "libgbm1",
+          "libasound2",
+          "libxrandr2",
+          "libxkbcommon-dev",
+          "libxfixes3",
+          "libxcomposite1",
+          "libxdamage1",
+          "libatk-bridge2.0-0",
+          "libpango-1.0-0",
+          "libcairo2",
+          "libcups2",
+        ],
+      }),
       additionalFiles({
         files: ["../../packages/remotion/src/**", "../../packages/ui/src/**"],
       }),
