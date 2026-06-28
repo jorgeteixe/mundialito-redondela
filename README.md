@@ -1,31 +1,57 @@
 # Mundialito Redondela ⚽
 
-Welcome to the monorepo for the **Mundialito da Xunqueira 2026** in Redondela (Vigo area). This repository houses the platform to follow results, statistics, and schedules for the 47th edition of this street football tournament.
+Monorepo for the **Mundialito da Xunqueira 2026** in Redondela (Vigo area) — the platform to follow results, statistics, and schedules for the 47th edition of this street futsal tournament. See [EVENT.md](./EVENT.md) for tournament details.
 
-Built as a Turbopack-powered Next.js application, the project uses a workspace-focused Monorepo architecture.
+Built as a **Turborepo + pnpm** monorepo, with Next.js apps, shared packages, self-hosted Trigger.dev jobs, and a Telegram result-entry agent.
 
 ---
 
 ## 🏗️ Architecture & Packages
 
-The project is structured as a monorepo utilizing **Turborepo** and **pnpm**:
+### Apps
 
-- **`apps/web`**: Next.js App Router website, packaged as `@mr/web`.
-- **`packages/ui`**: Shared React components and Storybook, packaged as `@mr/ui`.
-- **`packages/eslint-config`**: Shared ESLint flat configurations, packaged as `@mr/eslint-config`.
-- **`packages/typescript-config`**: Shared TypeScript compiler settings, packaged as `@mr/typescript-config`.
+- **`apps/web`** (`@mr/web`) — public Next.js App Router website (results, standings, schedule).
+- **`apps/backstage`** (`@mr/backstage`) — Next.js App Router admin app (port 3001) for managing the tournament.
+- **`apps/jobs`** (`@mr/jobs`) — self-hosted Trigger.dev jobs that render media and publish to Instagram/Facebook.
+- **`apps/video-worker`** (`@mr/video-worker`) — media rendering helpers shared by Trigger jobs.
+- **`apps/social-worker`** (`@mr/social-worker`) — social publishing helpers shared by Trigger jobs.
+- **`apps/telegram-agent`** (`@mr/telegram-agent`) — Mastra + Gemini chat agent that enters match results from a Telegram group via long polling.
+
+### Packages
+
+- **`packages/ui`** (`@mr/ui`) — shared React components (shadcn/ui) and Storybook.
+- **`packages/db`** (`@mr/db`) — Drizzle ORM + PostgreSQL schema and client.
+- **`packages/tournament`** (`@mr/tournament`) — shared tournament core: result application (`applyMatchResult`), bracket resolution, and standings.
+- **`packages/remotion`** (`@mr/remotion`) — Remotion compositions for video/media rendering.
+- **`packages/tools`** (`@mr/tools`) — CLI utilities (seeding, DB reset, etc.).
+- **`packages/eslint-config`** (`@mr/eslint-config`) — shared ESLint flat configs.
+- **`packages/typescript-config`** (`@mr/typescript-config`) — shared TypeScript compiler settings.
 
 ---
 
 ## 🚀 Getting Started
 
-First, install the workspace dependencies:
+Install workspace dependencies:
 
 ```bash
 pnpm install
 ```
 
-To launch the development server for the entire monorepo (both the website and Storybook):
+Copy the example environment file and fill in the values:
+
+```bash
+cp .env.example .env
+```
+
+Run database migrations and seed data:
+
+```bash
+pnpm db:migrate
+pnpm db:seed
+pnpm db:seed-admin
+```
+
+Start development (web + backstage + local Trigger worker + Telegram agent):
 
 ```bash
 pnpm dev
@@ -35,48 +61,74 @@ pnpm dev
 
 ## 🛠️ Workspace Commands
 
-The following scripts are configured in the root `package.json` to manage all packages:
+| Command            | Action                                                  |
+| :----------------- | :------------------------------------------------------ |
+| `pnpm dev`         | Runs web, backstage, Trigger worker, and Telegram agent |
+| `pnpm build`       | Production build of all workspace apps                  |
+| `pnpm lint`        | Runs ESLint across the codebase                         |
+| `pnpm typecheck`   | Validates TypeScript compilation                        |
+| `pnpm test`        | Runs unit and Storybook browser tests                   |
+| `pnpm test:e2e`    | Runs Playwright E2E tests                               |
+| `pnpm test:visual` | Runs Storybook visual screenshot tests                  |
+| `pnpm format`      | Formats all files using Prettier                        |
+| `pnpm storybook`   | Starts Storybook for the UI library                     |
 
-| Command            | Action                                                           |
-| :----------------- | :--------------------------------------------------------------- |
-| `pnpm dev`         | Starts Next.js and Storybook concurrently in development mode    |
-| `pnpm build`       | Performs a production build of all applications in the workspace |
-| `pnpm lint`        | Runs ESLint across the codebase                                  |
-| `pnpm typecheck`   | Validates TypeScript compilation                                 |
-| `pnpm test`        | Runs unit and Storybook browser tests                            |
-| `pnpm test:e2e`    | Runs Playwright E2E tests                                        |
-| `pnpm test:visual` | Runs Storybook visual screenshot tests                           |
-| `pnpm format`      | Formats all files using Prettier                                 |
+### Database
+
+| Command              | Action                               |
+| :------------------- | :----------------------------------- |
+| `pnpm db:generate`   | Generate Drizzle migrations          |
+| `pnpm db:migrate`    | Run migrations                       |
+| `pnpm db:push`       | Push schema without a migration file |
+| `pnpm db:studio`     | Open Drizzle Studio                  |
+| `pnpm db:reset`      | Drop and re-migrate (no seed)        |
+| `pnpm db:seed`       | Seed sample data                     |
+| `pnpm db:seed-real`  | Seed real tournament data            |
+| `pnpm db:seed-admin` | Seed an admin user                   |
+
+### Trigger jobs & Telegram agent
+
+| Command               | Action                                      |
+| :-------------------- | :------------------------------------------ |
+| `pnpm jobs:dev`       | Run the Trigger.dev dev worker              |
+| `pnpm jobs:deploy`    | Deploy Trigger jobs                         |
+| `pnpm telegram:dev`   | Run the Telegram result agent (dev, watch)  |
+| `pnpm telegram:start` | Run the Telegram result agent (prod worker) |
 
 ### Package Filtering
 
-To run commands on a specific workspace package, use pnpm's `--filter` flag:
+Run commands against a single workspace package with pnpm's `--filter`:
 
 ```bash
-# Run Next.js website in development mode
-pnpm --filter @mr/web dev
-
-# Start Storybook for the UI library
-pnpm --filter @mr/ui storybook
+pnpm --filter @mr/web dev          # public website only
+pnpm --filter @mr/backstage dev    # admin app only (port 3001)
+pnpm --filter @mr/ui storybook     # Storybook for the UI library
 ```
 
 ---
 
 ## 📖 Guides & Documentation
 
-Detailed workflows, guidelines, and visual assets automation instructions are stored in the `/docs` folder:
+Detailed workflows and guidelines live in the [`docs/`](./docs) folder:
 
-- **[Documentation Overview](file:///Users/teixe/dev/mundialito-redondela/docs/README.md)**: Folder conventions and technical scope.
-- **[UI Components](file:///Users/teixe/dev/mundialito-redondela/docs/ui-components.md)**: shadcn/ui setup, how to add components, theming, and Storybook conventions.
-- **[Backstage E2E Testing](docs/backstage-e2e-testing.md)**: Playwright setup for backstage auth and user workflows.
-- **[Testing Strategy](docs/testing-strategy.md)**: Unit, component, visual, and E2E testing conventions.
-- **[Telegram Result Agent](docs/telegram-result-agent.md)**: Chat-based Mastra/Gemini agent for entering match results from Telegram.
+- **[Documentation Overview](docs/README.md)** — folder conventions and technical scope.
+- **[Database](docs/database.md)** — Drizzle schema, migrations, and seeding.
+- **[Auth](docs/auth.md)** — backstage authentication.
+- **[UI Components](docs/ui-components.md)** — shadcn/ui setup, theming, and Storybook conventions.
+- **[Testing Strategy](docs/testing-strategy.md)** — unit, component, visual, and E2E conventions.
+- **[Backstage E2E Testing](docs/backstage-e2e-testing.md)** — Playwright setup for backstage auth and workflows.
+- **[Telegram Result Agent](docs/telegram-result-agent.md)** — Mastra/Gemini agent for entering results from Telegram.
+- **[Video Generation Queue](docs/video-generation-queue.md)** — media rendering pipeline.
+- **[Social Publishing Queue](docs/social-publishing-queue.md)** — Instagram/Facebook publishing pipeline.
+- **[Open Graph Generation](docs/open-graph-generation.md)** — OG image automation.
+- **[Trigger.dev Pilot](docs/trigger-dev-pilot.md)** — self-hosted Trigger.dev setup.
+- **[Visual Testing](docs/visual-testing.md)** — Storybook visual regression workflow.
 
 ---
 
 ## 📦 Imports Convention
 
-Always import shared UI components using the workspace namespace:
+Import shared code using the `@mr/*` workspace namespace:
 
 ```tsx
 import { Button, Logo } from "@mr/ui";
@@ -86,4 +138,4 @@ import { Button, Logo } from "@mr/ui";
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](file:///Users/teixe/dev/mundialito-redondela/LICENSE) file for details.
+Licensed under the MIT License — see [LICENSE](./LICENSE).
