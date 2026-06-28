@@ -36,9 +36,12 @@ CONSULTAR HORARIO
 REGISTRAR UN RESULTADO
 1. Cuando alguien escriba un resultado (p. ej. "Barça 2 Madrid 1", o incluso solo "el barrio ganó 2-1"), identifica los dos equipos. Si necesitas interpretar "hoy", "mañana" o deducir el partido del día actual, llama primero a getToday. Si solo nombran a uno, deduce el rival mirando el horario de ese día con getSchedule.
 2. Llama a resolveMatchForResult con los equipos y goles. NO escribe nada; solo identifica el partido y orienta el marcador a local/visitante. Según su salida:
-   - ok=true: NO pidas confirmación por texto. Publica UNA línea de resumen con el día, la hora, la categoría, los nombres completos y el marcador, por ejemplo:
-       "📝 Vas a registrar — El Barrio F.S 2–1 Chata F.S · Cadete · lunes 29 de junio, 20:30. Pulsa Aprobar para guardar."
-     y JUSTO DESPUÉS llama a submitMatchResult con los valores EXACTOS devueltos (matchId, homeName, awayName, homeScore, awayScore y penaltis si los hay). Eso muestra unos botones Aprobar/Denegar: ESOS botones son la confirmación. No los simules ni esperes a que el usuario escriba "sí".
+   - ok=true: NO pidas confirmación por texto. Publica un resumen en varias líneas, por ejemplo:
+       📝 Resultado detectado
+       El Barrio F.S 2–1 Chata F.S
+       Cadete · lunes 29 de junio · 20:30
+       Pulsa Aprobar para guardar.
+     y JUSTO DESPUÉS llama a submitMatchResult con los valores EXACTOS devueltos (matchId, homeName, awayName, homeScore, awayScore, category, dateLabel, time y penaltis si los hay). Eso muestra unos botones Aprobar/Denegar: ESOS botones son la confirmación. No los simules ni esperes a que el usuario escriba "sí".
    - warning="needs-penalties": es eliminatoria y quedó en empate. Pide el resultado de los PENALTIS por separado y, cuando lo tengas, vuelve a llamar a resolveMatchForResult con penaltisA y penaltisB.
    - warning="ambiguous": hay varios partidos posibles; muéstralos y pregunta a cuál se refiere (por día u hora).
    - warning="not-found": pide que revisen los nombres con getSchedule.
@@ -51,9 +54,26 @@ REGLAS DE PENALTIS (importantes)
 - Partidos de grupo: NUNCA penaltis, solo goles.
 - Eliminatorias (semifinal, tercer puesto, final): los goles del tiempo reglamentario y los penaltis son cosas SEPARADAS. Solo hay penaltis si el reglamentario acabó en empate, y debes confirmarlos por separado. Muéstralo claro, por ejemplo: "Reglamentario 2–2 · Penaltis 4–3".`;
 
-function formatApprovalSummary(args: unknown): string {
+function formatScoreLine(input: {
+  homeName: string;
+  awayName: string;
+  homeScore: number;
+  awayScore: number;
+  homePenalties?: number;
+  awayPenalties?: number;
+}): string {
+  const penalties =
+    typeof input.homePenalties === "number" &&
+    typeof input.awayPenalties === "number"
+      ? ` · Penaltis ${input.homePenalties}-${input.awayPenalties}`
+      : "";
+
+  return `${input.homeName} ${input.homeScore}-${input.awayScore} ${input.awayName}${penalties}`;
+}
+
+function formatApprovalLines(args: unknown): string[] {
   if (typeof args !== "object" || args === null) {
-    return "Revisa los datos antes de guardar.";
+    return ["Revisa los datos antes de guardar."];
   }
 
   const input = args as Partial<{
@@ -63,6 +83,9 @@ function formatApprovalSummary(args: unknown): string {
     awayScore: number;
     homePenalties: number;
     awayPenalties: number;
+    category: string;
+    dateLabel: string;
+    time: string;
   }>;
 
   if (
@@ -71,16 +94,28 @@ function formatApprovalSummary(args: unknown): string {
     typeof input.homeScore !== "number" ||
     typeof input.awayScore !== "number"
   ) {
-    return "Revisa los datos antes de guardar.";
+    return ["Revisa los datos antes de guardar."];
   }
 
-  const penalties =
-    typeof input.homePenalties === "number" &&
-    typeof input.awayPenalties === "number"
-      ? ` · Penaltis ${input.homePenalties}-${input.awayPenalties}`
-      : "";
+  const lines = [
+    formatScoreLine({
+      homeName: input.homeName,
+      awayName: input.awayName,
+      homeScore: input.homeScore,
+      awayScore: input.awayScore,
+      homePenalties: input.homePenalties,
+      awayPenalties: input.awayPenalties,
+    }),
+  ];
 
-  return `${input.homeName} ${input.homeScore}-${input.awayScore} ${input.awayName}${penalties}`;
+  const meta = [input.category, input.dateLabel, input.time]
+    .filter(
+      (value): value is string => typeof value === "string" && value.length > 0,
+    )
+    .join(" · ");
+
+  if (meta) lines.push(meta);
+  return lines;
 }
 
 export const telegramToolDisplay: ToolDisplayFn = (event) => {
@@ -91,7 +126,7 @@ export const telegramToolDisplay: ToolDisplayFn = (event) => {
     message: Card({
       children: [
         CardText("📝 Confirmar resultado"),
-        CardText(formatApprovalSummary(event.args)),
+        ...formatApprovalLines(event.args).map((line) => CardText(line)),
         Actions([
           Button({
             id: `tool_approve:${event.toolCallId}`,

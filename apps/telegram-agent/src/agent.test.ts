@@ -15,6 +15,9 @@ describe("telegramToolDisplay", () => {
           awayName: "Chata F.S",
           homeScore: 2,
           awayScore: 1,
+          category: "Cadete",
+          dateLabel: "lunes 29 de junio",
+          time: "20:00",
         },
       },
       { mode: "static", platform: "telegram" },
@@ -30,6 +33,7 @@ describe("telegramToolDisplay", () => {
       children: [
         { type: "text", content: "📝 Confirmar resultado" },
         { type: "text", content: "El Barrio F.S 2-1 Chata F.S" },
+        { type: "text", content: "Cadete · lunes 29 de junio · 20:00" },
         {
           type: "actions",
           children: [

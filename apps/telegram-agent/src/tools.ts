@@ -200,6 +200,18 @@ export const submitMatchResult = createTool({
     awayScore: scoreField,
     homePenalties: scoreField.optional(),
     awayPenalties: scoreField.optional(),
+    category: z
+      .string()
+      .optional()
+      .describe("Categoría devuelta por resolveMatchForResult."),
+    dateLabel: z
+      .string()
+      .optional()
+      .describe("Día legible devuelto por resolveMatchForResult."),
+    time: z
+      .string()
+      .optional()
+      .describe("Hora devuelta por resolveMatchForResult."),
   }),
   execute: async (input: {
     matchId: string;
@@ -209,6 +221,9 @@ export const submitMatchResult = createTool({
     awayScore: number;
     homePenalties?: number;
     awayPenalties?: number;
+    category?: string;
+    dateLabel?: string;
+    time?: string;
   }) => {
     const outcome = await applyMatchResult({
       matchId: input.matchId,
