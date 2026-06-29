@@ -1,13 +1,6 @@
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-  Badge,
-  CategoryBadge,
-  GroupBadge,
-  cn,
-} from "@mr/ui";
+import { Badge, CategoryBadge, GroupBadge, cn } from "@mr/ui";
 import { AbsoluteFill } from "remotion";
+import { TeamAvatar } from "../../components/TeamAvatar";
 import { fontFamily } from "../../fonts";
 import type { ScheduleProps } from "./schema";
 
@@ -21,29 +14,6 @@ const CATEGORY_LABELS = {
   cadet: "Cadete",
 } as const;
 
-function slug(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-function initials(name: string) {
-  return name
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
-}
-
-function teamAvatarUrl(name: string) {
-  return `https://api.dicebear.com/10.x/shapes/svg?seed=${encodeURIComponent(slug(name))}`;
-}
-
 function Team({
   name,
   align,
@@ -54,14 +24,11 @@ function Team({
   compact: boolean;
 }) {
   const avatar = (
-    <Avatar className={cn("flex-none", compact ? "size-12" : "size-[72px]")}>
-      <AvatarImage src={teamAvatarUrl(name)} alt={name} />
-      <AvatarFallback
-        className={cn("font-semibold", compact ? "text-sm" : "text-2xl")}
-      >
-        {initials(name)}
-      </AvatarFallback>
-    </Avatar>
+    <TeamAvatar
+      name={name}
+      className={cn("flex-none", compact ? "size-12" : "size-[72px]")}
+      fallbackClassName={cn("font-semibold", compact ? "text-sm" : "text-2xl")}
+    />
   );
 
   return (

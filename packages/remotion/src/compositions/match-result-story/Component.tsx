@@ -1,13 +1,6 @@
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-  Badge,
-  CategoryBadge,
-  GroupBadge,
-  cn,
-} from "@mr/ui";
+import { Badge, CategoryBadge, GroupBadge, cn } from "@mr/ui";
 import { AbsoluteFill, Easing, interpolate, useCurrentFrame } from "remotion";
+import { TeamAvatar } from "../../components/TeamAvatar";
 import { fontFamily } from "../../fonts";
 import type { MatchResultStoryProps } from "./schema";
 
@@ -15,29 +8,6 @@ const CATEGORY_LABELS = {
   senior: "Senior",
   cadet: "Cadete",
 } as const;
-
-function slug(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-function initials(name: string) {
-  return name
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
-}
-
-function teamAvatarUrl(name: string) {
-  return `https://api.dicebear.com/10.x/shapes/svg?seed=${encodeURIComponent(slug(name))}`;
-}
 
 function won(
   sideScore: number,
@@ -87,12 +57,11 @@ function TeamPanel({
         scale: String(interpolate(progress, [0, 1], [0.96, 1])),
       }}
     >
-      <Avatar className="size-[190px]">
-        <AvatarImage src={teamAvatarUrl(name)} alt={name} />
-        <AvatarFallback className="text-[60px] font-bold">
-          {initials(name)}
-        </AvatarFallback>
-      </Avatar>
+      <TeamAvatar
+        name={name}
+        className="size-[190px]"
+        fallbackClassName="text-[60px] font-bold"
+      />
       <p
         className={cn(
           "mt-9 max-w-[360px] truncate text-[52px] font-bold leading-tight tracking-tight",
