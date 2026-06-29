@@ -1,12 +1,6 @@
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-  Badge,
-  CategoryBadge,
-  cn,
-} from "@mr/ui";
+import { Badge, CategoryBadge, cn } from "@mr/ui";
 import { AbsoluteFill } from "remotion";
+import { TeamAvatar } from "../../components/TeamAvatar";
 import { fontFamily } from "../../fonts";
 import type { GroupStandingsProps } from "./schema";
 
@@ -25,38 +19,15 @@ const STAT_COLUMNS = [
   { key: "goalDifference", label: "DG" },
 ] as const;
 
-function slug(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-function initials(name: string) {
-  return name
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
-}
-
-function teamAvatarUrl(id: string) {
-  return `https://api.dicebear.com/10.x/shapes/svg?seed=${encodeURIComponent(slug(id))}`;
-}
-
 function TeamCell({ teamId, teamName }: { teamId: string; teamName: string }) {
   return (
     <div className="flex min-w-0 items-center gap-4">
-      <Avatar className="size-14 flex-none">
-        <AvatarImage src={teamAvatarUrl(teamId)} alt={teamName} />
-        <AvatarFallback className="text-lg font-semibold">
-          {initials(teamName)}
-        </AvatarFallback>
-      </Avatar>
+      <TeamAvatar
+        name={teamName}
+        seed={teamId}
+        className="size-14 flex-none"
+        fallbackClassName="text-lg font-semibold"
+      />
       <span className="min-w-0 truncate text-[28px] font-semibold tracking-tight text-foreground">
         {teamName}
       </span>

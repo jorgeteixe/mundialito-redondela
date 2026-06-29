@@ -24,9 +24,9 @@ function initials(name: string) {
     .join("");
 }
 
-/** Dicebear "shapes" avatar derived deterministically from the team name. */
-function teamAvatarUrl(name: string) {
-  return `https://api.dicebear.com/10.x/shapes/svg?seed=${encodeURIComponent(slug(name))}`;
+/** Dicebear "shapes" avatar derived deterministically from a seed string. */
+function teamAvatarUrl(seed: string) {
+  return `https://api.dicebear.com/10.x/shapes/svg?seed=${encodeURIComponent(slug(seed))}`;
 }
 
 /**
@@ -39,10 +39,14 @@ function teamAvatarUrl(name: string) {
  */
 export function TeamAvatar({
   name,
+  seed,
   className,
   fallbackClassName,
 }: {
+  /** Team name; shown as initials when the image fails to load. */
   name: string;
+  /** Optional avatar seed (e.g. a stable team id); defaults to {@link name}. */
+  seed?: string;
   className?: string;
   fallbackClassName?: string;
 }) {
@@ -67,7 +71,7 @@ export function TeamAvatar({
         </span>
       ) : (
         <Img
-          src={teamAvatarUrl(name)}
+          src={teamAvatarUrl(seed ?? name)}
           alt={name}
           onError={handleError}
           className="size-full rounded-full object-cover"
