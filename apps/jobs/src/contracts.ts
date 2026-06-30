@@ -5,6 +5,8 @@ export const SOCIAL_RECONCILE_PERMALINKS_TASK_ID =
 export const PUBLICATION_PUBLISH_TASK_ID = "publication.publish";
 export const RESULTS_PUBLISH_AFTER_SAVE_TASK_ID = "results.publish-after-save";
 export const SCHEDULE_PUBLISH_MORNING_TASK_ID = "schedule.publish-morning";
+export const TELEGRAM_NUDGE_MIDDAY_TASK_ID = "telegram.nudge-midday";
+export const TELEGRAM_NUDGE_EVENING_TASK_ID = "telegram.nudge-evening";
 
 export type RenderMediaPayload = {
   id?: string;
@@ -73,4 +75,14 @@ export type SchedulePublishMorningOutput = {
   storyPostId: string | null;
   postId: string | null;
   matchCount: number;
+};
+
+export type TelegramNudgeOutput = {
+  date: string;
+  matchCount: number;
+  withResultCount: number;
+  // True when a nudge message was actually sent to the group.
+  sent: boolean;
+  // Why the nudge was skipped, when it was.
+  skippedReason: "no-matches-today" | "nothing-to-nudge" | null;
 };

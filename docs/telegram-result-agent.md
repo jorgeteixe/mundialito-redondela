@@ -98,3 +98,19 @@ Conversation memory + Chat SDK state live in the existing Postgres database
 The shared result-application core (update + `resolveBracket` + publish trigger)
 lives in `@mr/tournament` (`applyMatchResult`) and is the same code the backstage
 result form uses.
+
+## Result nudges (Trigger.dev)
+
+Two scheduled Trigger.dev tasks (`apps/jobs/src/tasks/telegram-nudges.ts`) post
+reminders into the **same group** as the **same bot** — they call Telegram's
+`sendMessage` with the same `TELEGRAM_BOT_TOKEN` / `TELEGRAM_GROUP_ID`. A day
+"has a result" once a match has both regular-time scores. No matches scheduled
+today → no message, ever.
+
+| Task                     | Cron (Madrid) | Sends when…                                             | Message                             |
+| ------------------------ | ------------- | ------------------------------------------------------- | ----------------------------------- |
+| `telegram.nudge-midday`  | `30 21 * * *` | matches scheduled today **and zero** results entered    | "¿cómo van los partidos?"           |
+| `telegram.nudge-evening` | `15 23 * * *` | matches scheduled today **and not all** results entered | "¿cómo quedaron? faltan resultados" |
+
+Because these run on the Trigger.dev worker (not the agent worker), set
+`TELEGRAM_BOT_TOKEN` and `TELEGRAM_GROUP_ID` in the **jobs** project env too.
