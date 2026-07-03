@@ -6,6 +6,10 @@ import { socialSchema } from "./compositions/dummy/schema";
 import { groupStandingsSchema } from "./compositions/group-standings/schema";
 import { matchResultStorySchema } from "./compositions/match-result-story/schema";
 import { scheduleSchema } from "./compositions/schedule/schema";
+import {
+  SHOWCASE_DURATION_IN_FRAMES,
+  showcaseSchema,
+} from "./compositions/showcase/schema";
 
 export type TemplateParameter = {
   name: string;
@@ -532,6 +536,26 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
       group: "Grupo A",
       note: "Partidazo en A Xunqueira",
       venue: "Pista de A Xunqueira, Redondela",
+    },
+  }),
+  defineTemplateDefinition({
+    id: "showcase",
+    title: "Vídeo de presentación (16:9)",
+    kind: "video",
+    preset: "landscape",
+    durationInFrames: SHOWCASE_DURATION_IN_FRAMES,
+    schema: showcaseSchema,
+    parameters: [
+      {
+        name: "tagline",
+        label: "Frase inicial",
+        description: "Frases del arranque, reveladas una a una.",
+        type: "text",
+        required: true,
+      },
+    ],
+    defaultProps: {
+      tagline: "One street court. 47 editions.",
     },
   }),
   defineTemplateDefinition({

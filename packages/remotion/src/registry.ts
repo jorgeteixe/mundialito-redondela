@@ -8,6 +8,7 @@ import { GroupStandingsImage } from "./compositions/group-standings/Image";
 import { MatchResultStory } from "./compositions/match-result-story/Component";
 import { Schedule } from "./compositions/schedule/Component";
 import { ScheduleImage } from "./compositions/schedule/Image";
+import { Showcase } from "./compositions/showcase/Component";
 import { InstagramProfile } from "./compositions/dummy/InstagramProfile";
 import { FacebookProfile } from "./compositions/dummy/FacebookProfile";
 import { FacebookCover } from "./compositions/dummy/FacebookCover";
@@ -104,6 +105,10 @@ export const TEMPLATES: Template[] = [
     Component: MatchResultStory as unknown as ComponentType<
       Record<string, unknown>
     >,
+  }),
+  defineTemplate({
+    ...getTemplateDefinition("showcase"),
+    Component: Showcase as unknown as ComponentType<Record<string, unknown>>,
   }),
   defineTemplate({
     ...getTemplateDefinition("instagram-profile"),
