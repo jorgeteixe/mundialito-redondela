@@ -5,9 +5,14 @@ export { TEMPLATES, type Template } from "./registry";
 export { TEMPLATE_DEFINITIONS, type TemplateDefinition } from "./templates";
 export { RemotionRoot } from "./Root";
 export { TOURNAMENT } from "./tournament";
-export * as theme from "./theme";
 
 // Compositions + their schemas/types
+export { Announcement } from "./compositions/announcement/Component";
+export {
+  announcementSchema,
+  type AnnouncementProps,
+} from "./compositions/announcement/schema";
+
 export { Countdown } from "./compositions/countdown/Component";
 export { CountdownImage } from "./compositions/countdown/Image";
 export {
@@ -40,11 +45,5 @@ export {
   matchResultStorySchema,
   type MatchResultStoryProps,
 } from "./compositions/match-result-story/schema";
-
-export { Result } from "./compositions/result/Component";
-export { resultSchema, type ResultProps } from "./compositions/result/schema";
-
-export { Goal } from "./compositions/goal/Component";
-export { goalSchema, type GoalProps } from "./compositions/goal/schema";
 
 export { teamScoreSchema, type TeamScore } from "./schemas";

@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import { PRESETS, type PresetName } from "./presets";
+import { announcementSchema } from "./compositions/announcement/schema";
 import { countdownSchema } from "./compositions/countdown/schema";
 import { dailyResultsSchema } from "./compositions/day-results/schema";
 import { socialSchema } from "./compositions/dummy/schema";
@@ -51,6 +52,27 @@ function defineTemplateDefinition<S extends z.ZodObject>(template: {
 }
 
 export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
+  defineTemplateDefinition({
+    id: "announcement",
+    title: "Aviso / Noticia (reel)",
+    kind: "video",
+    preset: "story",
+    schema: announcementSchema,
+    parameters: [
+      {
+        name: "text",
+        label: "Mensaje",
+        description:
+          "Texto del aviso, p. ej. «Partidos pospuestos por lluvia».",
+        type: "text",
+        required: true,
+      },
+    ],
+    defaultProps: {
+      eyebrow: "Aviso",
+      text: "Los partidos de hoy quedan pospuestos por la lluvia y se jugarán el miércoles a la misma hora",
+    },
+  }),
   defineTemplateDefinition({
     id: "countdown",
     title: "Cuenta atrás (reel diario)",

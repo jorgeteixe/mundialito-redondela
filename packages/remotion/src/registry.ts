@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import type { z } from "zod";
+import { Announcement } from "./compositions/announcement/Component";
 import { Countdown } from "./compositions/countdown/Component";
 import { CountdownImage } from "./compositions/countdown/Image";
 import { DailyResults } from "./compositions/day-results/Component";
@@ -62,6 +63,12 @@ function getTemplateDefinition(id: string) {
 }
 
 export const TEMPLATES: Template[] = [
+  defineTemplate({
+    ...getTemplateDefinition("announcement"),
+    Component: Announcement as unknown as ComponentType<
+      Record<string, unknown>
+    >,
+  }),
   defineTemplate({
     ...getTemplateDefinition("countdown"),
     Component: Countdown as unknown as ComponentType<Record<string, unknown>>,
