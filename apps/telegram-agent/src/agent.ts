@@ -75,7 +75,7 @@ export function buildResultAgent(opts: {
     id: "resultados",
     name: "resultados",
     instructions: INSTRUCTIONS,
-    model: "google/gemini-2.5-flash",
+    model: "google/gemini-flash-latest",
     tools,
     memory: new Memory({ storage: opts.storage }),
     channels: {
