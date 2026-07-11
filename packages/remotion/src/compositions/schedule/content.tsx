@@ -145,8 +145,8 @@ export function ScheduleContent({
   enter = () => 1,
 }: ScheduleContentProps) {
   const compact = variant === "square";
-  const visibleMatches = compact ? matches.slice(0, 5) : matches;
-  const hiddenCount = matches.length - visibleMatches.length;
+  const dense = compact && matches.length >= 6;
+  const visibleMatches = matches;
 
   return (
     <AbsoluteFill
@@ -156,7 +156,11 @@ export function ScheduleContent({
       <div
         className={cn(
           "flex h-full flex-col items-center justify-center",
-          compact ? "gap-9 px-12 py-12" : "gap-14 px-16 py-28",
+          compact
+            ? dense
+              ? "gap-5 px-10 py-8"
+              : "gap-9 px-12 py-12"
+            : "gap-14 px-16 py-28",
         )}
       >
         <header
@@ -169,7 +173,11 @@ export function ScheduleContent({
           <Badge
             variant="secondary"
             className={
-              compact ? "h-5 px-2 text-[12px]" : "h-9 px-4 text-[22px]"
+              compact
+                ? dense
+                  ? "h-5 px-2 text-[11px]"
+                  : "h-5 px-2 text-[12px]"
+                : "h-9 px-4 text-[22px]"
             }
           >
             XLVII
@@ -177,7 +185,11 @@ export function ScheduleContent({
           <p
             className={cn(
               "mt-3 font-semibold tracking-tight text-foreground",
-              compact ? "text-[30px]" : "text-[46px]",
+              compact
+                ? dense
+                  ? "text-[25px]"
+                  : "text-[30px]"
+                : "text-[46px]",
             )}
           >
             Mundialito da Xunqueira
@@ -185,7 +197,11 @@ export function ScheduleContent({
           <p
             className={cn(
               "mt-6 font-bold uppercase tracking-[0.24em] text-muted-foreground",
-              compact ? "text-[22px]" : "text-[32px]",
+              compact
+                ? dense
+                  ? "mt-4 text-[18px]"
+                  : "text-[22px]"
+                : "text-[32px]",
             )}
           >
             {eyebrow}
@@ -193,7 +209,11 @@ export function ScheduleContent({
           <h1
             className={cn(
               "mt-3 max-w-[940px] font-bold leading-none tracking-tight text-foreground",
-              compact ? "text-[70px]" : "text-[112px]",
+              compact
+                ? dense
+                  ? "text-[56px]"
+                  : "text-[70px]"
+                : "text-[112px]",
             )}
           >
             {date}
@@ -203,7 +223,7 @@ export function ScheduleContent({
         <main
           className={cn(
             "flex w-full flex-col",
-            compact ? "gap-2" : "gap-3",
+            compact ? (dense ? "gap-1.5" : "gap-2") : "gap-3",
             compact ? "max-w-[980px]" : "max-w-[920px]",
           )}
           style={{
@@ -223,15 +243,17 @@ export function ScheduleContent({
         <footer
           className={cn(
             "flex w-full items-center justify-between gap-6 text-muted-foreground",
-            compact ? "max-w-[980px] text-[20px]" : "max-w-[920px] text-[28px]",
+            compact
+              ? dense
+                ? "max-w-[980px] text-[16px]"
+                : "max-w-[980px] text-[20px]"
+              : "max-w-[920px] text-[28px]",
           )}
           style={{ opacity: enter(18) }}
         >
           <span>{venue}</span>
           <span className="font-semibold text-foreground">
-            {hiddenCount > 0
-              ? `+${hiddenCount} ${hiddenCount === 1 ? "partido" : "partidos"}`
-              : `${matches.length} ${matches.length === 1 ? "partido" : "partidos"}`}
+            {`${matches.length} ${matches.length === 1 ? "partido" : "partidos"}`}
           </span>
         </footer>
       </div>
