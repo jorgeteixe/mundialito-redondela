@@ -19,6 +19,7 @@
     "db:reset": "pnpm --filter @mr/tools db:reset",
     "db:seed": "pnpm --filter @mr/tools db:seed",
     "db:seed-real": "pnpm --filter @mr/tools db:seed-real",
+    "db:reschedule-matches": "pnpm --filter @mr/tools db:reschedule-matches",
     "db:seed-admin": "pnpm --filter @mr/tools db:seed-admin",
     "telegram:dev": "turbo run dev --filter @mr/telegram-agent",
     "telegram:start": "pnpm --filter @mr/telegram-agent start",
