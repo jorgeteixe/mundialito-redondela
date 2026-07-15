@@ -8,12 +8,19 @@ import { getEnv } from "./env";
  * Assemble the Mastra instance. Conversation state + memory live in the
  * existing tournament Postgres database (no separate datastore).
  */
+export function createTelegramStorage(databaseUrl: string) {
+  return new PostgresStore({
+    id: "telegram-agent",
+    connectionString: databaseUrl,
+    // Emergency workaround for the VPS certificate signed by Coolify's
+    // private CA. Remove after that CA is trusted by the production image.
+    ssl: { rejectUnauthorized: false },
+  });
+}
+
 export function buildMastra() {
   const env = getEnv();
-  const storage = new PostgresStore({
-    id: "telegram-agent",
-    connectionString: env.databaseUrl,
-  });
+  const storage = createTelegramStorage(env.databaseUrl);
   const agent = buildResultAgent({ storage, groupId: env.telegramGroupId });
   const mastra = new Mastra({
     agents: { resultados: agent },
