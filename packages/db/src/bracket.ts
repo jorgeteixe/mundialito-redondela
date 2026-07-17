@@ -146,7 +146,7 @@ const CADET_KO: BracketMatch[] = [
     "2026-07-20",
     "20:00",
     r("f2", 1, 1),
-    r("f2", 1, 2),
+    r("f2", 2, 1),
   ),
   ko(
     "cadet",
@@ -154,8 +154,8 @@ const CADET_KO: BracketMatch[] = [
     "cadet-sf-2",
     "2026-07-20",
     "20:30",
+    r("f2", 1, 2),
     r("f2", 1, 3),
-    r("f2", 2, 1),
   ),
   ko(
     "cadet",
